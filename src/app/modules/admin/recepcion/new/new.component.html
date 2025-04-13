@@ -1,0 +1,289 @@
+
+<div class="flex flex-col flex-auto min-w-0">
+
+
+
+
+  <form [formGroup]="form" (ngSubmit)="registrar()">
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  
+        <!-- Almacén -->
+        <div class="flex flex-col">
+          <label for="almacenes">Almacén:</label>
+          <p-dropdown 
+            formControlName="almacenId" 
+            [options]="almacenes" 
+            scrollHeight="40vh" 
+            placeholder="Seleccione un almacén" 
+            [resetFilterOnHide]="false"
+            [style]="{'width': '100%'}" 
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('almacenId').touched && form.get('almacenId').invalid" class="text-red-500 text-sm">
+            El almacén es obligatorio.
+          </div>
+        </div>
+  
+        <!-- Propietario -->
+        <div class="flex flex-col">
+          <label for="propietarios">Propietario:</label>
+          <p-dropdown 
+            formControlName="propietarioId" 
+            [options]="propietarios" 
+            [filter]="true" 
+            filterBy="label" 
+            [showClear]="true" 
+            (onChange)="onChangePropietario($event)" 
+            [style]="{'width': '100%'}" 
+            placeholder="Seleccione un propietario" 
+            [resetFilterOnHide]="false" 
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('propietarioId').touched && form.get('propietarioId').invalid" class="text-red-500 text-sm">
+            El propietario es obligatorio.
+          </div>
+        </div>
+  
+        <!-- Fecha Esperada -->
+        <div class="flex flex-col">
+          <label for="fechaEsperada">Fecha esperada:</label>
+          <p-calendar 
+            formControlName="fechaEsperada"  appendTo="body"
+            [showIcon]="true" 
+            [style]="{'width': '100%'}" 
+            dateFormat="dd/mm/yy"></p-calendar>
+            <div *ngIf="form.get('fechaEsperada').touched && form.get('fechaEsperada').invalid" class="text-red-500 text-sm">
+              La fecha esperada es obligatoria.
+            </div>
+        </div>
+  
+        <!-- Hora Esperada -->
+        <div class="flex flex-col">
+          <label for="horaEsperada">Hora esperada: (24 hrs)</label>
+          <p-calendar 
+            formControlName="horaEsperada"  
+            [style]="{'width': '100%'}" 
+            [timeOnly]="true"></p-calendar>
+            <div *ngIf="form.get('horaEsperada').touched && form.get('horaEsperada').invalid" class="text-red-500 text-sm">
+              La hora esperada es obligatoria.
+            </div>
+        </div>
+    
+        <!-- Cliente -->
+        <div class="flex flex-col">
+          <label for="tiposingreso">Tipo de Ingreso:</label>
+          <p-dropdown 
+            formControlName="IdTipoIngreso" 
+            [options]="tiposingreso" 
+            [filter]="true" 
+            placeholder="Seleccione un tipo ingreso" 
+            [resetFilterOnHide]="false" 
+            [style]="{'width': '100%'}"  
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('IdTipoIngreso').touched && form.get('IdTipoIngreso').invalid" class="text-red-500 text-sm">
+            El Tipo de ingreso es obligatorio.
+          </div>
+        </div>
+  
+        <!-- Dirección de Entrega -->
+        <div class="flex flex-col">
+          <label for="destinos">Destino:</label>
+          <p-dropdown 
+            formControlName="IdDestino" 
+            [options]="destinos" 
+            placeholder="Seleccione un destino de entrega" 
+            [resetFilterOnHide]="false" 
+            [hideTransitionOptions]="'0ms'" 
+            [style]="{'width': '100%'}"  
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('IdDestino').touched && form.get('IdDestino').invalid" class="text-red-500 text-sm">
+            El destino es obligatoria.
+          </div>
+        </div>
+       
+  
+        <!-- Guía de Remisión -->
+        <div class="flex flex-col">
+          <label for="guiaRemision">Guía de Remisión :</label>
+          <input 
+            pInputText 
+            formControlName="guiaRemision" 
+            minlength="5" 
+            maxlength="50" 
+            autocomplete="off" 
+            [style]="{'width': '100%'}"  
+            type="text">
+          <div *ngIf="form.get('guiaRemision').errors">
+            <div *ngIf="form.get('guiaRemision').touched && form.get('guiaRemision').invalid" class="text-red-500 text-sm">
+              La guía de remisión es obligatoria.
+            </div>
+            <div *ngIf="form.get('guiaRemision').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          <label for="ordenCompra">OC:</label>
+          <input 
+            pInputText 
+            formControlName="ordenCompra" 
+            minlength="5" 
+            maxlength="12" 
+            autocomplete="off" 
+            type="text">
+          <div *ngIf="form.get('ordenCompra').errors">
+            <div *ngIf="form.get('ordenCompra').touched && form.get('ordenCompra').invalid" class="text-red-500 text-sm">
+              La orden de compra es obligatoria.
+            </div>
+            <div *ngIf="form.get('ordenCompra').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          <label for="proveedor">Proveedor:</label>
+          <input 
+            pInputText 
+            formControlName="proveedor" 
+            minlength="5" 
+            maxlength="12" 
+            autocomplete="off" 
+            type="text">
+          <div *ngIf="form.get('proveedor').errors">
+          
+            <div *ngIf="form.get('proveedor').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+  
+    <p-panel header="Detalles (Referencias)" class="w-full mb-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  
+        <!-- Orden Entrega -->
+        <div class="flex flex-col">
+          <label for="cantidad">Bultos :</label>
+          <input 
+            pInputText 
+            formControlName="cantidad" 
+            minlength="5" 
+            maxlength="50" 
+            autocomplete="off" 
+            type="text">
+          <div *ngIf="form.get('cantidad').errors">
+            <div *ngIf="form.get('cantidad').touched && form.get('cantidad').invalid" class="text-red-500 text-sm">
+              La cantidad es obligatoria.
+            </div>
+          
+          </div>
+        </div>
+
+          <!-- Orden Entrega -->
+          <div class="flex flex-col">
+            <label for="peso">Peso :</label>
+            <input 
+              pInputText 
+              formControlName="peso" 
+              minlength="5" 
+              maxlength="50" 
+              autocomplete="off" 
+              type="text">
+            <div *ngIf="form.get('peso').errors">
+              <div *ngIf="form.get('peso').touched && form.get('peso').invalid" class="text-red-500 text-sm">
+                El peso es obligatorio.
+              </div>
+           
+            </div>
+          </div>
+
+
+            <!-- Orden Entrega -->
+            <div class="flex flex-col">
+              <label for="volumen">Volumen :</label>
+              <input 
+                pInputText 
+                formControlName="volumen" 
+                minlength="5" 
+                maxlength="50" 
+                autocomplete="off" 
+                type="text">
+              <div *ngIf="form.get('volumen').errors">
+                <div *ngIf="form.get('volumen').touched && form.get('volumen').invalid" class="text-red-500 text-sm">
+                    El volumen es obligatorio.
+                </div>
+               
+              </div>
+            </div>
+
+            <div class="flex flex-col">
+              <label for="entrega">Nro Entrega :</label>
+              <input 
+                pInputText 
+                formControlName="entrega" 
+                minlength="5" 
+                maxlength="50" 
+                autocomplete="off" 
+                type="text">
+              <div *ngIf="form.get('entrega').errors">
+                <div *ngIf="form.get('entrega').touched && form.get('entrega').invalid" class="text-red-500 text-sm">
+                    El número de entrega es obligatorio.
+                </div>
+                <div *ngIf="form.get('entrega').errors?.minlength">
+                  Debe tener más de 5 caracteres.
+                </div>
+              </div>
+            </div>
+    
+  
+      
+      </div>
+      
+      <p-button 
+        [disabled]="!form.valid" 
+        class="btn btn-space btn-primary" 
+        type="submit">
+        Guardar
+      </p-button>
+      
+      <p-button 
+        
+        routerLinkActive="router-link-active" 
+        class="btn btn-space btn-secondary">
+        Cancelar
+      </p-button>
+    </p-panel>
+  </form>
+
+  
+</div>
+
+
+
+
+
+<p-confirmDialog />
+<p-toast />

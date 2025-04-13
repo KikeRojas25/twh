@@ -1,0 +1,307 @@
+
+<div class="flex flex-col flex-auto min-w-0">
+
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Listado de ORI</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Órdenes de ingreso </h2>
+      </div>
+  </div>
+  </div>
+
+
+ 
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  
+    <div class="flex flex-col">
+      <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
+      <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" 
+      [style]="{'width': '100%'}" 
+      [resetFilterOnHide]="true"
+      [hideTransitionOptions]="'0ms'"
+      [showTransitionOptions]="'0ms'"
+      [filter]="true"
+      filterBy="label" 
+      [showClear]="true" 
+      placeholder="Selecciona un almacén" class="w-60">
+
+        <ng-template let-item pTemplate="selectedItem">
+          <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+
+      </p-dropdown>
+    </div>
+
+
+  <!-- OC Field -->
+  <div class="flex flex-col">
+    <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
+
+      <p-dropdown name="clientes" 
+      [options]="clientes" 
+      [resetFilterOnHide]="true"
+      [(ngModel)]="model.PropietarioId" 
+      [filter]="true"
+      filterBy="label" 
+      [showClear]="true" 
+      [style]="{'width': '100%'}" 
+      [hideTransitionOptions]="'0ms'"
+      [showTransitionOptions]="'0ms'"
+         placeholder="Selecciona un propietario" 
+        >
+        <ng-template let-item pTemplate="selectedItem">
+          <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+
+      
+      </p-dropdown>
+  </div>
+  <div class="flex flex-col">
+    <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Estado</label>
+      <p-dropdown [options]="estados"  [(ngModel)]="model.EstadoId"
+      scrollHeight="40vh" class="input-form-field  col-sm-5"    [style]="{'width':'100%'}"  [resetFilterOnHide]="true"
+      [hideTransitionOptions]="'0ms'"
+      [showTransitionOptions]="'0ms'"
+      placeholder="Todos"
+      filter="false">
+          <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align:middle;">{{item.label}}</span>
+          </ng-template>
+      </p-dropdown>
+  </div>
+
+  
+    <!-- Inicio Recojo -->
+    <div class="flex flex-col">
+      <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Fec. Inicio</label>
+      <p-calendar 
+        id="dateInicio"
+        [(ngModel)]="dateInicio" 
+        dateFormat="dd.mm.yy" 
+        />
+    </div>
+
+
+  <!-- SKU Field -->
+  <div class="flex flex-col">
+    <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Fec. Fin</label>
+    <p-calendar 
+      id="dateFin"
+      [(ngModel)]="dateFin" 
+      dateFormat="dd.mm.yy" 
+      />
+  </div>
+
+  <div class="flex flex-col">
+    <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Nro Guía / OC  :</label>
+  <input pInputText  minlength="5" maxlength="50" class="form-control col-md-12"  autocomplete="off" [(ngModel)]="model.guiaremision" name="guiaremision" #guiaremision="ngModel" type="text">
+  </div>
+
+  <div class="flex flex-col">
+    <p-button severity="primary" icon="fa fa-search" label="Buscar" (onClick)="buscar()" > </p-button>
+
+  </div> 
+    <div class="flex flex-col">
+    <p-splitButton 
+    label="Nueva ORI" 
+    (onClick)="nuevo()" 
+    [model]="items" />
+  </div> 
+
+
+
+
+</div>
+    <!-- Buscar Button -->
+   
+
+  
+  <div class="flex flex-col p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+
+  
+    <p-table [style]="{width:'100%'}" 
+    [scrollable]="true" [columns]="cols" [value]="ordenes"
+    [(selection)]="selectedRow"  #dt2 [paginator]="true"
+    [globalFilterFields]="['numOrden', 'guiaRemision']"
+    [tableStyle]="{ 'table-layout': 'fixed', 'width': '100%' }"
+    [rows]="40" selectionMode="multiple" [responsive]="true"  >
+
+
+    <ng-template pTemplate="caption">
+      <div class="flex">
+        <!-- <div class="flex justify-between items-center mb-4">
+          <div class="flex flex-wrap justify-center sm:justify-end gap-4">
+            <p-button label="Editar Masivo" severity="success" icon="pi pi-plus" (onClick)="editarordenes()"></p-button>
+          </div>
+        </div> -->
+        <p-iconField iconPosition="left" class="ml-auto">
+          <p-inputIcon>
+            <i class="pi pi-search"></i>
+          </p-inputIcon>
+          <input 
+            pInputText 
+            type="text" 
+            (input)="dt2.filterGlobal($event.target.value, 'contains')" 
+            placeholder="Buscador general" />
+        </p-iconField>
+      </div>
+    </ng-template>
+
+      <ng-template pTemplate="colgroup" let-columns>
+        <colgroup>
+            <col *ngFor="let col of columns"   [ngStyle]="{'width': col.width}" >
+        </colgroup>
+    </ng-template>
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+            <th  [ngStyle]="{'width': col.width}" *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
+                {{col.header}}
+                <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+            </th>
+        </tr>
+    </ng-template>
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr  [pSelectableRow]="rowData">
+          <td class="ui-resizable-column">
+            <p-button  severity="primary" icon="fa fa-edit" (click)="edit(rowData.ordenReciboId)"></p-button>
+            <p-button  severity="danger" icon="fa fa-trash" (onClick)="delete(rowData.ordenReciboId)" [disabled]="!supervisor"></p-button>
+            <p-button  severity="secondary" (click)="ver(rowData.ordenReciboId)" icon="fa fa-search"></p-button>
+        </td>
+        
+
+            <td class="ui-resizable-column"> {{rowData.numOrden  }}</td>
+            <td class="ui-resizable-column"> {{rowData.almacen}} </td>
+            <td class="ui-resizable-column"> {{rowData.propietario}} </td>
+            <td [ngClass]="
+            rowData.nombreEstado == 'Almacenado' ? 'old-car' : 
+            (rowData.nombreEstado == 'Asignado' ? 'very-old-car' : 
+            (rowData.nombreEstado == 'Pendiente Acomodo' ? 'pending-arrange' : null))
+          ">
+            {{ rowData.nombreEstado }}
+          </td>
+          <td class="ui-resizable-column"> {{ rowData.guiaRemision }} </td>
+          
+
+            <td class="ui-resizable-column"> {{rowData.equipotransporte  }} - {{ rowData.placa }}  </td>
+            <td class="ui-resizable-column"> {{rowData.fechaEsperada | date: 'dd/MM/yyyy'}} </td>
+             <td class="ui-resizable-column"> {{rowData.usuarioRegistro  }} </td> 
+            <td class="ui-resizable-column"> {{rowData.fechaRegistro | date: 'dd/MM/yyyy'}}</td>
+
+
+        </tr>
+        </ng-template>
+
+    </p-table>
+
+
+</div>
+
+
+
+
+
+<p-confirmDialog />
+<p-toast />
+
+
+
+
+
+
+<p-dialog [(visible)]="mostrarPopup" [modal]="true" [closable]="true" header="Órdenes de Recibo" [style]="{width: '90vw'}">
+  
+  <!-- Breadcrumb -->
+  <div class="flex flex-col gap-2 border-b pb-3">
+    <nav aria-label="breadcrumb">
+      <ol class="flex text-gray-500 text-sm space-x-2">
+        <li class="hover:text-primary-500 cursor-pointer">Recibo</li>
+        <li>/</li>
+        <li class="hover:text-primary-500 cursor-pointer">Órdenes de Recibo</li>
+        <li>/</li>
+        <li class="font-semibold">Ver Orden de Recibo</li>
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Tabla con PrimeNG y Tailwind -->
+  <p-table [value]="listData" responsiveLayout="scroll" class="mt-4">
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of displayedColumns" class="px-3 py-2 text-left text-gray-700 font-semibold">{{ col }}</th>
+        <th class="px-3 py-2 text-left text-gray-700 font-semibold">Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-orden>
+      <tr>
+        <td class="px-3 py-2">{{ orden.linea }}</td>
+        <td class="px-3 py-2">{{ orden.codigo }}</td>
+        <td class="px-3 py-2">{{ orden.producto }}</td>
+        <td class="px-3 py-2">{{ orden.cantidad }}</td>
+        <td class="px-3 py-2">{{ orden.cantidadRecibida }}</td>
+        <td class="px-3 py-2">{{ orden.cantidadFaltante }}</td>
+        <td class="px-3 py-2">{{ orden.lote }}</td>
+        <td class="px-3 py-2">
+          <p-button icon="pi pi-trash" severity="danger" (onClick)="delete(orden.linea)" class="mr-2"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- <div class="mt-4 flex justify-end">
+    <p-button label="Nueva Línea" icon="pi pi-plus" severity="success" (onClick)="nuevodetalle()"></p-button>
+  </div>
+
+  <div class="mt-4 flex justify-end">
+    <p-button label="Cerrar" icon="pi pi-times" severity="secondary" (onClick)="cerrarPopup()"></p-button>
+  </div> -->
+
+</p-dialog>
+
+
+<p-dialog [(visible)]="mostrarEdicionMasiva" [modal]="true" [closable]="true" header="Editar Órdenes de Recibo" [style]="{width: '50vw'}">
+  
+  <div class="flex flex-col gap-4">
+    <!-- Fecha Esperada -->
+    <div class="flex flex-col">
+      <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Fecha Esperada</label>
+      <p-calendar id="fechaEsperada" appendTo="body" [(ngModel)]="model.fechaEsperada" dateFormat="dd/mm/yy" />
+    </div>
+    
+
+        <!-- Guía de Remisión -->
+        <div class="flex flex-col">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Guía de Remisión</label>
+          <input pInputText class="form-control" [(ngModel)]="model.guiaRemision" placeholder="Ingresa el número de guía" />
+        </div>
+      </div>
+
+
+    <div class="flex flex-col">
+      <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Tipo de ingreso</label>
+      <p-dropdown [options]="tipoingreso" appendTo="body" [(ngModel)]="model.tipoIngresoId" placeholder="Seleccione un tipo de ingreso" filter="true">
+        <ng-template let-item pTemplate="selectedItem">
+          <span>{{ item.label }}</span>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+
+
+  <!-- Botones -->
+  <div class="mt-6 flex justify-end gap-2">
+    <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="mostrarEdicionMasiva = false"></p-button>
+     <p-button label="Guardar Cambios" icon="pi pi-check" severity="primary" (onClick)="guardarEdicion()"></p-button> 
+  </div>
+</p-dialog>

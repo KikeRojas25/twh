@@ -1,0 +1,23 @@
+.old-car {
+    background-color: #E3F2FD; /* Azul claro */
+    color: #0D47A1; /* Azul oscuro */
+    padding: 8px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.very-old-car {
+    background-color: #FFF3E0; /* Naranja claro */
+    color: #E65100; /* Naranja oscuro */
+    padding: 8px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.pending-arrange {
+    background-color: #FFF9C4; /* Amarillo suave */
+    color: #F57F17; /* Mostaza oscuro */
+    padding: 8px;
+    border-radius: 4px;
+    text-align: center;
+}

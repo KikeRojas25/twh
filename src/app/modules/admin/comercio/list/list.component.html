@@ -1,0 +1,79 @@
+
+<div class="flex flex-col flex-auto min-w-0">
+
+
+<div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  <div class="flex-1 min-w-0">
+    <div  class="flex flex-wrap items-center font-medium">
+      <div>
+        <a  class="whitespace-nowrap text-primary-500">Aplicaciones</a>
+      </div>
+      <div class="flex items-center ml-1 whitespace-nowrap">
+            <mat-icon
+            class="fuse-horizontal-navigation-item-icon"
+            [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+            <a  class="ml-1 text-primary-500">Comercios</a>
+        </div>
+    </div>
+        <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Gestión de comercios </h2>
+    </div>
+</div>
+</div>
+
+
+<div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10" >
+
+  <button kendoButton  themeColor="primary" iconClass="fa fa-refresh" fillMode="solid"></button>
+
+
+</div>
+
+<div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+
+
+
+<p-table [value]="comercios" 
+selectionMode="single" 
+[tableStyle]="{'table-layout': 'fixed'}"
+
+
+>
+  <ng-template pTemplate="header">
+    <tr>
+      <th style="text-align: center;">ACC</th>
+      <th style="text-align: center;">ID</th>
+      <th style="text-align: center;">RAZÓN SOCIAL</th>
+      <th style="text-align: center;">RUC</th>
+      <th style="text-align: center;">ESTADO</th>
+      <th style="text-align: center;">LOGO</th>
+      <th style="text-align: center;">BACKGROUND</th>
+      <th style="text-align: center;">DIRECCIÓN</th>
+      <th style="text-align: center;">TELÉFONO</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-data>
+    <tr [pSelectableRow]="data">
+      <td>
+        <kendo-buttongroup selection="multiple">
+        <button  kendoButton icon="search"  themeColor="primary" (click)="search(data)"> </button>
+        <button kendoButton icon="check-outline" themeColor="secondary" ></button>
+        <button kendoButton icon="aggregate-fields"  themeColor="primary" ></button>
+      </kendo-buttongroup>
+      </td>
+      <td>{{data.idComercio}}</td>
+      <td>{{data.razonSocial}}</td>
+      <td>{{data.ruc}}</td>
+      <td>{{data.estado}}</td>
+      <td><img [src]="data.logo" alt="Logo" width="10" class="shadow-4"></td>
+      <td><img [src]="data.background" alt="Background" width="10" class="shadow-4"></td>
+      <td>{{data.direccion}}</td>
+      <td>{{data.telefono}}</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+
+</div>
+
+
+</div>

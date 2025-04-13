@@ -1,0 +1,127 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <!-- Encabezado -->
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Mantenimiento</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Vehículo </h2>
+      </div>
+  </div>
+  </div>
+
+  <div class="flex flex-col flex-auto min-w-0 space-y-6">
+
+
+    <!-- Filtro de Búsqueda -->
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 sm:px-10 border">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
+            <!-- Filtro Placa -->
+            <div class="flex flex-col">
+                <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">PLACA:</label>
+                <input type="text" class="p-inputtext p-component w-full" placeholder="Placa" [(ngModel)]="model.placa">
+            </div>
+
+            <!-- Filtro Proveedor -->
+            <div class="flex flex-col">
+                <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">PROVEEDOR:</label>
+                <p-dropdown
+                    [options]="proveedores"
+                    [(ngModel)]="model.proveedorId"
+                    placeholder="Seleccione proveedor"
+                    [virtualScroll]="true"
+                    [filter]="true"
+                    class="w-full"
+                    [virtualScrollItemSize]="30" 
+                    [showClear]="true"
+                    [loading]="cargandoProveedores"
+                >
+                    <ng-template let-item pTemplate="item">
+                        <div class="flex items-center">
+                            <span>{{ item.label }}</span>
+                        </div>
+                    </ng-template>
+
+                    
+                    </p-dropdown>
+
+            </div>
+
+            <!-- Botón Buscar -->
+            <div class="flex items-end">
+                <p-button icon="pi pi-search" label="Buscar" (click)="buscar()" class="w-full" severity="success"></p-button>
+            </div>
+
+            <!-- Botón Nuevo -->
+            <div class="flex items-end">
+                <p-button icon="pi pi-plus" label="Nuevo" (click)="nuevo()" class="w-full" severity="primary"></p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Vehículos -->
+    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 sm:px-10 border">
+        <div class="flex justify-between items-center mb-4">
+            <p-button icon="pi pi-file-excel" label="Export to Excel" (click)="exportarExcel()" class="p-button-outlined"></p-button>
+        </div>
+
+        <p-table
+            class="w-full"
+            [value]="vehiculos"
+            [paginator]="true"
+            [rows]="15"
+            [resizableColumns]="true"
+            responsiveLayout="scroll"
+            [scrollable]="true">
+
+            <ng-template pTemplate="header">
+                <tr class="bg-gray-50">
+                    <th class="text-center">Details</th>
+                    <th class="text-center">PLACA</th>
+                    <th class="text-center">MARCA</th>
+                    <th class="text-center">TIPO VEHÍCULO</th>
+                    <th class="text-center">CARGA ÚTIL</th>
+                    <th class="text-center">PESO BRUTO</th>
+                    <th class="text-center">PROVEEDOR</th>
+                
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-vehiculo>
+                <tr>
+                    <td class="text-center space-x-2">
+                        <p-button severity="success" icon="fa fa-edit" (click)="editar(vehiculo.id)"></p-button>
+                        <p-button severity="danger" icon="fa fa-trash" (click)="eliminar(vehiculo.id)"></p-button>
+                    </td>
+                    <td class="text-center">{{ vehiculo.placa }}</td>
+                    <td class="text-center">{{ vehiculo.marca }}</td>
+                    <td class="text-center">{{ vehiculo.tipoVehiculo }}</td>
+                    <td class="text-center">{{ vehiculo.cargaUtil }}</td>
+                    <td class="text-center">{{ vehiculo.pesoBruto }}</td>
+                    <td class="text-center">{{ vehiculo.proveedor }}</td>
+
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+
+</div>
+
+
+
+</div>
+
+
+
+<p-confirmDialog />
+<p-toast />

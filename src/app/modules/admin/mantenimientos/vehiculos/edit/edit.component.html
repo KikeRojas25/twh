@@ -1,0 +1,89 @@
+
+<div class="p-fluid">
+
+  <div class="p-field">
+      <label for="placa">Placa</label>
+
+      <input type="text" pInputText id="placa"
+      [(ngModel)]="model.placa"
+      placeholder="eje. A6Q330"
+      maxlength="6" />
+  </div>
+
+  <div class="p-field">
+      <label for="marca">Marca</label>
+      <p-dropdown [options]="marcas" 
+      [(ngModel)]="model.marcaid" 
+      appendTo="body" 
+      [filter]="true"
+      class="w-full"
+      placeholder="Seleccione marca">
+
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+    </ng-template>
+
+
+      </p-dropdown>
+  </div>
+
+  <div class="p-field">
+      <label for="tipoVehiculo">Tipo Vehículo</label>
+      <p-dropdown 
+      name="tiposVehiculo"
+      [options]="tiposVehiculo" 
+      [(ngModel)]="model.tipoid"
+      appendTo="body" 
+      [filter]="true"
+      class="w-full"
+      placeholder="Seleccione tipo">
+       
+          <ng-template let-item pTemplate="selectedItem">
+            <span style="vertical-align:left;">{{item.label}}</span>
+        </ng-template>
+
+
+      </p-dropdown>
+  </div>
+
+  <div class="p-field">
+      <label for="cargaUtil">Carga Útil (Toneladas)</label>
+      <p-inputNumber [(ngModel)]="model.cargaUtil" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="Ej: 12.50"></p-inputNumber>
+  </div>
+
+  <div class="p-field">
+      <label for="pesoBruto">Peso Bruto (Toneladas)</label>
+      <p-inputNumber [(ngModel)]="model.pesoBruto" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" placeholder="Ej: 20.75"></p-inputNumber>
+  </div>
+
+  <div class="p-field">
+      <label for="proveedor">Proveedor</label>
+      <p-dropdown
+      name="proveedores"
+      [options]="proveedores"
+      [(ngModel)]="model.proveedorId"
+      placeholder="Seleccione proveedor"
+      [virtualScroll]="true"
+      [filter]="true"
+      class="w-full"
+      [virtualScrollItemSize]="30" 
+      [showClear]="true"
+      appendTo="body"
+      [loading]="cargandoProveedores"
+  >
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+    </ng-template>
+
+      
+      </p-dropdown>
+  </div>
+</div>
+
+  <p-button label="Guardar" icon="pi pi-check" (onClick)="actualizarVehiculo()"></p-button>
+  <p-button label="Cancelar" icon="pi pi-times" (onClick)="cerrarModal()" class="p-button-secondary"></p-button>
+
+  
+
+<p-confirmDialog />
+<p-toast />

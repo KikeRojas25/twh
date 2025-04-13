@@ -1,0 +1,65 @@
+/* Contenedor de KPIs */
+.kpi-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px; /* Espacio entre elementos */
+    padding: 20px 0;
+  }
+  
+  /* Tarjetas sin fondo rectangular */
+  .kpi-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 180px; /* Tamaño fijo para cada KPI */
+    padding: 10px 0;
+    transition: transform 0.2s ease-in-out;
+  
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+  
+  /* Íconos grandes y centrados */
+  .kpi-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+  }
+  
+  /* Texto del KPI */
+  .kpi-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  /* Valor del KPI */
+  .kpi-value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  /* Diseño responsivo */
+  @media (max-width: 768px) {
+    .kpi-box {
+      max-width: 100px; /* Ajusta el tamaño en móviles */
+    }
+  
+    .kpi-icon {
+      font-size: 2.5rem;
+    }
+  
+    .kpi-title {
+      font-size: 0.9rem;
+    }
+  
+    .kpi-value {
+      font-size: 1.2rem;
+    }
+  }
+  

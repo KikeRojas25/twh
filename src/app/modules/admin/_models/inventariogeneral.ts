@@ -1,0 +1,76 @@
+export interface InventarioGeneral {
+     id?: number ;
+     lodNum?: string ;
+     lodId?: number;
+     productoId?: any ;
+     descripcionLarga?: string ;
+     codigo?: string;
+     ubicacionId?: number ;
+     ubicacion?: string ;
+     lotNum?: string ;
+     fechaExpire?: Date ;
+     fechaManufactura?: Date;
+     untQty?: number ;
+     untPlan?: number ;
+     untPak?: number ;
+     fechaRegistro?: Date ;
+     fechaUltMovimiento?: Date;
+     usuarioIngreso?: number;
+     ubicacionIdUlt?: number;
+     ubicacionUltima?: string;
+     huellaId?: number;
+     codigoHuella?: string;
+     linea?: string;
+     estado?: string;
+     estadoId?: number;
+     ordenReciboId?: any;
+     OrdenReciboDetalleId?: number;
+     almacenId?: number ;
+     cantidad_productos?: number;
+     almacen?: string;
+     seriado?: boolean;
+     scanComplete?: boolean;
+     scanQty?: number;
+     referencia?: string;
+     peso?:number;
+     area?: string;
+     cliente: string;
+     codigoTWH: string | null;
+     fechaProduccion: string;
+     cantidadSeparada: number;
+     stockDisponible: number;
+     unidadAlmacenamiento: string | null;
+     fechaEsperada: string;
+     transportista: string;
+     placa: string;
+     pesoProducto: number;
+     chofer: string;
+     unidadMedida: string;
+     guiaRemision: string;
+     tipoIngreso: string;
+     tipoMerma: string | null;
+     motivoMerma: string | null;
+     areaMerma: string | null;
+     oc: string;
+     fechaRegistroMerma: string;
+     razonSocial: string;
+     destino: string | null;
+     grupo: string | null;
+     canal: string | null;
+     proveedor: string | null;
+     tipoUbicacion: string;
+     volumen: number;
+     bultos: number;
+     pesoGuia: number;
+     contar: number;
+     bolsa: number;
+}
+
+
+export interface InventarioDetalle {
+     inventarioId?: number;
+     codigoProducto?: any ;
+     codigoMac?: any;
+     codigoSerie?: any ;
+     productoId?: any;
+}

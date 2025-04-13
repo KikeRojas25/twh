@@ -1,0 +1,19 @@
+.align-left {
+    text-align: left;
+  }
+
+ .align-center {
+    text-align: center;
+  }
+
+  .stock-disponible {
+    background-color: #d4edda; /* Verde claro */
+    color: #155724; /* Verde oscuro */
+  }
+  
+  .stock-bajo {
+    background-color: #f8d7da; /* Rojo claro */
+    color: #721c24; /* Rojo oscuro */
+  }
+
+

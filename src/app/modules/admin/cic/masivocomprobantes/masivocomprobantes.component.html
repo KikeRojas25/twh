@@ -1,0 +1,177 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+  <div #appendTo class="flex flex-col sm:flex-row flex-0 sm:items-center  p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+
+
+    <p-toast />
+    <p-fileUpload name="myfile[]"   #fileUpload 
+    [multiple]="true" 
+    accept=".xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"  
+    maxFileSize="1000000"
+    customUpload="true"
+     (onUpload)="onTemplatedUpload($event)" 
+     (onSelect)="onSelectedFiles($event)">
+        <ng-template pTemplate="header" let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">
+            <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">
+                <div class="flex gap-2">
+                    <p-button (onClick)="choose($event, chooseCallback)" icon="pi pi-images" [rounded]="true" [outlined]="true" />
+                    <p-button (onClick)="uploadSelectedFiles()" icon="pi pi-cloud-upload" [rounded]="true" [outlined]="true" severity="success" [disabled]="!files || files.length === 0" />
+                    <p-button (onClick)="clearCallback()" icon="pi pi-times" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" />
+                </div>
+                <p-progressBar [value]="totalSizePercent" [showValue]="false" styleClass="md:w-20rem h-1rem w-full md:ml-auto" [ngClass]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
+                    <span class="white-space-nowrap">{{ totalSize }}B / 1Mb</span>
+                </p-progressBar>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="content" let-files let-uploadedFiles="uploadedFiles" let-removeFileCallback="removeFileCallback" let-removeUploadedFileCallback="removeUploadedFileCallback">
+            <div *ngIf="files?.length > 0">
+                <h5>Pending</h5>
+                <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                    <div *ngFor="let file of files; let i = index" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                        <div>
+                            <img role="presentation" [alt]="file.name" [src]="file.objectURL" width="100" height="50" />
+                        </div>
+                        <span class="font-semibold">{{ file.name }}</span>
+                        <div>{{ formatSize(file.size) }}</div>
+                        <p-badge value="Pending" severity="warning" />
+                        <p-button icon="pi pi-times" (onClick)="onRemoveTemplatingFile($event, file, removeFileCallback, index)" [outlined]="true" [rounded]="true" severity="danger" />
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="uploadedFiles?.length > 0">
+                <h5>Completed</h5>
+                <div class="flex flex-wrap p-0 sm:p-5 gap-5">
+                    <div *ngFor="let file of uploadedFiles; let i = index" class="card m-0 px-6 flex flex-column border-1 surface-border align-items-center gap-3">
+                        <div>
+                            <img role="presentation" [alt]="file.name" [src]="file.objectURL" width="100" height="50" />
+                        </div>
+                        <span class="font-semibold">{{ file.name }}</span>
+                        <div>{{ formatSize(file.size) }}</div>
+                        <p-badge value="Completed" class="mt-3" severity="success" />
+                        <p-button icon="pi pi-times" (onClick)="removeUploadedFileCallback(index)" [outlined]="true" [rounded]="true" severity="danger" />
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="file"> </ng-template>
+        <ng-template pTemplate="empty">
+            <div class="flex align-items-center justify-content-center flex-column">
+                <i class="pi pi-cloud-upload border-2 border-circle p-5 text-8xl text-400 border-400"></i>
+                <p class="mt-4 mb-0">Drag and drop files here to upload.</p>
+            </div>
+        </ng-template>
+    </p-fileUpload>
+    
+
+
+
+ </div>
+   <div #appendTo class="flex flex-col sm:flex-row flex-0 sm:items-center  p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+      <div class="grow w-64">
+              <h2>Errores</h2>
+              <p> {{ errors }} </p>
+      </div>
+
+  </div>
+
+  <div #appendTo class="flex flex-col sm:flex-row flex-0 sm:items-center  p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+            <div class="grow w-64">
+<!-- 
+                          <kendo-grid
+                              [data]="gridDataResult"
+
+                              style=" width: 1100px;"
+                              [resizable]="true"
+
+                              [pageSize]="pageSize"
+                              [skip]="skip"
+                              (pageChange)="pageChange($event)"
+
+                              [pageable]="true"
+                              [sortable]="{
+                                  allowUnsort: allowUnsort,
+                                  mode: 'single'
+                              }"
+                              [sort]="sort"
+                              (sortChange)="sortChange($event)"
+
+
+
+
+                              [selectable]="true"
+                              kendoGridSelectBy="id"
+                              [selectedKeys]="mySelection"
+                              [rowClass]="rowCallback"
+                              >
+
+
+
+
+                          <kendo-grid-column   [headerStyle]="{
+                              'background-color': '#666',
+                              color: '#fff',
+                              'line-height': '1em'
+                          }"
+                              field="detalleerror"  title="Error"  [width]="200" ></kendo-grid-column>
+
+
+                          <kendo-grid-column  [headerStyle]="{'background-color': '#666', color: '#fff','line-height': '1em' }" field="remitente"  title="CLIENTE"  [width]="120" ></kendo-grid-column>
+                          <kendo-grid-column   field="distrito_carga"  title="DISTRITO"  [width]="90"    [headerStyle]="{ 'background-color': '#666', color: '#fff', 'line-height': '1em'}">  </kendo-grid-column>
+                          <kendo-grid-column   field="shipment"  title="SHIPMENT"  [width]="90"    [headerStyle]="{ 'background-color': '#666', color: '#fff', 'line-height': '1em'}">  </kendo-grid-column>
+                          <kendo-grid-column   field="tracto"  title="TRACTO"  [width]="120"    [headerStyle]="{'background-color': '#666', color: '#fff', 'line-height': '1em'}" > </kendo-grid-column>
+                          <kendo-grid-column  field="destinatario"  title="DESTINATARIO"  [width]="180"    [headerStyle]="{'background-color': '#666', color: '#fff', 'line-height': '1em'}" > </kendo-grid-column>
+
+                          <kendo-grid-column field="provincia" [headerStyle]="{
+                              'background-color': '#666',
+                              color: '#fff',
+                              'line-height': '1em'
+                          }" [width]="110"
+                          title="PROVINCIA ENTREGA">
+                              <ng-template kendoGridGroupHeaderTemplate let-value="value">
+                              {{ value }}
+                              </ng-template>
+                          </kendo-grid-column>
+
+
+
+                          <kendo-grid-column
+                                  field="fecha_carga"
+                                  title="F. CARGA"
+                                  [width]="80"
+                                  [headerStyle]="{
+                                      'background-color': '#666',
+                                      color: '#fff',
+                                      'line-height': '1em'
+                                  }"
+
+
+                          >
+                          <ng-template kendoGridCellTemplate let-dataItem>
+                              {{dataItem.fecha_carga | date: 'dd/MM/yyyy'}}
+                          </ng-template>
+                          </kendo-grid-column>
+
+                      <kendo-grid-column   field="tiposervicio"  title="TIPO SERVICIO"  [width]="90"    [headerStyle]="{
+                          'background-color': '#666',
+                          color: '#fff',
+                          'line-height': '1em'
+                      }">
+                      </kendo-grid-column>
+
+
+                      <kendo-grid-column   field="oc"  title="OC"  [width]="90"    [headerStyle]="{
+                          'background-color': '#666',
+                          color: '#fff',
+                          'line-height': '1em'
+                      }">
+                      </kendo-grid-column>
+
+
+
+
+              </kendo-grid> -->
+
+              </div>
+              </div>
+
+</div>

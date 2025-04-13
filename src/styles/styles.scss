@@ -1,0 +1,78 @@
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Import/write your custom styles here.
+/*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
+/* ----------------------------------------------------------------------------------------------------- */
+
+
+body  {
+    display: flex;
+    flex-direction: column;
+
+    top:0; 
+    left: 0;
+    margin: 0;
+    padding: 0;
+    right: 0;
+    width: 100%;
+    visibility: visible;
+}
+
+
+
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border-color: red;
+}
+
+.error {
+  color: red;
+  font-size: 0.675rem;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 14px;
+    text-align: center;
+}
+
+.p-datatable-tbody > tr > td {
+    font-size: 14px;
+    padding: 8px;
+}
+
+// .p-timeline .p-timeline-event-marker{
+//     display: inline-flex !important;
+//     align-items: center !important;
+//     justify-content: center !important;
+//     position: relative !important;
+
+// }
+
+// .p-timeline .p-timeline-event-marker::before {
+//     content: " ";
+//     border-radius: 50%;
+//     width: 0.375rem;
+//     height: 0.375rem;
+//     background-color: #3B82F6
+
+// }
+
+// .p-timeline .p-timeline-event-marker {
+//     border: 2px solid #e2e8f0;
+//     border-radius: 50%;
+//     width: 1.125rem;
+//     height: 1.125rem;
+//     background-color:white
+
+// }
+.k-button-sm.k-icon-button > .k-button-icon {
+    min-width: 0.25rem;
+    min-height: 0.25rem;
+}
+
+
+.p-button.p-button-icon-only {
+  width: 2rem !important;
+  // height: 2rem !important;
+}

@@ -1,0 +1,185 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <!-- Encabezado -->
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Salidas</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Planificar Picking </h2>
+      </div>
+  </div>
+  </div>
+
+    
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <!-- Filtro de búsqueda -->
+    <!-- Filtro de búsqueda -->
+      <div class="flex flex-wrap sm:flex-nowrap gap-4">
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
+          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
+        </div>
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
+          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
+        </div>
+        <div>
+          <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>
+        </div>
+      </div>
+   
+
+    </div>
+
+  
+  
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+      <div class="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <div>
+          <p class="text-4xl font-bold text-blue-500">{{ totalOrdenes }}</p>
+          <p class="text-gray-600 font-medium">Órdenes Pendientes</p>
+        </div>
+      </div>
+      <div class="bg-green-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <div>
+          <p class="text-4xl font-bold text-green-500">{{ totalProductos }}</p>
+          <p class="text-gray-600 font-medium">Productos</p>
+        </div>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <div>
+          <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades }}</p>
+          <p class="text-gray-600 font-medium">Unidades</p>
+        </div>
+      </div>
+      <div class="bg-purple-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <div>
+          <p class="text-4xl font-bold text-purple-500">{{ totalPeso }}</p>
+          <p class="text-gray-600 font-medium">Peso Total (Kg)</p>
+        </div>
+      </div>
+ </div>
+
+
+
+    <!-- Contenedor de tablas -->
+    <div class="flex flex-col w-full gap-8">
+      <!-- Tabla principal -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow w-full">
+        
+
+        <p-table 
+           #dt2
+          [value]="listData" 
+          [paginator]="true" 
+          [(rows)]="rows" 
+          [rowsPerPageOptions]="[5, 10, 15, 20]" 
+          selectionMode="multiple" 
+          dataKey="id"
+          [globalFilterFields]="['numOrden', 'guiaRemision']"
+          [(selection)]="selectedRows" 
+          class="w-full">
+
+
+          <ng-template pTemplate="caption">
+            <div class="flex">
+              <div class="flex justify-between items-center mb-4">
+                <section class="flex flex-wrap justify-center sm:justify-end gap-4">
+                  <p-button  label="Agregar" severity="success" icon="pi pi-plus" (onClick)="agregarorden()" ></p-button>
+                </section>
+                </div>
+
+                
+                <p-iconField iconPosition="left" class="ml-auto">
+                    <p-inputIcon>
+                        <i class="pi pi-search"></i>
+                    </p-inputIcon>
+                    <input 
+                        pInputText 
+                        type="text" 
+                        (input)="dt2.filterGlobal($event.target.value, 'contains')" 
+                        placeholder="Search keyword" />
+                </p-iconField>
+            </div>
+        </ng-template>
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th>N° Orden</th>
+              <th>Fecha Pedido</th>
+              <th>GRR</th>
+              <th>Cant. Productos</th>
+              <th>Cant. Unidades</th>
+              <th>Peso Total</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowData>
+            <tr [pSelectableRow]="rowData">
+              <td class="text-center"><p-tableCheckbox [value]="rowData"></p-tableCheckbox></td>
+              <td class="text-center">{{ rowData.numOrden }}</td>
+              <td class="text-center">{{ rowData.fechaRequerida | date:'dd-MM-yyyy' }}</td>
+              <td class="text-center">{{ rowData.guiaRemision }}</td>
+              <td class="text-center">{{ rowData.productos }}</td>
+              <td class="text-center">{{ rowData.unidades }}</td>
+              <td class="text-center">{{ rowData.peso }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Tabla secundaria -->
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4">
+        <section class="flex flex-wrap justify-center sm:justify-end gap-4">
+          <p-button severity="primary" label="Planificar" (onClick)="planificar()" icon="pi pi-folder"></p-button>
+          <p-button severity="primary" label="Planificar Masivo" icon="pi pi-folder"></p-button>
+          <p-button severity="warning" label="Comprobar Stock" icon="pi pi-check"></p-button>
+        </section>
+        </div>
+        <p-table 
+          [value]="ordeneseleccionadas" 
+          [paginator]="true" 
+          [rows]="10" 
+          class="w-full">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>N° Orden</th>
+              <th>Guía Remisión</th>
+              <th>Fecha Requerida</th>
+              <th>Cant. Productos</th>
+              <th>Cant. Unidades</th>
+              <th>Peso Total</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowData>
+            <tr>
+              <td>{{ rowData.numOrden }}</td>
+            
+              <td>{{ rowData.guiaRemision }}</td>
+              <td>{{ rowData.fechaRequerida | date:'dd-MM-yyyy' }}</td>
+              <td class="text-center">{{ rowData.productos }}</td>
+              <td class="text-center">{{ rowData.unidades }}</td>
+              <td class="text-center">{{ rowData.peso }}</td>
+              <td>
+                <button pButton icon="pi pi-trash" class="p-button-sm p-button-danger" (click)="eliminar(rowData)"></button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+</div>
+
+
+<p-confirmDialog />
+<p-toast />

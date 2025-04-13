@@ -1,0 +1,172 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+  <!-- Encabezado -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium">
+        <div>
+          <a class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-primary-500">Liquidación</a>
+        </div>
+      </div>
+      <div class="mt-2">
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+          Generar Liquidación de Servicio
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    
+    <!-- Selección de Propietario -->
+    <div class="flex flex-col">
+      <label for="propietario" class="font-bold">Propietario:</label>
+      <p-dropdown name="clientes" 
+        [options]="clientes" 
+        [(ngModel)]="model.PropietarioId" 
+        [filter]="true"
+        filterBy="label" 
+        [showClear]="true" 
+        [style]="{'width': '250px'}" 
+        [resetFilterOnHide]="false"
+        placeholder="Seleccione un propietario">
+        <ng-template let-item pTemplate="selectedItem">
+          <span>{{ item.label }}</span>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <!-- Fecha Inicio -->
+    <div class="flex flex-col">
+      <label for="dateInicio" class="font-semibold mb-1">Inicio Recojo</label>
+      <p-calendar 
+        id="dateInicio"
+        [(ngModel)]="dateInicio" 
+        dateFormat="dd.mm.yy" />
+    </div>
+
+    <!-- Fecha Fin -->
+    <div class="flex flex-col">
+      <label for="dateFin" class="font-semibold mb-1">Fin Recojo</label>
+      <p-calendar 
+        id="dateFin"
+        [(ngModel)]="dateFin" 
+        dateFormat="dd.mm.yy" />
+    </div>
+
+    <!-- Botón de Liquidación -->
+    <div class="flex flex-col">
+      <p-button severity="danger" label="Consultar" (onClick)="procesar()"></p-button>
+    </div>
+  </div>
+
+  <!-- Resumen tipo Dashboard (Debajo de los filtros) -->
+  <div *ngIf="liquidacion && liquidacion.length > 0" class="grid grid-cols-3 gap-4 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    
+    <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total In</h3>
+      <p class="text-2xl font-bold text-gray-500">S/ {{ getTotalIn() | number:'1.2-2' }}</p>
+    </div>
+    
+    <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Out</h3>
+      <p class="text-2xl font-bold text-green-500">S/ {{ getTotalOut() | number:'1.2-2' }}</p>
+    </div>
+    
+    <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Picking</h3>
+      <p class="text-2xl font-bold text-blue-500">S/ {{ getTotalPicking() | number:'1.2-2' }}</p>
+    </div>
+    
+    <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Pos</h3>
+      <p class="text-2xl font-bold text-yellow-500">S/ {{ getTotalPos() | number:'1.2-2' }}</p>
+    </div>
+    
+    <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total General</h3>
+      <p class="text-2xl font-bold text-red-500">S/ {{ getTotalGeneral() | number:'1.2-2' }}</p>
+    </div>
+
+    <div class="flex flex-col">
+      <p-button severity="danger" label="Exportar" (onClick)="exportar()"></p-button>
+    </div>
+    <div class="flex flex-col">
+      <p-button severity="danger" label="Generar" (onClick)="procesar()"></p-button>
+    </div>
+    
+  </div>
+
+  <!-- Tabla con Filtro de Búsqueda -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    
+    <p-table [value]="liquidacion" [scrollable]="true" [style]="{width:'100%'}"
+      selectionMode="single" dataKey="lpn" #dt2 scrollHeight="300px"
+      [globalFilterFields]="['lpn', 'guiaRemision']" [responsive]="true"
+      [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]">
+      
+      <ng-template pTemplate="caption">
+        <div class="flex">
+          <p-iconField iconPosition="left" class="ml-auto">
+            <p-inputIcon>
+              <i class="pi pi-search"></i>
+            </p-inputIcon>
+            <input pInputText type="text" (input)="dt2.filterGlobal($event.target.value, 'contains')" placeholder="Buscar LPN o Guía de Remisión" />
+          </p-iconField>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>LPN</th>
+          <th>Fecha Ingreso</th>
+          <th>Fecha Salida</th>
+          <th>Total Unidades</th>
+          <th>Total Cajas</th>
+          <th>Packs</th>
+          <th>Guía de Remisión</th>
+          <th>Movimiento</th>
+          <th>Cliente</th>
+          <th>In</th>
+          <th>Out</th>
+          <th>Picking</th>
+          <th>Pos</th>
+          <th>Total</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td>{{ rowData.lpn }}</td>
+          <td>{{ rowData.fechaIngreso | date: 'yyyy-MM-dd' }}</td>
+          <td>{{ rowData.fechaSalida ? (rowData.fechaSalida | date: 'yyyy-MM-dd') : 'N/A' }}</td>
+          <td>{{ rowData.totalUnidades }}</td>
+          <td>{{ rowData.totalCajas }}</td>
+          <td>{{ rowData.packs }}</td>
+          <td>{{ rowData.guiaRemision }}</td>
+          <td>{{ rowData.movimiento }}</td>
+          <td>{{ rowData.clienteId }}</td>
+          <td>S/ {{ rowData.in | number:'1.2-2' }}</td>
+          <td>S/ {{ rowData.out ? rowData.out  : 0 | number:'1.2-2' }}</td>
+          <td>S/ {{ rowData.picking ? rowData.picking  : 0 | number:'1.2-2' }}</td>
+          <td>S/ {{ rowData.pos | number:'1.2-2' }}</td>
+          <td>S/ {{ rowData.total | number:'1.2-2' }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="summary">
+        <div class="flex align-items-center justify-content-between">
+          Total registros: {{ liquidacion ? liquidacion.length : 0 }}
+        </div>
+      </ng-template>
+      
+    </p-table>
+
+  </div>
+
+</div>

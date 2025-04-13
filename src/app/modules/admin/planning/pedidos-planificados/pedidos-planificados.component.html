@@ -1,0 +1,214 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <!-- Encabezado -->
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Despacho</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Despachos Planificados </h2>
+      </div>
+  </div>
+  </div>
+
+
+  <!-- Contenido principal -->
+  
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <!-- Filtro de búsqueda -->
+ 
+      <div class="flex flex-wrap sm:flex-nowrap gap-4">
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
+          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
+        </div>
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
+          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
+        </div>
+        <div>
+          <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>
+        </div>
+      </div>
+
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-1 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+
+    <!-- Cuadro de resumen -->
+    <!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 w-full">
+      <div class="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-blue-500">{{ totalOrdenes }}</p>
+        <p class="text-gray-600 font-medium">Órdenes Pendientes</p>
+      </div>
+      <div class="bg-green-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-green-500">{{ totalProductos }}</p>
+        <p class="text-gray-600 font-medium">Productos</p>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades }}</p>
+        <p class="text-gray-600 font-medium">Unidades</p>
+      </div>
+      <div class="bg-purple-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-purple-500">{{ totalPeso }}</p>
+        <p class="text-gray-600 font-medium">Peso Total (Kg)</p>
+      </div>
+    </div> -->
+
+    
+
+    <!-- Contenedor de tablas -->
+    <div class="flex flex-col w-full gap-8">
+      <!-- Tabla principal -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow w-full">
+      
+
+
+        <p-table 
+          #dt2
+          [value]="listData" 
+          [paginator]="true" 
+          [(rows)]="rows" 
+          rowGroupMode="subheader" 
+          groupRowsBy="placa" 
+          [rowsPerPageOptions]="[20, 40, 60, 100]" 
+          selectionMode="multiple" 
+          dataKey="id"
+          [globalFilterFields]="['numOrden', 'guiaRemision']"
+          [(selection)]="ordeneseleccionadas" 
+          (onRowSelect)="onRowSelectOrUnselect()"
+          (onRowUnselect)="onRowSelectOrUnselect()"
+
+          class="w-full">
+          
+          <ng-template pTemplate="caption">
+            <div class="flex">
+              <div class="flex justify-between items-center mb-4">
+                 <div class="flex flex-wrap justify-center sm:justify-end gap-4">
+                  <p-button  label="Regresar a planificado" severity="danger" (click)="revertir()"></p-button>
+                </div>
+              </div>
+              <p-iconField iconPosition="left" class="ml-auto">
+
+                
+         
+
+
+                <p-inputIcon>
+                  <i class="pi pi-search"></i>
+                </p-inputIcon>
+                <input 
+                  pInputText 
+                  type="text" 
+                  (input)="dt2.filterGlobal($event.target.value, 'contains')" 
+                  placeholder="Search keyword" />
+              </p-iconField>
+            </div>
+          </ng-template>
+
+         
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 50px;"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th pSortableColumn="estado" style="width: 80px;">Placa</th>
+              <th style="width: 80px;">GRR / OC</th>
+              <th style="width: 120px;">Fecha Pedido</th>
+              <th style="width: 120px;">Localidad</th>
+              <th style="width: 300px;">Dirección Entrega</th>
+            
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="groupheader" let-customer>
+            <tr pRowGroupHeader>
+                <td colspan="3">
+                
+                    <span class="font-bold ml-2">{{customer.placa}}</span>
+                </td>
+                  <td class="text-center py-2 px-4 bg-blue-200">Fecha de despacho:</td>
+                  <td class="text-center py-2 px-4 bg-blue-200">{{ customer.fechaPlanificacion | date:'dd-MM-yyyy' }}</td>
+            </tr>
+        </ng-template>
+
+          <ng-template pTemplate="body" let-rowData>
+            <tr [pSelectableRow]="rowData">
+              <td class="text-center"><p-tableCheckbox [value]="rowData"></p-tableCheckbox></td>
+              <td class="text-center">{{ rowData.placa }}</td>
+              <td class="text-center">{{ rowData.guiaRemision }}</td>
+             
+              <td class="text-center">{{ rowData.fechaRequerida | date:'dd-MM-yyyy' }}</td>
+              <td class="text-left">{{ rowData.sucursal }}</td>
+              <td class="text-left">{{ rowData.direccion }}</td>
+           
+              <!-- <td class="text-center">{{ rowData.productos }}</td>
+              <td class="text-center">{{ rowData.unidades }}</td>
+              <td class="text-center">{{ rowData.peso }}</td> -->
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Tabla secundaria -->
+ 
+    </div>
+  </div>
+</div>
+
+<p-confirmDialog />
+<p-toast />
+
+<div class="fixed bottom-4 right-4 bg-white p-4 shadow-lg rounded-lg flex items-center gap-2 border border-gray-300">
+  <i class="pi pi-weight text-xl text-gray-700"></i>
+  <span class="font-semibold text-gray-800">Peso Total: {{ totalPesoSeleccionado }} Kg</span>
+</div>
+
+
+
+<p-dialog header="Datos de Planificación" [(visible)]="displayPlanificarDialog" [modal]="true" [closable]="false" [responsive]="true" styleClass="p-fluid" width="400">
+  <div class="p-field">
+    <label for="tipoVehiculo">Tipo de Vehículo <span style="color: red;">*</span></label>
+    <p-dropdown 
+      id="tipoVehiculo" 
+      [options]="vehicleTypes" 
+      appendTo="body"
+      [(ngModel)]="planificarForm.tipoVehiculo" 
+      placeholder="Seleccione un tipo de vehículo">
+
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+
+    </p-dropdown>
+  </div>
+
+  <div class="p-field">
+    <label for="placa">Placa del Vehículo</label>
+    <input id="placa" type="text" pInputText [(ngModel)]="planificarForm.placa" placeholder="Ingrese la placa (opcional)">
+  </div>
+
+  <div class="p-field">
+    <label for="fechaProgramada">Fecha Programada <span style="color: red;">*</span></label>
+    <p-calendar 
+      id="fechaProgramada" 
+      appendTo="body"
+      [(ngModel)]="planificarForm.fechaProgramada" 
+      dateFormat="dd/mm/yy" 
+      showIcon="true" 
+      placeholder="Seleccione una fecha">
+    </p-calendar>
+  </div>
+
+  <p-footer>
+    <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="displayPlanificarDialog = false"></button>
+    <button pButton type="button" label="Aceptar" icon="pi pi-check" (click)="generarPlanning()"></button>
+  </p-footer>
+</p-dialog>

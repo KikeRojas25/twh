@@ -1,0 +1,82 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <!-- Encabezado -->
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Reporte</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Reporte de Cobertura  </h2>
+      </div>
+  </div>
+  </div>
+
+
+  <!-- Contenido principal -->
+  
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <!-- Filtro de búsqueda -->
+ 
+      <div class="flex flex-wrap sm:flex-nowrap gap-4">
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
+          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2">
+
+
+
+          </p-dropdown>
+        </div>
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
+          <p-dropdown [options]="propietarios" filter="true" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2">
+
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+        <div>
+          <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>
+        </div>
+      </div>
+
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-1 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+
+    <!-- Cuadro de resumen -->
+    <!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 w-full">
+      <div class="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-blue-500">{{ totalOrdenes }}</p>
+        <p class="text-gray-600 font-medium">Órdenes Pendientes</p>
+      </div>
+      <div class="bg-green-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-green-500">{{ totalProductos }}</p>
+        <p class="text-gray-600 font-medium">Productos</p>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades }}</p>
+        <p class="text-gray-600 font-medium">Unidades</p>
+      </div>
+      <div class="bg-purple-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-purple-500">{{ totalPeso }}</p>
+        <p class="text-gray-600 font-medium">Peso Total (Kg)</p>
+      </div>
+    </div> -->
+
+  
+    
+</div>
+
+<p-confirmDialog />
+<p-toast />
+
+
