@@ -9,7 +9,7 @@
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
           <mat-icon class="fuse-horizontal-navigation-item-icon" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-primary-500">Liquidación</a>
+          <a class="ml-1 text-primary-500">Liquidación nn</a>
         </div>
       </div>
       <div class="mt-2">
@@ -61,7 +61,7 @@
 
     <!-- Botón de Liquidación -->
     <div class="flex flex-col">
-      <p-button severity="danger" label="Consultar" (onClick)="procesar()"></p-button>
+      <p-button severity="danger" label="Consultar" (onClick)="consultar()"></p-button>
     </div>
   </div>
 
@@ -93,15 +93,17 @@
       <p class="text-2xl font-bold text-red-500">S/ {{ getTotalGeneral() | number:'1.2-2' }}</p>
     </div>
 
-    <div class="flex flex-col">
-      <p-button severity="danger" label="Exportar" (onClick)="exportar()"></p-button>
+ <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+
+     
+
+      <p-button severity="success" label="Exportar" icon="pi pi-file-excel" (onClick)="exportToExcel()"></p-button>
+
+      <p-button severity="danger" label="Generar"  icon="pi pi-check" (onClick)="generar()"></p-button>
     </div>
-    <div class="flex flex-col">
-      <p-button severity="danger" label="Generar" (onClick)="procesar()"></p-button>
-    </div>
+
     
   </div>
-
   <!-- Tabla con Filtro de Búsqueda -->
   <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
     
@@ -169,4 +171,31 @@
 
   </div>
 
+  <div class="card">
+    <p-table #dt [columns]="cols" [value]="products" selectionMode="multiple" [(selection)]="selectedProducts" [exportHeader]="'customExportHeader'" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="caption">
+    </ng-template>
+        <ng-template #header let-columns>
+            <tr>
+                <th *ngFor="let col of columns">
+                    {{ col.header }}
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-rowData let-columns="columns">
+            <tr [pSelectableRow]="rowData">
+                <td *ngFor="let col of columns">
+                    {{ rowData[col.field] }}
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>
+
+</div>
+                   
+
+<p-confirmDialog />
+<p-toast />
+<p-toast position="top-right"></p-toast>
+

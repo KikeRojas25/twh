@@ -34,8 +34,17 @@ getPendientesLiquidacion(id: number , model: any): Observable<PreLiquidacion[]> 
   return this._httpClient.get<PreLiquidacion[]>(this.baseUrl + 'GetPendientesLiquidacion' + params, httpOptions);
 }
 
+consultar_preliquidacion(model: any) : Observable<any[]>{
+  return this._httpClient.post<any[]>(this.baseUrl + 'ConsultarPreliquidacion', model, httpOptions)
+  ; }
+  
 generar_preliquidacion(model: any){
   return this._httpClient.post(this.baseUrl + 'GenerarPreliquidacion', model, httpOptions)
+  ; }
+
+
+  consultar_liquidacion(model: any) : Observable<any[]>{
+  return this._httpClient.post<any[]>(this.baseUrl + 'ConsultarLiquidacion', model, httpOptions)
   ; }
 
 

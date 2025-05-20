@@ -18,3 +18,12 @@ export interface OrderSummary {
     enRuta: number;
     entregado: number;
   }
+  
+  export interface ReporteAjusteInventario {
+  lodNum: string;
+  propietarioId: number;
+  nueva: string;
+  antigua: string;
+  fechaHoraAjuste: Date;
+  propietario: string;
+}

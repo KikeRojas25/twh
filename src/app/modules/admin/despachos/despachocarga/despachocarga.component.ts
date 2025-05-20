@@ -9,7 +9,7 @@ import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
-import { DynamicDialogModule, DialogService } from 'primeng/dynamicdialog';
+import { DynamicDialogModule, DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TableModule } from 'primeng/table';
@@ -19,6 +19,8 @@ import { DespachosService } from '../despachos.service';
 import { ClienteService } from '../../_services/cliente.service';
 import { Router } from '@angular/router';
 import { carga } from '../despachos.types';
+import { AsignarPlacaComponent } from './asignar-placa/asignar-placa.component';
+import { ModalUpdateGuiaComponent } from './modal-update-guia/modal-update-guia.component';
 
 @Component({
   selector: 'app-despachocarga',
@@ -57,6 +59,7 @@ export class DespachocargaComponent implements OnInit {
 
   selectedRow: carga[] = [];
   clientes: SelectItem[] = [];
+  ref: DynamicDialogRef | undefined;
   EstadoId: number;
 
 
@@ -67,6 +70,9 @@ export class DespachocargaComponent implements OnInit {
   constructor(private despachoService: DespachosService,
               private clienteService: ClienteService,
               public dialog: DialogService,
+              public dialogService: DialogService,
+              private messageService: MessageService,
+              private confirmationService: ConfirmationService,
               private router: Router) { }
 
   ngOnInit() {
@@ -106,52 +112,85 @@ export class DespachocargaComponent implements OnInit {
   }
 
   asignar() {
+
+    if (this.selectedRow.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Seleccione al menos una carga'
+      });
+      return;
+    }
+
     let ids = '';
     this.selectedRow.forEach(el => {
           ids = ids + ',' + el.id;
     });
     this.model.ids = ids.substring(1, ids.length + 1);
-    this.router.navigate(['/despacho/equipotransportesalida', this.model.ids]);
+
+ 
+
+  
+ 
+    
+        this.ref = this.dialogService.open(AsignarPlacaComponent, {
+                header: `Asignar Placas`,
+                width: '70%',
+                data: {
+                  id: this.model.ids ,
+                },
+              });
+      
+              this.ref.onClose.subscribe((selectedDriver) => {
+    
+    
+            if (selectedDriver) {
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Éxito',
+                  detail: 'Programación guardada correctamente'
+                });
+        
+        
+        
+                
+      
+                
+                 }
+              });
+     
+      
+    
 
  }
  ver (id) {
-  let url = 'http://104.36.166.65/reptwh/impresioneulen_twh.aspx?numorden=' + String(id) ;
+  let url = 'http://104.36.166.65/reptwh/RepRotuloDAP.aspx?idorden=' + String(id) ;
   window.open(url);
 }
-editarGuia(id){
 
-  // const dialogRef = this.dialog.open(ModalUpdateGuiaComponent, {
-  //   width: '700px',
-  //   height: '350px',
-  //   data: {codigo: id, descripcion: ''}
-  // });
-  // dialogRef.onClose.subscribe(result => {
-  //   // this.model.descripcionLarga = result.descripcionLarga;
-  //   // this.model.codigo = result.codigo;
-  //   // this.model.productoid = result.id;
-  // });
-
-}
 editarGuiaMasiva(){
-  // let ids = '';
-  // this.selectedRow.forEach(el => {
-  //       ids = ids + ',' + el.id;
 
-  //   });
-  // this.model.ids = ids.substring(1, ids.length + 1);
+  console.log('editarGuiaMasiva');
+
+  let ids = '';
+  this.selectedRow.forEach(el => {
+        ids = ids + ',' + el.id;
+
+    });
+  this.model.ids = ids.substring(1, ids.length + 1);
 
 
-  // const dialogRef = this.dialog.open(ModalUpdateGuiaComponent, {
-  //   header: 'Editar Guía de remisión salida masiva',
-  //   width: '700px',
-  //   height: '350px',
-  //   modal: true,
-  //   contentStyle: {"max-height": "1000px", "overflow": "auto"},
-  //   data: {codigo:   this.model.ids, descripcion: ''}
-  // });
-  // dialogRef.onClose.subscribe(result => {
-  //     this.buscar();
-  // });
+  const dialogRef = this.dialog.open(ModalUpdateGuiaComponent, {
+    header: 'Editar Guía de remisión salida masiva',
+    width: '700px',
+    height: '350px',
+    modal: true,
+    contentStyle: {"max-height": "1000px", "overflow": "auto"},
+    data: {codigo:   this.model.ids, descripcion: ''}
+  });
+  dialogRef.onClose.subscribe(result => {
+      this.buscar();
+  });
 
 
 }

@@ -1,0 +1,137 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <form (ngSubmit)="save()" #form="ngForm">
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4">
+            
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Estado de la mercadería -->
+            <div class="flex flex-col space-y-2">
+              <label class="w-full text-lg font-semibold text-gray-800 dark:text-gray-200">Estado de la mercadería</label>
+              <p-dropdown
+                [options]="estados"
+                [(ngModel)]="model.estadoId"
+                name="estado"
+                [style]="{ 'width': '100%' }"
+                [resetFilterOnHide]="true"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                placeholder="Seleccione un estado"
+                class="flex-1"
+                appendTo="body"
+                (onChange)="onChange($event.value)"
+                >
+                <ng-template let-item pTemplate="selectedItem">
+                  <span>{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown> 
+            </div>
+
+            <!-- Fecha Estado -->
+            <div class="flex flex-col space-y-2">
+              <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Fecha Estado</label>
+              <p-calendar 
+                  class="flex-1" 
+                  [style]="{ 'width': '100%' }"
+                  [(ngModel)]="model.FechaRegistroMerma" 
+                  [appendTo]="'body'" 
+                  baseZIndex=1000000
+                  [locale]="es" 
+                  dateFormat="dd/mm/yy"
+                  name="dateinicio"
+                  >
+              </p-calendar>     
+            </div>
+
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Motivo -->
+            <div class="flex flex-col space-y-2">
+              <label *ngIf="visible_motivo" class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Motivo</label>
+              <p-dropdown
+                *ngIf="visible_motivo"
+                [options]="motivos"
+                [(ngModel)]="model.motivoid"
+                name="motivo"
+                [style]="{ 'width': '100%' }"
+                [resetFilterOnHide]="true"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                placeholder="Seleccione un motivo"
+                class="flex-1"
+                appendTo="body"
+                >
+                <ng-template let-item pTemplate="selectedItem">
+                  <span>{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+            </div>
+
+            <!-- Tipo -->
+            <div class="flex flex-col space-y-2">
+              <label *ngIf="visible_tipo" class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Tipo</label>
+              <p-dropdown
+                *ngIf="visible_tipo"
+                [options]="tipos"
+                [(ngModel)]="model.tipoid"
+                name="tipo"
+                [style]="{ 'width': '100%' }"
+                [resetFilterOnHide]="true"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                placeholder="Seleccione un tipo"
+                class="flex-1"
+                appendTo="body"
+                >
+                <ng-template let-item pTemplate="selectedItem">
+                  <span>{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+            </div>
+
+            <!-- Área -->
+            <div class="flex flex-col space-y-2">
+              <label *ngIf="visible_area" class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Área</label>
+              <p-dropdown
+                *ngIf="visible_area"
+                [options]="areas"
+                [(ngModel)]="model.areaid"
+                name="area"
+                [style]="{ 'width': '100%' }"
+                [resetFilterOnHide]="true"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                placeholder="Seleccione un área"
+                class="flex-1"
+                appendTo="body"
+                >
+                <ng-template let-item pTemplate="selectedItem">
+                  <span>{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+            </div>
+
+          </div>
+            
+        </div>
+        <!-- Botones -->
+        <div class="flex justify-center gap-x-4 pt-6">
+            <p-button 
+              class="btn btn-space btn-primary" 
+              type="submit"
+              [disabled]="!form.valid" >
+              Guardar
+            </p-button>
+          
+            <p-button  
+              routerLinkActive="router-link-active" 
+              class="btn btn-space btn-warning"
+              (click)="close()">
+              Cancelar
+            </p-button>
+        </div>
+    </form>
+</div>
+<p-confirmDialog></p-confirmDialog>

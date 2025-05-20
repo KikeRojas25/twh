@@ -64,6 +64,7 @@ export interface InventarioGeneral {
      pesoGuia: number;
      contar: number;
      bolsa: number;
+     observacion: string;
 }
 
 

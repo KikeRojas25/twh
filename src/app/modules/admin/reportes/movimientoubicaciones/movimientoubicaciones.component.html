@@ -1,0 +1,96 @@
+<div class="flex flex-col flex-auto min-w-0">
+  
+
+  <!-- 🔷 Encabezado -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+    <div class="flex-1">
+      <div class="flex items-center space-x-2 text-primary-500 font-medium">
+        <a>TWH</a>
+        <mat-icon svgIcon="heroicons_solid:chevron-right"></mat-icon>
+        <a>Reportes</a>
+      </div>
+      <h2 class="mt-2 text-3xl sm:text-4xl font-bold leading-tight">
+        Movimiento de Ubicaciones
+      </h2>
+    </div>
+  </div>
+
+  <!-- 🔷 Filtros -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:px-10 border-b bg-card">
+    <!-- Propietario -->
+    <div class="flex flex-col">
+      <label for="propietario" class="font-semibold mb-1">Propietario</label>
+      <p-dropdown 
+        name="clientes" 
+        [options]="clientes" 
+        [(ngModel)]="model.PropietarioId" 
+        [filter]="true"
+        filterBy="label" 
+        [showClear]="true" 
+        placeholder="Seleccione un propietario"
+        [style]="{'width': '100%'}">
+        <ng-template let-item pTemplate="selectedItem">
+          <span>{{ item.label }}</span>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <!-- Fecha Inicio -->
+    <div class="flex flex-col">
+      <label for="fecIni" class="font-semibold mb-1">Fecha inicio</label>
+      <p-calendar
+        [(ngModel)]="fecIni"
+        dateFormat="dd/mm/yy"
+        showIcon="true"
+        inputId="fecIni"
+        class="p-inputtext-sm w-full"
+      />
+    </div>
+
+    <!-- Fecha Fin -->
+    <div class="flex flex-col">
+      <label for="fecFin" class="font-semibold mb-1">Fecha fin</label>
+      <p-calendar
+        [(ngModel)]="fecFin"
+        dateFormat="dd/mm/yy"
+        showIcon="true"
+        inputId="fecFin"
+        class="p-inputtext-sm w-full"
+      />
+    </div>
+  </div>
+
+  <!-- 🔷 Acciones -->
+  <div class="flex justify-end gap-3 px-6 sm:px-10 py-4">
+    <p-button icon="pi pi-search" label="Buscar" (onClick)="buscar()" class="p-button-sm" />
+    <p-button icon="pi pi-file-excel" label="Exportar Excel" (onClick)="exportToExcel()" class="p-button-success p-button-sm" />
+  </div>
+
+  <!-- 🔷 Tabla -->
+  <div class="px-6 sm:px-10 pb-10">
+    <p-table 
+      [value]="data" 
+      [columns]="cols" 
+      [paginator]="true" 
+      [rows]="20" 
+      [responsive]="true" 
+      [scrollable]="true" 
+      scrollHeight="400px" 
+      class="p-datatable-sm">
+
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th *ngFor="let col of columns">{{ col.header }}</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <td *ngFor="let col of columns">{{ rowData[col.field] }}</td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+</div>

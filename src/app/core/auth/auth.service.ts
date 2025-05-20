@@ -12,6 +12,7 @@ export class AuthService {
     private _httpClient = inject(HttpClient);
     private _userService = inject(UserService);
     private baseUrl = environment.baseUrl + '/api/auth/';
+    private baseUrl2 = environment.baseUrl_2 + '/api/auth/';
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -27,6 +28,17 @@ export class AuthService {
     get accessToken(): string {
         return localStorage.getItem('accessToken') ?? '';
     }
+
+
+
+    set accessToken2(token: string) {
+        localStorage.setItem('accessToken2', token);
+    }
+
+    get accessToken2(): string {
+        return localStorage.getItem('accessToken2') ?? '';
+    }
+
 
     // -----------------------------------------------------------------------------------------------------
     // @ Public methods
@@ -78,24 +90,40 @@ export class AuthService {
              localStorage.setItem('token', data.accessToken);
              localStorage.setItem('user', stringUser)
              
- 
- 
-           
- 
-             // Store the access token in the local storage
-             this.accessToken = response.accessToken;
- 
-            // Set the authenticated flag to true
-            this._authenticated = true;
+             // Crear credenciales adaptadas para el segundo servicio
+            const credentials2 = {
+                username: credentials.email, // mapeo necesario
+                password: credentials.password
+            };
 
-            // Store the user on the user service
-            this._userService.user = response.user;
 
-            // Return a new observable with the response
-            return of(response);
+             return this._httpClient.post(this.baseUrl2 + 'login', credentials2).pipe(
+                switchMap((response2: any) => {
+    
+    
+            
+                        localStorage.setItem('token_servicio2', response2.token);
+
+                        // Store the access token in the local storage
+                        this.accessToken = response.accessToken;
+
+
+                        // Store the access token in the local storage
+                        this.accessToken2 = response2.token;
+            
+                        // Set the authenticated flag to true
+                        this._authenticated = true;
+            
+                        // Store the user on the user service
+                        this._userService.user = response.user;
+            
+                        // Return a new observable with the response
+                        return of(response);
+                    })
+                );
             })
         );
-    }
+}
 
     /**
      * Sign in using the access token

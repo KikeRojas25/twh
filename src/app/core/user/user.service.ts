@@ -1,12 +1,24 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { User } from 'app/core/user/user.types';
+import { environment } from 'environments/environment';
 import { map, Observable, ReplaySubject, tap } from 'rxjs';
+
+
+const httpOptions = {
+  headers: new HttpHeaders({
+    Authorization : 'Bearer ' + localStorage.getItem('token'),
+    'Content-Type' : 'application/json'
+  }),
+};
+
+
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
     private _httpClient = inject(HttpClient);
     private _user: ReplaySubject<User> = new ReplaySubject<User>(1);
+    baseUrl = environment.baseUrl + '/api/users/';
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -53,4 +65,10 @@ export class UserService {
             })
         );
     }
+
+getUsersForRol(idrol: number): Observable<User[]> {
+    console.log(localStorage.getItem('token'));
+    return this._httpClient.get<User[]>(this.baseUrl + 'GetUsersForRol?idrol=' + idrol   , httpOptions);
+ }
+
 }

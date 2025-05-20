@@ -1,7 +1,7 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { carga, OrdenSalida } from './despachos.types';
 
 
@@ -22,6 +22,7 @@ const httpOptions = {
 export class DespachosService {
 
   private baseUrl = environment.baseUrl + '/api/OrdenSalida/';
+  private baseUrlConductor = environment.baseUrl + '/api/Conductor/';
   private _httpClient = inject(HttpClient);
 
 
@@ -75,6 +76,11 @@ getAllCargas_pendientes(model: any): Observable<carga[]> {
 registrar_salidacarga(model: any) {
   return this._httpClient.post(this.baseUrl + 'RegisterSalidaShipment', model, httpOptions);
 }
+
+UpdateGuiasxShipmentIs(model: any){
+  return this._httpClient.post(this.baseUrl + 'UpdateGuiasxShipmentIs', model, httpOptions);
+}
+
 
 
 }

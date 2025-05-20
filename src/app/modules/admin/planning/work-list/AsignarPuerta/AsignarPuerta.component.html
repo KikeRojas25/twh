@@ -1,0 +1,36 @@
+
+<div class="bg-white rounded-b-xl p-4 shadow-lg">
+  <p-table
+    [value]="listData"
+    [responsiveLayout]="'scroll'"
+    class="p-datatable-sm">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="ubicacion">Puerta <p-sortIcon field="ubicacion"></p-sortIcon></th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.nombre }}</td>
+        <td>
+          <p-button
+            icon="pi pi-check"
+            serverity="success"
+            pTooltip="Asignar Puerta"
+            (click)="asignarPuerta(row.id)">
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center text-gray-500">No hay datos disponibles.</td>
+      </tr>
+    </ng-template>
+
+  </p-table>
+</div>

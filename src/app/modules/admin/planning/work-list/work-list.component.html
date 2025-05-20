@@ -1,0 +1,149 @@
+
+<div class="flex flex-col flex-auto min-w-0">
+
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Listado trabajo pendiente</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Trabajo planificado pendiente </h2>
+      </div>
+  </div>
+  </div>
+    <!-- Filtro de búsqueda -->
+    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
+      <h3 class="text-lg font-semibold text-gray-700 mb-4">Filtro de búsqueda</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 text-sm font-medium text-gray-700">Propietario</label>
+          <p-dropdown [options]="clientes"
+                      [(ngModel)]="model.PropietarioId"
+                      placeholder="Seleccione un propietario"
+                      filter="true"
+                      [style]="{'width':'100%'}"
+                      scrollHeight="200px"
+                      [resetFilterOnHide]="false">
+             
+            <ng-template let-item pTemplate="selectedItem">
+               <span style="vertical-align:left;">{{item.label}}</span>
+            </ng-template>
+
+
+          </p-dropdown>
+        </div>
+        <div class="flex items-end">
+          <p-button label="Buscar"
+                    icon="pi pi-search"
+                    class="w-full"
+                    (onClick)="buscar()"
+                    severity="danger"></p-button>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Acciones -->
+    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
+      <div *ngIf="checkSelects(); else seleccionadas">
+        <h3 class="text-lg font-semibold text-gray-700">Trabajos</h3>
+        <p class="text-sm text-gray-500">Listado de trabajos del sistema</p>
+      </div>
+      <ng-template #seleccionadas>
+        <h3 class="text-lg font-semibold text-gray-700">Cargas seleccionadas: {{ selection.selected.length }}</h3>
+        <p class="text-sm text-gray-500">Listado de cargas del sistema</p>
+      </ng-template>
+  
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <p-button label="Área despacho" class="w-full" severity="warning" icon="pi pi-external-link" (onClick)="asignarPuerta()"></p-button>
+        <p-button label="Asignar Trabajador" class="w-full" severity="primary" icon="pi pi-user-plus" (onClick)="asignarTrabajador()"></p-button>
+        <p-button label="Iniciar Picking" class="w-full" severity="secondary" icon="pi pi-play" (onClick)="iniciar()"></p-button>
+        <p-button label="Finalizar Picking" class="w-full" severity="danger" icon="pi pi-stop" (onClick)="finalizar()"></p-button>
+      </div>
+    </div>
+  
+    <!-- Tabla -->
+    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
+      <p-table [value]="cargas"
+               [columns]="cols"
+               [(selection)]="selectedRow"
+               selectionMode="multiple"
+               [paginator]="true"
+               [rows]="40"
+               [resizableColumns]="true"
+               [scrollable]="true"
+               [style]="{width:'100%'}">
+  
+        <!-- Filtro global -->
+        <ng-template pTemplate="caption">
+          <div class="flex justify-end">
+            <span class="p-input-icon-left">
+              <i class="pi pi-search"></i>
+              <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Buscar..." />
+            </span>
+          </div>
+        </ng-template>
+  
+        <!-- Columnas -->
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col *ngFor="let col of columns" [ngStyle]="{'width': col.width}" />
+          </colgroup>
+        </ng-template>
+  
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            <th *ngFor="let col of columns" [pSortableColumn]="col.field">
+              {{ col.header }}
+              <p-sortIcon [field]="col.field"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+  
+        <!-- Cuerpo -->
+        <ng-template pTemplate="body" let-row let-columns="columns">
+          <tr [pSelectableRow]="row">
+            <td class="space-x-2">
+              <button class="p-button p-button-text p-button-sm border border-green-500" (click)="verExcel(row.id)">
+                <i class="pi pi-file-excel text-green-600"></i>
+              </button>
+              <button class="p-button p-button-text p-button-sm border border-red-500" (click)="verPdf(row.id)">
+                <i class="pi pi-file-pdf text-red-600"></i>
+              </button>
+              <button class="p-button p-button-text p-button-sm border border-blue-500" (click)="eliminar(row.id)">
+                <i class="fa fa-trash text-blue-600"></i>
+              </button>
+            </td>
+            <td>{{ row.almacen }}</td>
+            <td>{{ row.propietario }}</td>
+            <td>{{ row.workNum }}</td>
+            <td>{{ row.numOrden }}</td>
+            <td>{{ row.guiaRemision }}</td>
+            <td>{{ row.cantidadLPN }}</td>
+            <td>{{ row.cantidadTotal }}</td>
+            <td>
+              <span [ngClass]="{
+                'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs': row.estado === 'Almacenado',
+                'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs': row.estado === 'Asignado'
+              }">
+                {{ row.estado }}
+              </span>
+            </td>
+            <td>{{ row.operador }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+  
+
+  
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>

@@ -1,0 +1,75 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <form (ngSubmit)="save()" #form="ngForm">
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4">
+
+            <!-- Lote -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Lote</label>
+                    <input 
+                        pInputText 
+                        required
+                        class="flex-1" 
+                        autocomplete="off"
+                        [(ngModel)]="model.lotNum" 
+                        name="lotNum" 
+                        type="text"
+                    >
+                </div>
+            </div>
+
+            <!-- Fecha de Manufactura -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Fecha de Manufactura</label>
+                    <p-calendar 
+                        class="flex-1" 
+                        [style]="{ 'width': '100%' }"
+                        [(ngModel)]="model.fechaManufactura" 
+                        [appendTo]="'body'" 
+                        baseZIndex=1000000
+                        [locale]="es" 
+                        dateFormat="dd/mm/yy"
+                        name="fechaManufactura"
+                        >
+                    </p-calendar>
+                </div>
+            </div>
+
+            <!-- Fecha de Expiración -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Fecha de Expiración</label>
+                    <p-calendar 
+                        class="flex-1" 
+                        [style]="{ 'width': '100%' }"
+                        [(ngModel)]="model.fechaExpire" 
+                        [appendTo]="'body'" 
+                        baseZIndex=1000000
+                        [locale]="es" 
+                        name="fechaExpire"
+                        >
+                    </p-calendar>
+                </div>
+            </div>
+
+        </div>
+        <!-- Botones -->
+        <div class="flex justify-center gap-x-4 pt-6">
+            <p-button 
+              class="btn btn-space btn-primary" 
+              type="submit"
+              [disabled]="!form.valid" >
+              Guardar
+            </p-button>
+          
+            <p-button  
+              routerLinkActive="router-link-active" 
+              class="btn btn-space btn-secondary"
+              (click)="close()">
+              Cancelar
+            </p-button>
+        </div>
+    </form>
+</div>
+<p-confirmDialog></p-confirmDialog>

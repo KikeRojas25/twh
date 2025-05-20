@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { InventarioGeneral } from '../_models/inventariogeneral';
 import { Observable } from 'rxjs';
-import { OrderSummary } from './reportes.types';
+import { OrderSummary, ReporteAjusteInventario } from './reportes.types';
 
 
 
@@ -111,6 +111,17 @@ getInventarioGeneral(IdGrupo?: number, IdPropietario?: number): Observable<Inven
 }
 
 
+getReporteAjusteInventario(propietarioId: string, fecIni: string, fecFin: string) {
+  const params = new HttpParams()
+    .set('propietarioId', propietarioId)
+    .set('fecIni', fecIni)
+    .set('fecFin', fecFin);
+
+  return this._httpClient.get<ReporteAjusteInventario[]>(
+    `${this.baseUrlInventario}reporte_movimientos_ubicaciones`, // <- nombre exacto del endpoint
+    { params }
+  );
+}
 
 
 }

@@ -46,11 +46,13 @@ export interface carga {
     numCarga	:  string ;
     propietario	:  string ;
     fechaRegistro	:  Date ;
-    EstadoID	:  number ;
+    estadoId	:  number ;
     equipotransporte: string;
     NombreEstado:  string ;
     ubicacion: string;
     destino: string ;
     usuarioId: number;
     fechaInicio: string;
+    destinoId: number;
+    
 }

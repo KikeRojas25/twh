@@ -1,0 +1,56 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <form (ngSubmit)="save()" #form="ngForm">
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4">
+
+            <!-- UntQty -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">UntQty</label>
+                  <input 
+                    pInputText 
+                    class="flex-1" 
+                    autocomplete="off"
+                    [(ngModel)]="model.untQty" 
+                    name="untQty" 
+                    type="text"
+                    appTwoDigitDecimaNumber>
+                </div>
+            </div>
+
+            <!-- Partición -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Partición</label>
+                  <input 
+                    pInputText 
+                    class="flex-1" 
+                    autocomplete="off"
+                    [(ngModel)]="model.particion" 
+                    name="lotNum" 
+                    type="text"
+                    maxlength="7"
+                    size="16"
+                    appTwoDigitDecimaNumber>
+                </div>
+            </div>
+
+        </div>
+        <!-- Botones -->
+        <div class="flex justify-center gap-x-4 pt-6">
+            <p-button 
+              class="btn btn-space btn-primary" 
+              type="submit"
+              [disabled]="!form.valid" >
+              Guardar
+            </p-button>
+          
+            <p-button  
+              routerLinkActive="router-link-active" 
+              class="btn btn-space btn-secondary"
+              (click)="close()">
+              Cancelar
+            </p-button>
+        </div>
+    </form>
+</div>
+<p-confirmDialog></p-confirmDialog>

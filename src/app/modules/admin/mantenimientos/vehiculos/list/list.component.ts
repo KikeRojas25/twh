@@ -104,26 +104,24 @@ export class ListComponent implements OnInit {
   }
 
   buscar() {
-
-
-    this.mantenimientoService.GetAllVehiculos().subscribe({
+    const placaInput = this.model.placa?.toString().trim().toUpperCase() || '';
+  
+    this.model.placa = placaInput;
+    this.cargandoProveedores = true;
+  
+    this.mantenimientoService.getAllVehiculos(placaInput).subscribe({
       next: (data) => {
         this.vehiculos = data;
-    },
-    error: (err) => {
-        console.error('Error al cargar proveedores', err);
-    },
-    complete: () => {
+      },
+      error: (err) => {
+        console.error('Error al cargar vehículos', err);
+      },
+      complete: () => {
         this.cargandoProveedores = false;
-    } 
+      }
+    });
+  }
   
-  
-  });
-
-
-
-
-  } 
   editar(id: number) {  
 
 

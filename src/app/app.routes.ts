@@ -90,6 +90,11 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/facturacion/liquidacionservicio/liquidacionservicio.component')
                                           .then(m => m.LiquidacionservicioComponent)
                   },
+                   {
+                    path: 'gestionpreliquidacion',
+                    loadComponent: () => import('./modules/admin/facturacion/gestion-liquidacion/gestion-liquidacion.component')
+                                          .then(m => m.GestionLiquidacionComponent)
+                  },
                
                 ]
               },
@@ -140,8 +145,12 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/planning/pedidos-planificados/pedidos-planificados.component')
                                           .then(m => m.PedidosPlanificadosComponent)
                   },
-
-
+                  {
+                    path: 'listadotrabajopendiente',
+                    loadComponent: () => import('./modules/admin/planning/work-list/work-list.component')
+                                          .then(m => m.WorkListComponent)
+                  },
+                  
 
 
                
@@ -175,6 +184,12 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/reportes/reportecobertura/reportecobertura.component')
                                           .then(m => m.ReportecoberturaComponent)
                   },
+
+                   {
+                    path: 'movimientoubicaciones',
+                    loadComponent: () => import('./modules/admin/reportes/movimientoubicaciones/movimientoubicaciones.component')
+                                          .then(m => m.MovimientoubicacionesComponent)
+                  },
                
                 ]
               },
@@ -184,6 +199,21 @@ export const appRoutes: Route[] = [
                 loadComponent: () => import('./modules/admin/reportes/reportes.component')
                                       .then(m => m.ReportesComponent),
                 children: [
+                  {
+                    path: 'gestionajustes',
+                    loadComponent: () => import('./modules/admin/inventario/gestionajustes/gestionajustes.component')
+                                          .then(m => m.GestionajustesComponent)
+                  },
+                  {
+                    path: 'ajusteinventario',
+                    loadComponent: () => import('./modules/admin/inventario/ajusteinventario/ajusteinventario.component')
+                                          .then(m => m.AjusteinventarioComponent)
+                  },
+                  {
+                    path: 'reubicarinventario',
+                    loadComponent: () => import('./modules/admin/inventario/reubicarinventario/reubicarinventario.component')
+                                          .then(m => m.ReubicarinventarioComponent)
+                  },
                   {
                     path: 'inventariogeneral',
                     loadComponent: () => import('./modules/admin/reportes/inventariogeneral/inventariogeneral.component')

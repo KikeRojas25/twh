@@ -123,6 +123,20 @@ export class AvancepickingComponent implements OnInit {
 
   }
 
+  exportarPicking() {
+
+    this.model.fec_ini =  this.dateInicio;
+    this.model.fec_fin =  this.dateFin ;
+
+
+
+    this.model.fec_ini = moment(this.dateInicio).format('DD/MM/YYYY');
+    this.model.fec_fin = moment(this.dateFin).format('DD/MM/YYYY');
+
+    let url = 'http://104.36.166.65/reptwh/RepPickingDAP.aspx?' +
+    '&fecinicio=' + this.model.fec_ini  +  '&fecfin=' + this.model.fec_fin ;
+    window.open(url);
+  }
   exportar() {
 
     

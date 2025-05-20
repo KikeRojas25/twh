@@ -21,6 +21,7 @@ import { OrdenSalida } from '../../despachos/despachos.types';
 import { PlanningService } from '../planning.service';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
 @Component({
   selector: 'app-pending-picking-orders',
@@ -80,6 +81,10 @@ export class PendingPickingOrdersComponent implements OnInit {
   model: any = {};
   loading = false;
 
+  jwtHelper = new JwtHelperService();
+  decodedToken: any = {};
+  
+
   constructor(
     private planningService: PlanningService,
     private clienteService: ClienteService,
@@ -92,6 +97,12 @@ export class PendingPickingOrdersComponent implements OnInit {
   ngOnInit(): void {
 
 
+    const user  = localStorage.getItem('token');
+    this.decodedToken = this.jwtHelper.decodeToken(user);
+
+
+
+    
     this.cargarFiltrosGuardados();
 
 
@@ -215,9 +226,14 @@ export class PendingPickingOrdersComponent implements OnInit {
     });
     this.model_pendientes.ids = this.ids;
 
+    
+    this.model_pendientes.usuarioid =  this.decodedToken.nameid ;
+    this.model_pendientes.PropietarioId =  this.model.PropietarioId
+
 
     this.planningService.PlanificarPicking(this.model_pendientes).subscribe(resp => {
 
+      debugger
 
         this.model = resp;
         this.messageService.add({severity: 'success', summary: 'TWH', detail: 'Se eliminó correctamente.'})  //success('Se registró correctamente.');
@@ -229,7 +245,7 @@ export class PendingPickingOrdersComponent implements OnInit {
          //error(error);
       }, () => {
         //success('Se planificó correctamente.');
-        this.router.navigate(['/picking/listadotrabajopendiente' ]);
+     //   this.router.navigate(['/picking/listadotrabajopendiente' ]);
       });
              
   

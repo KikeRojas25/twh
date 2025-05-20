@@ -2,8 +2,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { ValorTabla } from '../_models/valortabla';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Almacen } from '../_models/almacen';
+import { Ubicacion } from '../planning/planning.types';
+import { Area, Estado } from '../inventario/inventario.type';
 
 
 const httpOptions = {
@@ -28,11 +30,38 @@ export class GeneralService {
 
 constructor() { }
 
-getValorTabla(TablaId: number): Observable<ValorTabla[]> {
-  return this._httpClient.get<ValorTabla[]>(this.baseUrl + 'GetAllValorTabla?TablaId=' + TablaId, httpOptions);
-}
+    getValorTabla(TablaId: number): Observable<ValorTabla[]> {
+      return this._httpClient.get<ValorTabla[]>(this.baseUrl + 'GetAllValorTabla?TablaId=' + TablaId, httpOptions);
+    }
 
-getAllAlmacenes(): Observable<Almacen[]> {
-  return this._httpClient.get<Almacen[]>(this.baseUrlAlmacen + 'GetAlmacenes' , httpOptions);
-}
+    getAllAlmacenes(): Observable<Almacen[]> {
+      return this._httpClient.get<Almacen[]>(this.baseUrlAlmacen + 'GetAlmacenes' , httpOptions);
+    }
+
+
+    getPuertas(AlmacenId: number, AreaId: number): Observable<Ubicacion[]> {
+      const params = 'AlmacenId=' + AlmacenId + '&AreaId=' + AreaId;
+      return this._httpClient.get<Ubicacion[]>(this.baseUrl + 'getPuertas?' + params, httpOptions);
+    }
+
+    
+  setUbicacion(paletas: string, Ubicacionid: number ){
+    var model: any = {}  ;
+    model.paletas = paletas.toString();
+    model.ubicacionid = Ubicacionid;
+    console.log(model, 'model');
+    return this._httpClient.post<Ubicacion[]>(this.baseUrl + 'SetUbicacion?' , model, httpOptions);
+  }
+
+  getAllUbicacionesxNombre(AlmacenId: number, Ubicacion: string): Observable<Ubicacion[]> {
+    const params = 'AlmacenId=' + AlmacenId + '&Ubicacion=' + Ubicacion;
+    return this._httpClient.get<Ubicacion[]>(this.baseUrl + 'GetUbicacionesxNombre?' + params, httpOptions);
+  }
+  getAll(TablaId: number): Observable<Estado[]> {
+    return this._httpClient.get<Estado[]>(this.baseUrl + '?TablaId=' + TablaId, httpOptions);
+  }
+    getAreas(): Observable<Area[]> {
+    return this._httpClient.get<Area[]>(this.baseUrl + 'GetAreas', httpOptions);
+  }
+
 }

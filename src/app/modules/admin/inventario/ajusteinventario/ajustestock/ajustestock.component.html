@@ -1,0 +1,95 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <form (ngSubmit)="save()" #form="ngForm">
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4">
+            
+            <!-- Motivo -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Motivo</label>
+                  <p-dropdown
+                    [options]="motivos"
+                    [(ngModel)]="model.motivoid"
+                    name="motivo"
+                    #motivo="ngModel"
+                    [style]="{ 'width': '100%' }"
+                    [resetFilterOnHide]="true"
+                    [filter]="true"
+                    filterBy="label"
+                    [showClear]="true"
+                    placeholder="Seleccione un motivo"
+                    class="flex-1"
+                    required
+                    >
+                    <ng-template let-item pTemplate="selectedItem">
+                      <span>{{ item.label }}</span>
+                    </ng-template>
+                  </p-dropdown>
+                </div>
+                <div *ngIf="motivo.invalid && (motivo.dirty || motivo.touched)" class="text-red-500 text-sm pl-44">
+                    <div *ngIf="motivo.errors?.required">Debe seleccionar el motivo.</div>
+                </div>
+            </div>
+
+            <!-- Observación -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Observación</label>
+                    <textarea 
+                        rows="5" 
+                        cols="30" 
+                        pInputTextarea   
+                        class="flex-1"  
+                        autocomplete="off" 
+                        [(ngModel)]="model.observacion" 
+                        name="observacion" 
+                        #observacion="ngModel"
+                        type="text"
+                        required>
+                    </textarea>
+                </div>
+                <div *ngIf="observacion.invalid && (observacion.dirty || observacion.touched)" class="text-red-500 text-sm pl-44">
+                    <div *ngIf="observacion.errors?.required">Debe ingresar la observación.</div>
+                </div>
+            </div>
+
+            <!-- Cantidad a ajustar -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Cantidad a ajustar</label>
+                  <input 
+                    pInputText 
+                    maxlength="6" 
+                    required
+                    class="flex-1" 
+                    autocomplete="off"
+                    [(ngModel)]="model.cantidad" 
+                    name="cantidad" 
+                    #cantidad="ngModel" 
+                    type="text">
+                </div>
+                <div *ngIf="cantidad.invalid && (cantidad.dirty || cantidad.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="cantidad.errors?.required">La cantidad es obligatoria.</div>
+                  <div *ngIf="cantidad.errors?.maxlength">No debe superar los 6 caracteres.</div>
+                </div>
+            </div>
+
+        </div>
+        <!-- Botones -->
+        <div class="flex justify-center gap-x-4 pt-6">
+            <p-button 
+              class="btn btn-space btn-primary" 
+              type="submit"
+              [disabled]="!form.valid" >
+              Guardar
+            </p-button>
+          
+            <p-button  
+              routerLinkActive="router-link-active" 
+              class="btn btn-space btn-secondary"
+              (click)="close()">
+              Cancelar
+            </p-button>
+        </div>
+    </form>
+</div>
+<p-confirmDialog></p-confirmDialog>
