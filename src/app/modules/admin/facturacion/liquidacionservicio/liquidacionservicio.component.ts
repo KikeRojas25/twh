@@ -64,12 +64,13 @@ export class LiquidacionservicioComponent implements OnInit {
   dateInicio: Date = new Date(Date.now()) ;
   dateFin: Date = new Date(Date.now()) ;
 
-  korean : any = {};
+  persona : any = {};
   cols!: Column[];
 
 
 products: any[] = [];
 selectedProducts: any[] = [];
+
   model: any = {};
 
   constructor(private clienteService: ClienteService,
@@ -99,7 +100,19 @@ selectedProducts: any[] = [];
     window.open(url);
 
   }
+
+  leerDatos() {
+
+
+
+   console.log(this.persona.Nombre);
+    
+  }
+
+
 consultar () {
+
+
 this.model.InicioCorte = moment(this.dateInicio).format('DD/MM/YYYY');
 this.model.FinCorte = moment(this.dateFin).format('DD/MM/YYYY');
 this.model.PropietarioId = this.model.PropietarioId ;

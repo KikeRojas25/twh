@@ -17,7 +17,7 @@ export const authInterceptor = (
     const authService = inject(AuthService);
 
     // Detectar si es para el segundo servicio
-    const isServicio2 = req.url.startsWith(environment.baseUrl_2);
+    const isServicio2 = req.url.startsWith(environment.baseUrl);
 
     // Elegir el token correcto según la URL
     const token = isServicio2

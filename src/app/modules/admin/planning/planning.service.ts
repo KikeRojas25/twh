@@ -27,7 +27,7 @@ const httpOptions2 = {
 })
 export class PlanningService {
   baseUrl = environment.baseUrl + '/api/ordensalida/';
-  baseUrl2 = environment.baseUrl_2 +  '/api/ordensalida/';
+//  baseUrl2 = environment.baseUrl_2 +  '/api/ordensalida/';
   baseUrlPlanning = environment.baseUrl +  '/api/planning/';
   
 constructor(private http: HttpClient) { }
@@ -106,11 +106,11 @@ getAllOrdenSalidaPendientesResumen(model: any): Observable<any> {
  
 PlanificarPicking(model: any){
 
-  return this.http.post(this.baseUrl2 + 'PlanificarPicking', model, httpOptions2);
+  return this.http.post(this.baseUrl + 'PlanificarPicking', model, httpOptions2);
 }
 
 PlanificarDespacho(model: any){
-  return this.http.post(this.baseUrl2 + 'PlanificarDespacho', model, httpOptions);
+  return this.http.post(this.baseUrl + 'PlanificarDespacho', model, httpOptions);
 }
 
 // PlanificarPickingMasivo(model: any){
