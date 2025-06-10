@@ -12,7 +12,7 @@ export class AuthService {
     private _httpClient = inject(HttpClient);
     private _userService = inject(UserService);
     private baseUrl = environment.baseUrl + '/api/auth/';
-    private baseUrl2 = environment.baseUrl_2 + '/api/auth/';
+    private baseUrl2 = environment.baseUrl + '/api/auth/';
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -97,19 +97,19 @@ export class AuthService {
             };
 
 
-             return this._httpClient.post(this.baseUrl2 + 'login', credentials2).pipe(
-                switchMap((response2: any) => {
+            //  return this._httpClient.post(this.baseUrl2 + 'login', credentials2).pipe(
+            //     switchMap((response2: any) => {
     
     
             
-                        localStorage.setItem('token_servicio2', response2.token);
+                       // localStorage.setItem('token_servicio2', response2.token);
 
                         // Store the access token in the local storage
                         this.accessToken = response.accessToken;
 
 
                         // Store the access token in the local storage
-                        this.accessToken2 = response2.token;
+                    //    this.accessToken2 = response2.token;
             
                         // Set the authenticated flag to true
                         this._authenticated = true;
@@ -120,8 +120,8 @@ export class AuthService {
                         // Return a new observable with the response
                         return of(response);
                     })
-                );
-            })
+               // );
+          //  })
         );
 }
 

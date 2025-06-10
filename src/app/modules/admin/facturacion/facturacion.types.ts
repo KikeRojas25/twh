@@ -16,3 +16,17 @@ export interface PreLiquidacion {
     igv: number;
     estado: string;
 }
+
+export interface ResumenFacturacionPorMes {
+    mes: number;
+    cliente: string;
+    totalIngreso?: number;
+    totalSalida?: number;
+    totalSeguro?: number;
+    totalPosTotal?: number;
+    totalPickingUnidad?: number;
+    totalPickingCaja?: number;
+    totalEtiquetado?: number;
+    clienteId: number; 
+    totalFacturado?: number; // <== AÑADE ESTE
+}

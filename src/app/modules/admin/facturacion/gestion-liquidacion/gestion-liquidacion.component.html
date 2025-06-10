@@ -1,162 +1,244 @@
-<div class="flex flex-col flex-auto min-w-0">
-
+<div class="flex min-w-0 flex-auto flex-col bg-gray-50 dark:bg-gray-900">
     <!-- Encabezado -->
-    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-      <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap items-center font-medium">
-          <div>
-            <a class="whitespace-nowrap text-primary-500">TWH</a>
-          </div>
-          <div class="flex items-center ml-1 whitespace-nowrap">
-            <mat-icon class="fuse-horizontal-navigation-item-icon" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-            <a class="ml-1 text-primary-500">Liquidación nn</a>
-          </div>
+    <div class="border-b bg-white p-6 shadow dark:bg-gray-800 sm:px-10 sm:py-8">
+        <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <div
+                    class="flex items-center space-x-2 text-sm font-semibold text-primary-500"
+                >
+                    <a>TWH</a>
+                    <mat-icon
+                        class="fuse-horizontal-navigation-item-icon"
+                        [svgIcon]="'heroicons_solid:chevron-right'"
+                    ></mat-icon>
+                    <a>Liquidación</a>
+                </div>
+                <h2
+                    class="mt-2 text-3xl font-extrabold text-gray-800 dark:text-white md:text-4xl"
+                >
+                    Seguimiento de Liquidaciones
+                </h2>
+            </div>
         </div>
-        <div class="mt-2">
-          <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
-        Seguimiento de Liquidaciones
-          </h2>
-        </div>
-      </div>
     </div>
-  
-    <!-- Filtros -->
-    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-      
-      <!-- Selección de Propietario -->
-      <div class="flex flex-col">
-        <label for="propietario" class="font-bold">Propietario:</label>
-        <p-dropdown name="clientes" 
-          [options]="clientes" 
-          [(ngModel)]="model.PropietarioId" 
-          [filter]="true"
-          filterBy="label" 
-          [showClear]="true" 
-          [style]="{'width': '250px'}" 
-          [resetFilterOnHide]="false"
-          placeholder="Seleccione un propietario">
-          <ng-template let-item pTemplate="selectedItem">
-            <span>{{ item.label }}</span>
-          </ng-template>
-        </p-dropdown>
-      </div>
-  
-      <!-- Fecha Inicio -->
-      <div class="flex flex-col">
-        <label for="dateInicio" class="font-semibold mb-1">Año - Mes</label>
-        <p-calendar 
-          id="dateInicio"
-          view="month" dateFormat="mm/yy"
-          [(ngModel)]="dateInicio" 
-          />
-      </div>
 
-  
-      <!-- Botón de Liquidación -->
-      <div class="flex flex-col">
-        <p-button severity="danger" label="Consultar" (onClick)="procesar()"></p-button>
-      </div>
+    <!-- Filtros -->
+    <div
+        class="border-b bg-white p-6 shadow-sm dark:bg-gray-800 sm:px-10 sm:py-6"
+    >
+        <div class="flex flex-wrap gap-6">
+            <div class="flex flex-col">
+                <label class="mb-1 text-sm font-semibold">Propietario:</label>
+                <p-dropdown
+                    [options]="clientesDropdown"
+                    [(ngModel)]="model.PropietarioId"
+                    [filter]="true"
+                    filterBy="label"
+                    [showClear]="true"
+                    [style]="{ width: '250px' }"
+                    placeholder="Seleccione un propietario"
+                >
+                    <ng-template let-item pTemplate="selectedItem">
+                        <span style="vertical-align: left">{{
+                            item.label
+                        }}</span>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <div class="flex flex-col">
+                <label class="mb-1 text-sm font-semibold">Año:</label>
+                <input
+                    type="number"
+                    class="p-inputtext p-component w-28"
+                    [(ngModel)]="model.anio"
+                    min="2020"
+                    max="2099"
+                    placeholder="2025"
+                />
+            </div>
+
+            <div class="flex flex-col">
+                <label class="mb-1 text-sm font-semibold">Mes:</label>
+                <p-dropdown
+                    [options]="meses"
+                    [(ngModel)]="model.mes"
+                    [showClear]="true"
+                    optionLabel="name"
+                    optionValue="value"
+                    placeholder="Todos"
+                >
+                    <ng-template let-item pTemplate="selectedItem">
+                        <span style="vertical-align: left">{{
+                            item.name
+                        }}</span>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <div class="flex flex-col justify-end">
+                <p-button
+                    label="Consultar"
+                    icon="pi pi-search"
+                    severity="info"
+                    (onClick)="procesar()"
+                ></p-button>
+            </div>
+        </div>
     </div>
-  
-    <!-- Resumen tipo Dashboard (Debajo de los filtros) -->
-    <div *ngIf="liquidacion && liquidacion.length > 0" class="grid grid-cols-3 gap-4 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-      
-      <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total In</h3>
-        <p class="text-2xl font-bold text-gray-500">S/ {{ getTotalIn() | number:'1.2-2' }}</p>
-      </div>
-      
-      <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Out</h3>
-        <p class="text-2xl font-bold text-green-500">S/ {{ getTotalOut() | number:'1.2-2' }}</p>
-      </div>
-      
-      <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Picking</h3>
-        <p class="text-2xl font-bold text-blue-500">S/ {{ getTotalPicking() | number:'1.2-2' }}</p>
-      </div>
-      
-      <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Pos</h3>
-        <p class="text-2xl font-bold text-yellow-500">S/ {{ getTotalPos() | number:'1.2-2' }}</p>
-      </div>
-      
-      <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Total General</h3>
-        <p class="text-2xl font-bold text-red-500">S/ {{ getTotalGeneral() | number:'1.2-2' }}</p>
-      </div>
-  
-      <div class="flex flex-col">
-        <p-button severity="danger" label="Exportar" (onClick)="exportar()"></p-button>
-      </div>
-    
-      
+
+    <div class="p-6 sm:px-10">
+        <div
+            class="overflow-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800"
+        >
+            <h3 class="mb-4 text-lg font-bold text-gray-800 dark:text-white">
+                Matriz de Facturación por Cliente y Mes
+            </h3>
+            <p-table
+                #dt
+                [value]="matrizFilas"
+                [paginator]="true"
+                [rows]="10"
+                [sortMode]="'multiple'"
+                [globalFilterFields]="['cliente']"
+                [responsiveLayout]="'scroll'"
+                [resizableColumns]="true"
+                [filterDelay]="300"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+                [rowsPerPageOptions]="[10, 20, 50]"
+            >
+                <ng-template pTemplate="caption">
+                    <div class="flex items-center justify-between">
+                        
+                        <span class="p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input
+                                type="text"
+                                pInputText
+                                (input)="
+                                    dt.filterGlobal(
+                                        $event.target.value,
+                                        'contains'
+                                    )
+                                "
+                                placeholder="Buscar cliente..."
+                                class="w-full"
+                            />
+                        </span>
+                    </div>
+                </ng-template>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="cliente">
+                            Cliente
+                            <p-sortIcon field="cliente" />
+                        </th>
+                        <th
+                            *ngFor="let mes of mesesVisibles"
+                            [pSortableColumn]="'mes_' + mes.value"
+                        >
+                            {{ mes.name }}
+                            <p-sortIcon [field]="'mes_' + mes.value" />
+                        </th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-row>
+                    <tr>
+                        <td>{{ row.cliente }}</td>
+                        <ng-container *ngFor="let mes of mesesVisibles">
+                            <td class="text-sm">
+                                <a
+                                    [href]="
+                                        obtenerUrl(row.clienteId, mes.value)
+                                    "
+                                    target="_blank"
+                                    class="font-semibold text-blue-700 underline"
+                                >
+                                    {{
+                                        (
+                                            row['mes_' + mes.value] ?? 0
+                                        ).toLocaleString('es-PE', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })
+                                    }}
+                                </a>
+                                <span
+                                    class="ml-1 font-semibold"
+                                    [ngClass]="{
+                                        'text-green-600':
+                                            (row['var_' + mes.value] ?? 0) > 0,
+                                        'text-red-600':
+                                            (row['var_' + mes.value] ?? 0) < 0,
+                                        'text-gray-400':
+                                            (row['var_' + mes.value] ?? 0) ===
+                                            0,
+                                    }"
+                                >
+                                    (
+                                    {{
+                                        (row['var_' + mes.value] ?? 0) > 0
+                                            ? '↑'
+                                            : (row['var_' + mes.value] ?? 0) < 0
+                                              ? '↓'
+                                              : ''
+                                    }}
+                                    {{
+                                        row['var_' + mes.value] ?? 0
+                                            | number: '1.1-1'
+                                    }}% )
+                                </span>
+                            </td>
+                        </ng-container>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
     </div>
-  
-    <!-- Tabla con Filtro de Búsqueda -->
-    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-      
-      <p-table [value]="liquidacion" [scrollable]="true" [style]="{width:'100%'}"
-        selectionMode="single" dataKey="lpn" #dt2 scrollHeight="300px"
-        [globalFilterFields]="['lpn', 'guiaRemision', 'movimiento']" [responsive]="true"
-        [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 50]">
-        
-        <ng-template pTemplate="caption">
-          <div class="flex">
-            <p-iconField iconPosition="left" class="ml-auto">
-              <p-inputIcon>
-                <i class="pi pi-search"></i>
-              </p-inputIcon>
-              <input pInputText type="text" (input)="dt2.filterGlobal($event.target.value, 'contains')" placeholder="Buscar LPN o Guía de Remisión" />
-            </p-iconField>
-          </div>
-        </ng-template>
-  
-        <ng-template pTemplate="header">
-          <tr>
-            <th>LPN</th>
-            <th>FechaIngreso</th>
-            <th>FechaSalida</th>
-            <th>DescripcionLarga</th>
-            <th>EstadiaTotal</th>
-            <th>EstadiaPeriodo</th>
-            <th>Cantidad</th>
-            <th>FechaSalida</th>
-            <th>cantidad</th>
-            <th>Ingreso</th>
-            <th>Salida</th>
-            <th>Postotal</th>
-            <th>Movimiento</th>
-            <th>Ubicacion</th>
-          </tr>
-        </ng-template>
-  
-        <ng-template pTemplate="body" let-rowData>
-          <tr>
-            <td>{{ rowData.lpn }}</td>
-            <td>{{ rowData.fechaIngreso | date: 'yyyy-MM-dd' }}</td>
-            <td>{{ rowData.fechaSalida ? (rowData.fechaSalida | date: 'yyyy-MM-dd') : 'N/A' }}</td>
-            <td>{{ rowData.descripcionLarga}}</td>
-            <td>{{ rowData.estadiaTotal }}</td>
-            <td>{{ rowData.estadiaPeriodo }}</td>
-            <td>{{ rowData.cantidad }}</td>
-            <td>S/ {{ rowData.ingreso | number:'1.2-2' }}</td>
-            <td>S/ {{ rowData.salida | number:'1.2-2' }}</td>
-            <td>S/ {{ rowData.posTotal | number:'1.2-2' }}</td> 
-            <td>{{ rowData.movimiento}}</td>
-            <td>{{ rowData.ubicacion}}</td>
-          </tr>
-        </ng-template>
-  
-        <ng-template pTemplate="summary">
-          <div class="flex align-items-center justify-content-between">
-            Total registros: {{ liquidacion ? liquidacion.length : 0 }}
-          </div>
-        </ng-template>
-        
-      </p-table>
-  
+
+    <!-- Gráfico Total por Mes -->
+    <div class="p-6 sm:px-10" *ngIf="!cargando && chartTotales">
+        <div
+            class="min-w-[750px] overflow-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800"
+        >
+            <apx-chart
+                [series]="chartTotales.series"
+                [chart]="chartTotales.chart"
+                [xaxis]="chartTotales.xaxis"
+                [yaxis]="chartTotales.yaxis"
+                [title]="chartTotales.title"
+                [tooltip]="chartTotales.tooltip"
+            >
+            </apx-chart>
+        </div>
     </div>
-  
-  </div>
-  
+
+    <!-- Gráfico por Servicios -->
+    <div class="p-6 sm:px-10" *ngIf="!cargando && chartOptions">
+        <div
+            class="min-w-[750px] overflow-auto rounded-lg bg-white p-4 shadow dark:bg-gray-800"
+        >
+            <apx-chart
+                [series]="chartOptions.series"
+                [chart]="chartOptions.chart"
+                [colors]="chartOptions.colors"
+                [xaxis]="chartOptions.xaxis"
+                [yaxis]="chartOptions.yaxis"
+                [title]="chartOptions.title"
+                [tooltip]="chartOptions.tooltip"
+                [dataLabels]="chartOptions.dataLabels"
+                [plotOptions]="chartOptions.plotOptions"
+                [legend]="chartOptions.legend"
+                [responsive]="chartOptions.responsive"
+            >
+            </apx-chart>
+        </div>
+    </div>
+
+    <!-- Matriz de Facturación -->
+</div>

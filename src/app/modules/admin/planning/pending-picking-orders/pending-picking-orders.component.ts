@@ -216,15 +216,13 @@ export class PendingPickingOrdersComponent implements OnInit {
       header: 'Planificar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-   
     
-  
-        
+      
+    
+    this.model_pendientes.ids = this.ordeneseleccionadas
+                          .map(element => String(element.id))
+                          .join(',');
 
-    this.ordeneseleccionadas.forEach( element => {
-      this.ids  = this.ids + ',' + String(element.id);
-    });
-    this.model_pendientes.ids = this.ids;
 
     
     this.model_pendientes.usuarioid =  this.decodedToken.nameid ;
@@ -233,19 +231,23 @@ export class PendingPickingOrdersComponent implements OnInit {
 
     this.planningService.PlanificarPicking(this.model_pendientes).subscribe(resp => {
 
-      debugger
 
         this.model = resp;
-        this.messageService.add({severity: 'success', summary: 'TWH', detail: 'Se eliminó correctamente.'})  //success('Se registró correctamente.');
+        this.messageService.add({severity: 'success', summary: 'TWH', detail: 'Se ha planificado correctamente.'})  //success('Se registró correctamente.');
             
 
 
 
-      }, error => {
-         //error(error);
+      }, (error) => {
+      
+      
+         this.messageService.add({severity: 'warning', summary: 'Ocurrió un error ', detail: error  })  //success('Se registró correctamente.');
+            
+
+
+
       }, () => {
-        //success('Se planificó correctamente.');
-     //   this.router.navigate(['/picking/listadotrabajopendiente' ]);
+         this.router.navigate(['/picking/listadotrabajopendiente' ]);
       });
              
   

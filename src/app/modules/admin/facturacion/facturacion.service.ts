@@ -1,8 +1,8 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
-import { PreLiquidacion } from './facturacion.types';
+import { PreLiquidacion, ResumenFacturacionPorMes } from './facturacion.types';
 
 
 const httpOptions = {
@@ -48,4 +48,27 @@ generar_preliquidacion(model: any){
   ; }
 
 
+  obtenerResumenFacturacionPorMes(anio: number, mes?: number, clienteId?: number): Observable<ResumenFacturacionPorMes[]> {
+    let params = new HttpParams().set('anio', anio);
+    if (clienteId != null) {
+      params = params.set('clienteId', clienteId);
+    }
+
+    return this._httpClient.get<ResumenFacturacionPorMes[]>(`${this.baseUrl}ResumenPorMes`, { params });
+  }
+
+   obtenerResumenFacturacionMatriz(
+    anio: number,
+    mes?: number,
+    clienteId?: number
+  ): Observable<ResumenFacturacionPorMes[]> {
+    const params = new URLSearchParams();
+    params.set('anio', anio.toString());
+    if (mes) params.set('mes', mes.toString());
+    if (clienteId) params.set('clienteId', clienteId.toString());
+
+    return this._httpClient.get<ResumenFacturacionPorMes[]>(
+      `${this.baseUrl}matriz-facturacion?${params.toString()}`
+    );
+  }
 }

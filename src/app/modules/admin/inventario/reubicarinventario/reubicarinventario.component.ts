@@ -16,6 +16,7 @@ import { GeneralService } from '../../_services/general.service';
 import { VerubicacionComponent } from './verubicacion/verubicacion.component';
 import { ProductoService } from '../../_services/producto.service';
 import { InventarioService } from '../../_services/inventario.service';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
   selector: 'app-reubicarinventario',
@@ -29,6 +30,7 @@ import { InventarioService } from '../../_services/inventario.service';
         DropdownModule,
         InputTextModule,
         ToastModule,
+        ConfirmDialogModule,
   ],
   providers: [
       ConfirmationService, 
@@ -50,6 +52,8 @@ export class ReubicarinventarioComponent implements OnInit{
   seleccion: InventarioGeneral[] = [];
   ref: DynamicDialogRef | undefined;
   public loading = false;
+  selectedLPNs: any[] = [];
+  almacenes: SelectItem[] = [];
 
   constructor(
     private clienteService: ClienteService,
@@ -65,12 +69,21 @@ export class ReubicarinventarioComponent implements OnInit{
     this.cols =
     [
       {header: 'ACCIONES', field: 'numOrden' , width: '40px' },
+      {header: 'PROPIETARIO', field: 'propiteario'  ,  width: '60px'  },
       {header: 'UBICACIÓN', field: 'nombreEstado'  ,  width: '60px'  },
       {header: 'LPN', field: 'numOrden'  ,  width: '70px' },
       {header: 'PRODUCTO', field: 'producto'  ,  width: '160px' },
       {header: 'QTY', field: 'untqty' , width: '40px'  },
-      {header: 'ESTADO', field: 'estado' , width: '60px'  },
+     
     ];
+
+    
+    this.generalService.getAllAlmacenes().subscribe(resp => {
+      this.almacenes = resp.map(element => ({
+        value: element.id,
+        label: element.descripcion
+      }));
+    });
 
     this.generalService.getAreas().subscribe(resp =>
     {
@@ -110,23 +123,39 @@ export class ReubicarinventarioComponent implements OnInit{
   }
 
   buscar(){
+  this.selectedLPNs = [];
+
+    console.log(this.model, 'model');
 
 
-
-
-    if(this.model.PropietarioId === undefined) {
-      return;
-    }
-
-    this.seleccion = [];
-    this.inventarioService.getAllInventarioReubicacion(this.model.PropietarioId
-      , this.model.ProductoId
-      , this.model.lpn
-      , this.model.ubicacion
-      ).subscribe(list => {
-        this.listData = list;
-      });
+     if (!this.model.AlmacenId) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Campo requerido',
+      detail: 'Debe seleccionar un almacén.'
+    });
+    return;
   }
+
+   const clienteId = this.model.PropietarioId || ''; // <- valor por defecto si no se selecciona
+  const productoId = this.model.ProductoId || '';
+  const lpn = this.model.lpn || '';
+  const ubicacion = this.model.ubicacion || '';
+  const almacenId = this.model.AlmacenId;
+
+  this.seleccion = [];
+
+  this.inventarioService.getAllInventarioReubicacionAgrupado(
+    clienteId,
+    productoId,
+    lpn,
+    ubicacion,
+    almacenId
+  ).subscribe(list => {
+    this.listData = list;
+  });
+
+}
 
   ver(id){
 
@@ -138,5 +167,42 @@ export class ReubicarinventarioComponent implements OnInit{
         });
       
   }
+
+  cambiarMasivo() {
+
+  const ids = this.selectedLPNs.map(x => x.id.toString()); // ✅ forzar string
+
+
+  this.ref = this.dialogService.open(VerubicacionComponent, {
+    header: 'Actualizar ubicación',
+    width: '780px',
+    height: '500px',
+    data: { ids } // << enviar arreglo de LPNs
+  });
+
+this.ref.onClose.subscribe((result) => {
+    if (result === true) {
+
+       this.buscar(); // recargar la lista después de la reubicación
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Reubicación completada',
+        detail: 'Los pallets fueron reubicados correctamente.'
+      });
+    } else {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Sin cambios',
+        detail: 'No se realizó ninguna reubicación.'
+      });
+    }
+  });
+
+
+
+
+
+}
+
 
 }

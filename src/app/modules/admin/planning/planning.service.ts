@@ -106,7 +106,7 @@ getAllOrdenSalidaPendientesResumen(model: any): Observable<any> {
  
 PlanificarPicking(model: any){
 
-  return this.http.post(this.baseUrl + 'PlanificarPicking', model, httpOptions2);
+  return this.http.post(this.baseUrlPlanning + 'PlanificarPicking', model, httpOptions2);
 }
 
 PlanificarDespacho(model: any){
@@ -120,7 +120,10 @@ getWork(id: any): Observable<carga> {
   const params = '?id=' + id ;
   return this.http.get<carga>(this.baseUrl + 'GetWork' + params, httpOptions);
 }
-
+getAllWork_Asignado(model: any): Observable<carga[]> {
+  const params = '?PropietarioID=' + model.PropietarioId ;
+  return this.http.get<carga[]>(this.baseUrlPlanning + 'GetAllWorkAssigned' + params, httpOptions);
+}
 
 InicioPicking(ids: string) {
   const model: any = {};
@@ -188,6 +191,17 @@ assignmentOfUser(ids: string , UserId: string) {
 ); 
 }
 
+movimientoSalidaMasiva(Id: number) {
+  const model: any = {};
+  model.Id = Id;
+
+  return this.http.post(this.baseUrl + 'MovimientoSalidaMasivo?WrkId=' + Id , model, httpOptions)
+  .pipe(
+    map((response: any) => {
+    }
+  )
+);
+}
 
 
 

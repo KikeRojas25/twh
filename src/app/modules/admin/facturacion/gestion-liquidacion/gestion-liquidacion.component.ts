@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import moment from 'moment';
+import { NgApexchartsModule } from 'ng-apexcharts';
 import { SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
@@ -16,187 +16,261 @@ import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
 import { ClienteService } from '../../_services/cliente.service';
 import { FacturacionService } from '../facturacion.service';
+import { ResumenFacturacionPorMes } from '../facturacion.types';
 
 @Component({
-  selector: 'app-gestion-liquidacion',
-  standalone: true,
-  templateUrl: './gestion-liquidacion.component.html',
-  styleUrl: './gestion-liquidacion.component.scss',
+    selector: 'app-gestion-liquidacion',
+    standalone: true,
+    templateUrl: './gestion-liquidacion.component.html',
+    styleUrls: ['./gestion-liquidacion.component.scss'],
     imports: [
-      MatIcon,
-      InputTextModule, 
-      DropdownModule,
-      FormsModule,
-      ButtonModule,
-      TableModule,
-      CommonModule,
-      DialogModule   ,
-      TimelineModule ,
-      CardModule ,
-      DynamicDialogModule ,
-      ToastModule,
-      CalendarModule
-    ]
+        MatIcon,
+        InputTextModule,
+        DropdownModule,
+        FormsModule,
+        ButtonModule,
+        TableModule,
+        CommonModule,
+        DialogModule,
+        TimelineModule,
+        CardModule,
+        DynamicDialogModule,
+        ToastModule,
+        CalendarModule,
+        NgApexchartsModule,
+    ],
 })
 export class GestionLiquidacionComponent {
-
-liquidacion: any;
-  clientes: SelectItem[] = [];
-
-  dateInicio: Date = new Date(Date.now()) ;
-  dateFin: Date = new Date(Date.now()) ;
-
-  korean : any = {};
-  model: any = {};
-
-  constructor(private clienteService: ClienteService,
-    private facturacionService: FacturacionService,
-  ) { }
-
-  ngOnInit() {
+    liquidacion: any;
+    clientesDropdown: SelectItem[] = [];
+    datosMatriz: ResumenFacturacionPorMes[] = [];
+    datosGraficos: ResumenFacturacionPorMes[] = [];
+    chartOptions: any;
+    chartTotales: any;
+    cargando = true;
+    mesesVisibles = [];
 
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    matriz: {
+        [cliente: string]: {
+            clienteId: number;
+            montos: { [mes: number]: number };
+        };
+    } = {};
+    matrizFilas: any[] = [];
+    clientes: string[] = [];
 
-      resp.forEach(resp => {
-        this.clientes.push({value: resp.id , label: resp.razonSocial });
-      });
-    
+    meses = [
+        { name: 'Enero', value: 1 },
+        { name: 'Febrero', value: 2 },
+        { name: 'Marzo', value: 3 },
+        { name: 'Abril', value: 4 },
+        { name: 'Mayo', value: 5 },
+        { name: 'Junio', value: 6 },
+        { name: 'Julio', value: 7 },
+        { name: 'Agosto', value: 8 },
+        { name: 'Septiembre', value: 9 },
+        { name: 'Octubre', value: 10 },
+        { name: 'Noviembre', value: 11 },
+        { name: 'Diciembre', value: 12 },
+    ];
 
-    });
+    anios = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - i);
 
+    model: any = {
+        PropietarioId: null,
+        mes: null,
+        anio: new Date().getFullYear(),
+    };
 
-  }
-  exportar() {
+    constructor(
+        private clienteService: ClienteService,
+        private facturacionService: FacturacionService
+    ) {}
 
-    // let url = 'http://104.36.166.65/reptwh/Rep_Liquidacion.aspx?clienteid=' + String( this.model.PropietarioId) +
-    // '&fecinicio=' + this.model.InicioCorte +  '&fecfin=' + this.model.FinCorte;
-    // window.open(url);
+    ngOnInit() {
+        this.clienteService.getAllPropietarios('').subscribe((resp) => {
+            this.clientesDropdown = resp.map((c) => ({ value: c.id, label: c.razonSocial }));
+        });
 
+        this.obtenerDatos();
+        const mesLimite = this.model.mes || new Date().getMonth() + 1;
+        this.mesesVisibles = this.meses.filter((m) => m.value <= mesLimite);
 
+    }
 
+    armarMatriz(): void {
+        const filas = [];
 
+        for (const cliente of Object.keys(this.matriz)) {
+            const fila: any = {
+                cliente,
+                clienteId: this.matriz[cliente].clienteId,
+            };
 
-      
-if (this.model.PropietarioId ===1 ){
+            for (const mes of this.meses) {
+                const mesActual = this.matriz[cliente].montos[mes.value] ?? null;
+                const mesAnterior = this.matriz[cliente].montos[mes.value - 1] ?? null;
 
-     let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionNestle.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-   
-  }
-  else if (this.model.PropietarioId ===106){
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionGamma.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-  }
+                fila['mes_' + mes.value] = mesActual;
 
-  else if (this.model.PropietarioId ===83){
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionIgasaPl.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-  }
-  else if (this.model.PropietarioId ===82){
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionIgasaPT.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-  }
-  else if (this.model.PropietarioId ===45){
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionTerra.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-  }
-  else if (this.model.PropietarioId ===125){
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_Liquidacionmultex.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-  }
-  else if (this.model.PropietarioId ===129){
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_Liquidacionexim.aspx?propietarioid=' + String(this.model.PropietarioId) +
-      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
-      window.open(url);
-  }
+                if (mesActual !== null && mesAnterior !== null) {
+                    const variacion = ((mesActual - mesAnterior) / mesAnterior) * 100;
+                    fila['var_' + mes.value] = variacion;
+                } else {
+                    fila['var_' + mes.value] = null;
+                }
+            }
 
-  }
-generar () {
-this.model.InicioCorte = moment(this.dateInicio).format('DD/MM/YYYY');
-this.model.FinCorte = moment(this.dateFin).format('DD/MM/YYYY');
-this.model.PropietarioId = this.model.PropietarioId ;
+            filas.push(fila);
+        }
 
+        this.matrizFilas = filas;
+    }
 
-this.facturacionService.consultar_preliquidacion(this.model).subscribe(resp =>{
+    obtenerUrl(clienteId: number, mes: number): string {
+        return `http://104.36.166.65/reptwh/Rep_LiquidacionDetalle.aspx?clienteId=${clienteId}&mes=${mes}&anio=${this.model.anio}`;
+    }
 
+    obtenerDatos() {
+        const anio = this.model.anio;
+        const mes = this.model.mes;
+        const clienteId = this.model.PropietarioId;
 
-    
-    this.liquidacion = resp;
+        this.facturacionService
+            .obtenerResumenFacturacionMatriz(anio, mes, clienteId)
+            .subscribe((data) => {
+                this.datosMatriz = data;
+                this.matriz = {};
 
-    this.liquidacion = this.liquidacion.map(item => ({
-      ...item,
-      out: item.out ?? 0, // Si es null o undefined, lo convierte en 0
-      picking: item.picking ?? 0 // Lo mismo para picking
-  }));
-  
-});
+                for (const item of this.datosMatriz) {
+                    const cliente = item.cliente;
+                    const clienteId = item.clienteId;
+                    const mes = item.mes;
+                    const total = item.totalFacturado ?? 0;
+
+                    if (!this.matriz[cliente]) {
+                        this.matriz[cliente] = {
+                            clienteId: clienteId,
+                            montos: {},
+                        };
+                    }
+
+                    this.matriz[cliente].montos[mes] = total;
+                }
+
+                this.armarMatriz();
+            });
+
+        this.facturacionService
+            .obtenerResumenFacturacionPorMes(anio, mes, clienteId)
+            .subscribe((data) => {
+                this.datosGraficos = data;
+                this.generarGrafico();
+                this.generarGraficoTotales();
+                this.cargando = false;
+            });
+    }
+
+    generarGrafico(): void {
+        if (!this.datosGraficos || this.datosGraficos.length === 0) return;
+
+        this.chartOptions = {
+            chart: { type: 'bar', height: 400, toolbar: { show: true } },
+            colors: ['#1E88E5', '#43A047', '#FB8C00', '#E53935', '#8E24AA'],
+            title: {
+                text: 'Facturación mensual por servicio',
+                align: 'center',
+                style: { fontSize: '16px', fontWeight: 'bold' },
+            },
+            plotOptions: { bar: { columnWidth: '40%', distributed: false } },
+            dataLabels: { enabled: false },
+            tooltip: {
+                shared: true,
+                intersect: false,
+                y: {
+                    formatter: (val) => val.toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    }),
+                },
+            },
+            xaxis: {
+                categories: this.datosGraficos.map((d) => this.meses[d.mes - 1].name),
+                title: { text: 'Mes', style: { fontWeight: 600 } },
+                labels: { rotate: -45 },
+            },
+            yaxis: {
+                title: { text: 'Monto', style: { fontWeight: 600 } },
+                labels: {
+                    formatter: (val) => val.toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    }),
+                },
+            },
+            legend: { position: 'top' },
+            responsive: [{
+                breakpoint: 768,
+                options: { chart: { height: 300 }, legend: { position: 'bottom' } },
+            }],
+            series: [
+                { name: 'Ingreso', data: this.datosGraficos.map((d) => d.totalIngreso) },
+                { name: 'Salida', data: this.datosGraficos.map((d) => d.totalSalida) },
+                { name: 'PosTotal', data: this.datosGraficos.map((d) => d.totalPosTotal) },
+                { name: 'Picking', data: this.datosGraficos.map((d) => d.totalPickingUnidad) },
+            ],
+        };
+    }
+
+    generarGraficoTotales(): void {
+        const totalesPorMes = this.datosGraficos.map((d) => {
+            return {
+                mes: this.meses[d.mes - 1].name,
+                total:
+                    (d.totalIngreso ?? 0) +
+                    (d.totalSalida ?? 0) +
+                    (d.totalSeguro ?? 0) +
+                    (d.totalPosTotal ?? 0) +
+                    (d.totalPickingUnidad ?? 0) +
+                    (d.totalPickingCaja ?? 0) +
+                    (d.totalEtiquetado ?? 0),
+            };
+        });
+
+        this.chartTotales = {
+            chart: { type: 'line', height: 250, toolbar: { show: false } },
+            title: {
+                text: 'Total mensual facturado',
+                align: 'center',
+                style: { fontSize: '14px', fontWeight: 'bold' },
+            },
+            xaxis: { categories: totalesPorMes.map((d) => d.mes) },
+            yaxis: {
+                title: { text: 'Total' },
+                labels: {
+                    formatter: (val) => val.toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    }),
+                },
+            },
+            tooltip: {
+                y: {
+                    formatter: (val) => val.toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    }),
+                },
+            },
+            series: [{
+                name: 'Total mensual',
+                data: totalesPorMes.map((d) => d.total),
+            }],
+        };
+    }
+
+    procesar() {
+        this.obtenerDatos();
+    }
 }
-
-
-  procesar() {
-
-    this.model.InicioCorte = moment(this.dateInicio).format('DD/MM/YYYY');
-    this.model.FinCorte = moment(this.dateFin).format('DD/MM/YYYY');
-    this.model.PropietarioId = this.model.PropietarioId ;
-
-
-    this.facturacionService.generar_preliquidacion(this.model).subscribe(resp => {
-
-    
-      this.liquidacion = resp;
-
-      this.liquidacion = this.liquidacion.map(item => ({
-        ...item,
-        out: item.out ?? 0, // Si es null o undefined, lo convierte en 0
-        picking: item.picking ?? 0 // Lo mismo para picking
-    }));
-    
-
-    //  let url = 'http://104.36.166.65/reptwh/Rep_Liquidacion.aspx?clienteid=' + String(resp) +
-    //   '&fecinicio=' + this.model.InicioCorte +  '&fecfin=' + this.model.FinCorte;
-    //  window.open(url);
-    // });
-    
-    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-
-    //   console.log('respuesta',list);
-     });
-
-  }
-getTotalIn(): number {
-    return this.liquidacion?.reduce((total, item) => total + (item.ingreso ?? 0), 0) || 0;
-}
-
-getTotalOut(): number {
-    return this.liquidacion?.reduce((total, item) => total + Math.abs(item.salida ?? 0), 0) || 0;
-}
-
-getTotalPicking(): number {
-    return this.liquidacion?.reduce((total, item) => total + Math.abs(item.picking ?? 0), 0) || 0;
-}
-
-getTotalPos(): number {
-    return this.liquidacion?.reduce((total, item) => total + (item.posTotal ?? 0), 0) || 0;
-}
-
-getTotalGeneral(): number {
-    return this.getTotalIn() + this.getTotalOut() + this.getTotalPicking() + this.getTotalPos();
-}
-
-
-
-}
-

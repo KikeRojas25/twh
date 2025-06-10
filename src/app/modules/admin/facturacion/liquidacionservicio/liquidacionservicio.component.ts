@@ -64,13 +64,12 @@ export class LiquidacionservicioComponent implements OnInit {
   dateInicio: Date = new Date(Date.now()) ;
   dateFin: Date = new Date(Date.now()) ;
 
-  persona : any = {};
+  korean : any = {};
   cols!: Column[];
 
 
 products: any[] = [];
 selectedProducts: any[] = [];
-
   model: any = {};
 
   constructor(private clienteService: ClienteService,
@@ -100,19 +99,7 @@ selectedProducts: any[] = [];
     window.open(url);
 
   }
-
-  leerDatos() {
-
-
-
-   console.log(this.persona.Nombre);
-    
-  }
-
-
 consultar () {
-
-
 this.model.InicioCorte = moment(this.dateInicio).format('DD/MM/YYYY');
 this.model.FinCorte = moment(this.dateFin).format('DD/MM/YYYY');
 this.model.PropietarioId = this.model.PropietarioId ;
@@ -213,7 +200,7 @@ if (this.model.PropietarioId ===1 ){
   }
   else if (this.model.PropietarioId ===82){
     // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
-      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionIgasaPT.aspx?propietarioid=' + String(this.model.PropietarioId) +
+      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionIGAPT.aspx?propietarioid=' + String(this.model.PropietarioId) +
       '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
       window.open(url);
   }
@@ -232,6 +219,12 @@ if (this.model.PropietarioId ===1 ){
   else if (this.model.PropietarioId ===129){
     // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
       let url = 'http://104.36.166.65/reptwh/Rep_Liquidacionexim.aspx?propietarioid=' + String(this.model.PropietarioId) +
+      '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
+      window.open(url);
+  }
+  else if (this.model.PropietarioId ===59){
+    // this.facturacionService.getPendientesLiquidacion(this.model.PropietarioFiltroId , this.model).subscribe(list => {
+      let url = 'http://104.36.166.65/reptwh/Rep_LiquidacionIDEPT.aspx?propietarioid=' + String(this.model.PropietarioId) +
       '&mes=' +   this.model.mes+  '&anio='    +  this.model.anio  ;  
       window.open(url);
   }

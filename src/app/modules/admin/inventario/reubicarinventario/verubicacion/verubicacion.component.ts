@@ -34,7 +34,8 @@ export class VerubicacionComponent implements OnInit{
   almacenes: SelectItem[] = [];
   Ubicaciones: Ubicacion[] = [];
   cols: any[];
-  lpn: string;
+  lpnList: string[] = [];
+  selectedUbicacion: any = null
 
   constructor(
       private ref: DynamicDialogRef,
@@ -45,21 +46,21 @@ export class VerubicacionComponent implements OnInit{
   
   ngOnInit() : void{
 
-    this.lpn = this.config.data?.id;
+    this.lpnList = this.config.data?.ids || []; // ahora es arreglo de múltiples LPNs
 
-    this.generalService.getAllAlmacenes().subscribe(resp => {
-      resp.forEach(element => {
-        this.almacenes.push({ value: element.id ,  label : element.descripcion});
-      });
-    });
+  this.generalService.getAllAlmacenes().subscribe(resp => {
+    this.almacenes = resp.map(element => ({
+      value: element.id,
+      label: element.descripcion
+    }));
+  });
 
-    this.cols =
-    [
-        { header: 'ACCIONES', field: 'numOrden' , width: '40px' },
-        { header: 'UBICACIÓN', field: 'nombreEstado'  ,  width: '60px'  },
-        { header: 'ALMACÉN', field: 'almacen'  ,  width: '60px'  },
-        { header: 'ESTADO', field: 'estado' , width: '60px'  },
-    ];
+  this.cols = [
+   
+    { header: 'UBICACIÓN', field: 'nombreEstado', width: '60px' },
+    { header: 'ALMACÉN', field: 'almacen', width: '60px' },
+    { header: 'ESTADO', field: 'estado', width: '60px' },
+  ];
 
   }
 
@@ -69,24 +70,24 @@ export class VerubicacionComponent implements OnInit{
     });
   }
 
-  reubicar(id){
+ reubicarMasivo(id: number) {
+  this.confirmationService.confirm({
+    message: `¿Estás seguro que deseas reubicar los ${this.lpnList.length} LPN seleccionados?`,
+    header: 'Confirmación de reubicación masiva',
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      const payload = {
+        Paletas: this.lpnList, // ✅ Correcto
+        UbicacionId: id,
+        IdUsuario: 1 // o traerlo de un servicio de auth si lo tienes
+      };
 
-    
-    this.confirmationService.confirm({
-      message: '¿Estás seguro que deseas reubicar?',
-      header: 'Confirmación de ajuste',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.generalService.setUbicacion(this.lpn, id ).subscribe(list=> {
-          this.Ubicaciones = list;
-        });
-      },
-      reject: (type) => {
-          switch (type) {
-          }
-      }
-    });
+      this.generalService.setUbicacionMasiva(payload).subscribe(() => {
+        this.ref.close(true); // cerrar popup
+      });
+    }
+  });
+}
 
-  }
 
 }

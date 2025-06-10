@@ -1,28 +1,26 @@
 <div class="flex flex-col flex-auto min-w-0">
     <form #form="ngForm">
-        <!-- Filtro de búsqueda -->
+        <!-- Filtros -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
             <div class="flex flex-col sm:flex-row gap-8 items-end">
                 <!-- Almacén -->
                 <div class="w-full">
                     <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
                     <p-dropdown
-                    [options]="almacenes"
-                    [(ngModel)]="model.AlmacenId"
-                    name="almacen"
-                    #almacen="ngModel"
-                    [style]="{ 'width': '100%' }"
-                    [resetFilterOnHide]="true"
-                    [filter]="true"
-                    filterBy="label"
-                    [showClear]="true"
-                    placeholder="Seleccione un almacén"
-                    class="flex-1"
-                    required
-                    >
-                    <ng-template let-item pTemplate="selectedItem">
-                        <span>{{ item.label }}</span>
-                    </ng-template>
+                        [options]="almacenes"
+                        [(ngModel)]="model.AlmacenId"
+                        name="almacen"
+                        #almacen="ngModel"
+                        [style]="{ 'width': '100%' }"
+                        [filter]="true"
+                        filterBy="label"
+                        [showClear]="true"
+                        placeholder="Seleccione un almacén"
+                        class="flex-1"
+                        required>
+                        <ng-template let-item pTemplate="selectedItem">
+                            <span>{{ item.label }}</span>
+                        </ng-template>
                     </p-dropdown>
                 </div>
 
@@ -30,68 +28,79 @@
                 <div class="flex flex-col">
                     <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Nueva ubicación</label>
                     <input 
-                    pInputText 
-                    class="flex-1" 
-                    autocomplete="off"
-                    [(ngModel)]="model.ubicacion" 
-                    name="ubicacion" 
-                    #cantidad="ngModel" 
-                    type="text">    
+                        pInputText 
+                        class="flex-1" 
+                        autocomplete="off"
+                        [(ngModel)]="model.ubicacion" 
+                        name="ubicacion" 
+                        type="text">    
                 </div>
         
-            <div class="flex-1">
-                <div class="flex flex-row gap-2">
-                    <p-button severity="primary" label="Buscar" (onClick)="buscar()" icon="pi pi-search" styleClass="h-[50px]"></p-button>
+                <!-- Botón Buscar -->
+                <div class="flex-1">
+                    <p-button 
+                        severity="primary" 
+                        label="Buscar" 
+                        (onClick)="buscar()" 
+                        icon="pi pi-search" 
+                        styleClass="h-[50px] w-full">
+                    </p-button>
                 </div>
-            </div>
             </div>
         </div>
 
-        <!-- Tabla Inventario -->
-        <div class="flex flex-col px-6 py-0 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">      
+        <!-- Tabla con ubicaciones disponibles -->
+        <div class="flex flex-col px-6 py-4 sm:py-8 sm:px-10 bg-card dark:bg-transparent">      
+            <!-- Botón masivo -->
+            <div class="flex justify-between mb-4">
+                <p class="text-sm text-gray-700">LPNs seleccionados: {{ lpnList.length }}</p>
+                <p-button 
+                    label="Reubicar masivamente" 
+                    icon="pi pi-map-marker" 
+                    (onClick)="reubicarMasivo(selectedUbicacion?.id)" 
+                    [disabled]="!selectedUbicacion"
+                    styleClass="p-button-success">
+                </p-button>
+            </div>
+
             <p-table 
                 [style]="{width:'100%'}"
                 [scrollable]="true" 
                 [columns]="cols" 
                 [value]="Ubicaciones"
-                #dt [paginator]="true"
+                selectionMode="single"
+                [(selection)]="selectedUbicacion"
+                #dt 
+                [paginator]="true"
                 [rows]="10" 
-                [resizableColumns]="true" 
-                selectionMode="multiple" 
+                [resizableColumns]="true"
                 [responsive]="true"
-                >
-
+            >
                 <ng-template pTemplate="colgroup" let-columns>
                     <colgroup>
-                        <col *ngFor="let col of columns"   [ngStyle]="{'width': col.width}" >
+                        <col *ngFor="let col of columns" [ngStyle]="{'width': col.width}">
                     </colgroup>
                 </ng-template>
 
                 <ng-template pTemplate="header" let-columns>
                     <tr>
-                        <th  [ngStyle]="{'width': col.width}" *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
-                            {{col.header}}
-                            <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+                        <th *ngFor="let col of columns" [ngStyle]="{'width': col.width}" pResizableColumn>
+                            {{ col.header }}
                         </th>
                     </tr>
                 </ng-template>
 
                 <ng-template pTemplate="body" let-rowData let-columns="columns">
-                    <tr  [pSelectableRow]="rowData">
-                        <td class="ui-resizable-column text-center">
-                            <div class="ui-inputgroup">
-                                <p-button severity="primary" icon="fa fa-check" (click)="reubicar(rowData.id)"></p-button>
-                            </div>
-                        </td>                            
-                        <td class="ui-resizable-column text-center"> {{rowData.ubicacion  }}</td>
-                        <td class="ui-resizable-column text-center"> {{rowData.almacen  }}</td>
-                        <td class="ui-resizable-column text-center"> {{rowData.estado}} </td>
-                        
+                    <tr [pSelectableRow]="rowData">
+                                          
+                        <td class="text-center">{{ rowData.ubicacion }}</td>
+                        <td class="text-center">{{ rowData.almacen }}</td>
+                        <td class="text-center">{{ rowData.estado }}</td>
                     </tr>
                 </ng-template>
             </p-table>
-
         </div>
     </form>
 </div>
+
 <p-confirmDialog></p-confirmDialog>

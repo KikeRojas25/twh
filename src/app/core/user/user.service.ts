@@ -67,7 +67,8 @@ export class UserService {
     }
 
 getUsersForRol(idrol: number): Observable<User[]> {
-    console.log(localStorage.getItem('token'));
+
+    console.log('getUsersForRol', httpOptions);
     return this._httpClient.get<User[]>(this.baseUrl + 'GetUsersForRol?idrol=' + idrol   , httpOptions);
  }
 

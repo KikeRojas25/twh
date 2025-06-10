@@ -106,7 +106,7 @@ export class NewComponent implements OnInit {
         fechaEsperada: [ new Date(), Validators.required],
         horaEsperada: ['15:00', Validators.required],
         IdTipoIngreso: [null, Validators.required],
-        IdDestino : [null, Validators.required],
+        IdDestino : [null, ],
         ordenCompra: ['', [Validators.minLength(5), Validators.maxLength(12),Validators.required]],
         guiaRemision: ['', [Validators.minLength(5), Validators.maxLength(50), Validators.required]],
         cantidad:         [
@@ -289,7 +289,7 @@ export class NewComponent implements OnInit {
 
   
   onChangePropietario(propietario) {
-    console.log(propietario);
+  
 
     this.destinos = [];
 

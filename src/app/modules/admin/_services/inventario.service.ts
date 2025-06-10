@@ -275,6 +275,33 @@ getPallet(id: any): Observable<InventarioGeneral[]> {
 
   }
 
+getAllInventarioReubicacionAgrupado(
+  ClienteId: number,
+  ProductoId: any,
+  lpn: string,
+  ubicacion: string,
+  AlmacenId: number
+): Observable<InventarioGeneral[]> {
+
+  // Manejo de valores opcionales
+  if (ProductoId === undefined || ProductoId === null) ProductoId = '';
+  if (lpn === undefined || lpn === null) lpn = '';
+  if (ubicacion === undefined || ubicacion === null) ubicacion = '';
+  if (!AlmacenId) throw new Error("AlmacenId es obligatorio");
+
+  // Construcción de parámetros
+  const params =
+    'ClienteId=' + ClienteId +
+    '&ProductoId=' + ProductoId +
+    '&lpn=' + lpn +
+    '&ubicacion=' + ubicacion +
+    '&AlmacenId=' + AlmacenId;
+
+  return this.http.get<InventarioGeneral[]>(
+    this.baseUrl + 'getAllInventarioReubicacionAgrupado?' + params,
+    httpOptions
+  );
+}
 
 
 

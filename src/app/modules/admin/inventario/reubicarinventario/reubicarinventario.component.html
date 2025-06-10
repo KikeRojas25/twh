@@ -22,6 +22,24 @@
     <!-- Filtro de búsqueda -->
 <div class="flex flex-wrap sm:flex-nowrap gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent items-end">
 
+        <!-- Almacén -->
+     <div class="w-full sm:w-[350px]">
+          <label for="almacenes">Almacén:</label>
+          <p-dropdown 
+            [(ngModel)]="model.AlmacenId"
+            [options]="almacenes" 
+            scrollHeight="40vh" 
+            placeholder="Seleccione un almacén" 
+            [resetFilterOnHide]="false"
+            [style]="{'width': '100%'}" 
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+         
+        </div>
   <!-- Propietario -->
   <div class="w-full sm:w-[350px]">
     <label class="block text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Propietario</label>
@@ -33,6 +51,7 @@
       [style]="{ height: '48px' , width: '100%' }"
       placeholder="Todos"
       filter="true"
+      [showClear]="true"  
       (onChange)="CambioCliente($event)">
       <ng-template let-item pTemplate="selectedItem">
         <span>{{item.label}}</span>
@@ -50,6 +69,7 @@
       class="w-full text-base"
       [style]="{ height: '48px'  , width: '100%' }"
       placeholder="Todos"
+      [showClear]="true"  
       filter="true">
       <ng-template let-item pTemplate="selectedItem">
         <span>{{item.label}}</span>
@@ -66,6 +86,7 @@
       class="w-full h-[48px] text-base" 
       autocomplete="off"
       [(ngModel)]="model.lpn" 
+      
       type="text"
       placeholder="Ingrese LPN"
       name="lpn" 
@@ -97,6 +118,15 @@
       styleClass="w-full h-[48px] text-base justify-center">
     </p-button>
   </div>
+    <div class="w-full sm:w-[200px] flex items-end">
+    <p-button 
+      severity="secondary" 
+      label="Cambiar Masivo" 
+      (onClick)="cambiarMasivo()" 
+      icon="pi pi-box" 
+      styleClass="w-full h-[48px] text-base justify-center">
+    </p-button>
+  </div>
 </div>
     <!-- Tabla Inventario -->
     <div class="flex flex-col px-6 py-0 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
@@ -111,7 +141,7 @@
             [resizableColumns]="true" 
             selectionMode="multiple" 
             [responsive]="true"
-            [(selection)]="seleccion"
+              [(selection)]="selectedLPNs"
             >
 
             <ng-template pTemplate="colgroup" let-columns>
@@ -134,13 +164,15 @@
                     <td class="ui-resizable-column text-center">
                         <div class="ui-inputgroup">
                             <p-button severity="secondary" icon="fa fa-edit" (click)="ver(rowData.id)"></p-button>
+                            <p-button severity="primary" icon="fa fa-search" (click)="ver(rowData.id)"></p-button>
                         </div>
                     </td>                            
+                    <td class="ui-resizable-column text-center"> {{rowData.propietario  }}</td>
                     <td class="ui-resizable-column text-center"> {{rowData.ubicacion  }}</td>
                     <td class="ui-resizable-column text-center" > {{rowData.lodNum  }}</td>
                     <td class="ui-resizable-column text-center"> {{rowData.descripcionLarga  }} </td>
                     <td class="ui-resizable-column text-center"> {{rowData.untQty}} </td>
-                    <td class="ui-resizable-column text-center"> {{rowData.estado}} </td>
+                   
                     
                 </tr>
             </ng-template>
@@ -148,3 +180,9 @@
 
     </div>
 </div>
+
+
+
+
+<p-confirmDialog />
+<p-toast />

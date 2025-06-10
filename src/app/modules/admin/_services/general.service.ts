@@ -63,5 +63,8 @@ constructor() { }
     getAreas(): Observable<Area[]> {
     return this._httpClient.get<Area[]>(this.baseUrl + 'GetAreas', httpOptions);
   }
+  setUbicacionMasiva(data: { Paletas : string[], UbicacionId: number, IdUsuario: number }) {
+  return this._httpClient.post(this.baseUrl + 'reubicar-masivo', data);
+}
 
 }

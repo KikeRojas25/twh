@@ -150,6 +150,12 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/planning/work-list/work-list.component')
                                           .then(m => m.WorkListComponent)
                   },
+                   {
+                    path: 'listado2trabajoasignado',
+                    loadComponent: () => import('./modules/admin/planning/trabajo-asignado/trabajo-asignado.component')
+                                          .then(m => m.TrabajoAsignadoComponent)
+                  },
+
                   
 
 
