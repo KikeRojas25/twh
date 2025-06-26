@@ -1,0 +1,94 @@
+<div class="p-fluid">
+
+  <div class="p-field">
+    <label for="cliente">Cliente</label>
+    <p-dropdown [options]="clientes" 
+      [(ngModel)]="model.IdCliente" 
+      appendTo="body" 
+      [filter]="true"
+      class="w-full"
+      placeholder="Seleccione cliente">
+
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <div class="p-field">
+    <label for="tipovehiculo">Tipo vehículo</label>
+    <p-dropdown [options]="tiposVehiculo" 
+      [(ngModel)]="model.IdTipoUnidad" 
+      appendTo="body" 
+      [filter]="true"
+      class="w-full"
+      placeholder="Seleccione tipo vehículo">
+
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <div class="p-field">
+    <label for="provincia">Provincia Destino</label>
+    <p-dropdown [options]="provincias" 
+      [(ngModel)]="model.IdProvincia_Destino" 
+      (onChange)="onProvinciaChange()"
+      appendTo="body" 
+      [filter]="true"
+      class="w-full"
+      placeholder="Seleccione provincia destino">
+
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <div class="p-field">
+    <label for="distrito">Distrito Destino</label>
+    <p-dropdown [options]="distritosFiltrados" 
+                [(ngModel)]="model.IdDistrito_Destino"
+                appendTo="body" 
+                [filter]="true"
+                class="w-full"
+                placeholder="Seleccione distrito destino">
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <div class="p-field">
+    <label for="tarifa">Tarifa</label>
+    <input type="text" pInputText id="tarifa"
+    [(ngModel)]="model.tarifa"
+    placeholder="eje. 100.00"
+    maxlength="20" />
+  </div>
+
+  
+
+
+</div>
+
+<div class="p-mt-4" style="width: 100%;">
+  <div style="display: flex; justify-content: center; gap: 1rem;">
+    <p-button 
+      label="Guardar" 
+      icon="pi pi-check" 
+      (onClick)="ActualizarTarifa()">
+    </p-button>
+    
+    <p-button 
+      label="Cancelar" 
+      icon="pi pi-times" 
+      class="p-button-secondary" 
+      (onClick)="cerrarModal()">
+    </p-button>
+  </div>
+</div>
+
+<p-confirmDialog />
+<p-toast />

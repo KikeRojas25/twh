@@ -21,6 +21,7 @@ import { Router } from '@angular/router';
 import { carga } from '../despachos.types';
 import { AsignarPlacaComponent } from './asignar-placa/asignar-placa.component';
 import { ModalUpdateGuiaComponent } from './modal-update-guia/modal-update-guia.component';
+import { GenerarbultosComponent } from './generarbultos/generarbultos.component';
 
 @Component({
   selector: 'app-despachocarga',
@@ -62,7 +63,8 @@ export class DespachocargaComponent implements OnInit {
   ref: DynamicDialogRef | undefined;
   EstadoId: number;
 
-
+  pendientes: any[] = [];
+  bultosCompletos: boolean = false;
 
 
   cols: any[];
@@ -197,6 +199,35 @@ editarGuiaMasiva(){
 
 
 
+generarBulto(){
+
+  console.log('editarGuiaMasiva');
+
+  let ids = '';
+  this.selectedRow.forEach(el => {
+        ids = ids + ',' + el.id;
+
+    });
+  this.model.ids = ids.substring(1, ids.length + 1);
+
+
+  const dialogRef = this.dialog.open(ModalUpdateGuiaComponent, {
+    header: 'Editar Guía de remisión salida masiva',
+    width: '700px',
+    height: '450px',
+    modal: true,
+    contentStyle: {"max-height": "1000px", "overflow": "auto"},
+    data: {codigo:   this.model.ids, descripcion: ''}
+  });
+  dialogRef.onClose.subscribe(result => {
+      this.buscar();
+  });
+
+
+}
+
+
+
  darsalida() {
   let ids = '';
   this.selectedRow.forEach(el => {
@@ -219,6 +250,53 @@ editarGuiaMasiva(){
         this.loading = false;
       });
  }
+ bultos(ordenSalidaId: number) {
+
+  this.despachoService.validarBultosCompletos(ordenSalidaId).subscribe({
+      next: (respuesta) => {
+        this.bultosCompletos = respuesta.completado;
+
+        if (!this.bultosCompletos) {
+          this.pendientes = respuesta.pendientes;
+          console.warn('Hay productos aún no asignados:', this.pendientes);
+       
+           this.messageService.add({
+            severity: 'warn',
+            summary: 'Asignación incompleta',
+            detail: 'Faltan productos por asignar a bultos.',
+            life: 5000
+          });
+          
+          
+          ;
+        } else {
+          this.pendientes = [];
+
+           this.messageService.add({
+            severity: 'success',
+            summary: 'Asignación completa',
+            detail: 'Todos los productos han sido asignados correctamente. Puedes imprimir la documentación.',
+            life: 5000
+          });
+
+           let url = 'http://104.36.166.65/reptwh/reporteBultosSalida.aspx?ordensalidaid=' + String(ordenSalidaId) ;
+           window.open(url);
+
+
+        }   
+      },
+      error: (err) => {
+        console.error('Error al verificar bultos:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al verificar asignación de bultos.',
+          life: 5000
+        });
+      }
+    });
+
+ }
   buscar() {
     this.selectedRow = [];
 
@@ -227,5 +305,23 @@ editarGuiaMasiva(){
     this.lines = list;
       });
     }
+
+        
+    abrirDetalleOrden() {
+
+ 
+    const id =       this.selectedRow[0].ordenSalidaId;
+
+    console.log('abrirDetalleOrden', id);
+ 
+      this.dialogService.open(GenerarbultosComponent, {
+        header: 'Detalle de Orden de Salida',
+        width: '1200px',
+        height: '850px',
+        data: { ordenSalidaId: id }
+      });
+    }
+
+  
 
 }

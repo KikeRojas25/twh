@@ -274,8 +274,28 @@ export const appRoutes: Route[] = [
                                     ]
                   },
                 ]
-              }
+              },
+            {   
+              path: 'transporte',
+              loadComponent: () => import('./modules/admin/transporte/transporte.component')
+                                    .then(m => m.TransporteComponent),
+              children: [
+                {
+                  path: 'tarifarioproveedores',
+                  loadComponent: () => import('./modules/admin/transporte/tarifario/tarifario.component')
+                                        .then(m => m.TarifarioComponent),
+
+                                        children: [ // Hijo del hijo
+                                          {
+                                            path: 'list',
+                                            loadComponent: () => import('./modules/admin/transporte/tarifario/list/list.component')
+                                                                  .then(m => m.ListComponent)
+                                          }]
+                 }
               
-        ]
-    }
-];
+              ]
+           },
+           
+          ]
+        }]
+  

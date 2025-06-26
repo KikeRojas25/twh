@@ -6,6 +6,7 @@ import { map, Observable } from 'rxjs';
 import { Almacen } from '../_models/almacen';
 import { Ubicacion } from '../planning/planning.types';
 import { Area, Estado } from '../inventario/inventario.type';
+import { Distrito, Provincia } from '../transporte/transporte.types';
 
 
 const httpOptions = {
@@ -24,6 +25,7 @@ const httpOptions = {
 export class GeneralService {
 
   private baseUrl = environment.baseUrl + '/api/General/';
+   // private baseUrlMantenimiento = environment.baseUrl + '/api/Mantenimiento/';
   private baseUrlAlmacen = environment.baseUrl + '/api/Almacen/';
   private _httpClient = inject(HttpClient);
 
@@ -66,5 +68,18 @@ constructor() { }
   setUbicacionMasiva(data: { Paletas : string[], UbicacionId: number, IdUsuario: number }) {
   return this._httpClient.post(this.baseUrl + 'reubicar-masivo', data);
 }
+
+
+GetAllProvincias(departamentoId: any): Observable<Provincia[]> {
+  return this._httpClient.get<Provincia[]>( `${this.baseUrl}GetAllProvincias?departamentoId=${departamentoId}`, httpOptions);
+}
+
+
+
+GetDistritos(idprovincia: any): Observable<Distrito[]> {
+  return this._httpClient.get<Distrito[]>( `${this.baseUrl}GetDistritos?idprovincia=${idprovincia}`, httpOptions);
+}
+
+
 
 }

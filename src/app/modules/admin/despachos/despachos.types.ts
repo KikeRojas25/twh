@@ -24,20 +24,22 @@ export interface OrdenSalida {
 
 export interface OrdenSalidaDetalle {
     id?: number;
-    OrdenReciboId: number;
-    linea: string;
-    ProductoId: any;
-    producto: string;
-    Lote: string;
+    OrdenReciboId?: number;
+    linea?: string;
+    ProductoId?: any;
+    producto?: string;
+    Lote?: string;
     HuellaId?: number;
     FechaRegistro?: Date;
-    EstadoId: number;
-    cantidad: number;
-    cantidadRecibida?: number;
-    cantidadFaltante?: number;
-    cantidadSobrante?: number;
+    EstadoId?: number;
+    cantidad?: number;
+    cantidadEnBulto?: number;
     fechaExpire?: Date;
-    propietarioId: number;
+    propietarioId?: number;
+
+
+    cantidadEnBultos?: number;
+    cantidadPendiente?: number;
 
 }
 
@@ -54,5 +56,52 @@ export interface carga {
     usuarioId: number;
     fechaInicio: string;
     destinoId: number;
+    ordenSalidaId: number;
     
+}
+
+
+export  interface BultoProducto {
+  id?: number; // 👈 este es el id real en BD del BultoSalidaDetalle
+  productoId: number;
+  productoNombre: string;
+  lote: string;
+  cantidadAsignada: number;
+}
+
+
+
+
+// export interface BultoSalida {
+//   id?: number;
+//   numeroBulto: number;
+//   peso: number;
+//   fechaRegistro?: Date;
+//   idUsuarioRegistro: number;
+//   ordenSalidaId: number;
+
+//   productos?: BultoProducto[];
+
+// }
+
+export interface BultoSalidaDetalle {
+  id?: number;
+  ordenSalidaDetalleId: number;
+  cantidad: number;
+  bultoSalidaId?: number;
+}
+
+export interface BultoSalida {
+  id?: number;
+  numeroBulto: number;
+  peso: number;
+  fechaRegistro?: Date;
+  idUsuarioRegistro: number;
+  ordenSalidaId: number;
+
+  // 👇 Agrega esto para que funcione la carga de bultos con detalles
+  detalles?: BultoSalidaDetalle[];
+
+  // 👇 Esto es solo para uso interno del frontend
+  productos?: BultoProducto[];
 }

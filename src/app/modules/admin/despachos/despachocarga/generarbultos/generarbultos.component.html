@@ -1,0 +1,149 @@
+<!-- 🔝 Acciones principales -->
+<div class="flex flex-wrap gap-3 items-center justify-start px-4 mb-4">
+  <button
+    pButton
+    label="Crear Bulto"
+    (click)="crearBulto()"
+    class="p-button-success"
+  ></button>
+
+  <p-dropdown
+    *ngIf="bultos.length > 0"
+    [options]="bultosDropdownOptions"
+    [(ngModel)]="bultoSeleccionadoId"
+    placeholder="Selecciona bulto"
+    styleClass="w-52"
+  >
+    <ng-template let-item pTemplate="selectedItem">
+      <span>{{ item.label }}</span>
+    </ng-template>
+  </p-dropdown>
+
+  <input
+    *ngIf="bultoSeleccionadoId"
+    pInputText
+    type="number"
+    [(ngModel)]="cantidadAsignar"
+    placeholder="Cantidad"
+    class="w-24"
+  />
+
+  <button
+    *ngIf="bultoSeleccionadoId"
+    pButton
+    label="Asignar a Bulto"
+    (click)="asignarProductoABulto()"
+    class="p-button-primary"
+  ></button>
+</div>
+
+<!-- 🧱 Layout principal -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+  <!-- 📌 Columna izquierda: tabla de productos -->
+  <div>
+    <p-table
+      [value]="detalles"
+      [paginator]="true"
+      [rows]="20"
+      dataKey="id"
+      selectionMode="single"
+      scrollHeight="500px"
+      [scrollable]="true"
+      [rowHover]="true"
+      responsiveLayout="scroll"
+      [globalFilterFields]="['linea', 'producto', 'lote']"
+      [(selection)]="selectedItems"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Producto</th>
+          <th>Total</th>
+          <th>En Bultos</th>
+          <th>Pendiente</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-detalle>
+        <tr [pSelectableRow]="detalle">
+          <td>{{ detalle.producto }}</td>
+          <td>{{ detalle.cantidad }}</td>
+          <td>{{ detalle.cantidadEnBulto }}</td>
+          <td>{{ detalle.cantidad - detalle.cantidadEnBulto }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- 📌 Columna derecha: bultos -->
+  <div>
+    <div class="flex justify-end mb-3">
+  <button
+    pButton
+    type="button"
+    label="Guardar Pesos"
+    icon="pi pi-save"
+    class="p-button-info"
+    (click)="guardarPesosBultos()"
+  ></button>
+</div>
+    <div *ngFor="let bulto of bultos; trackBy: trackByBultoId" class="mb-4">
+      <div class="bg-white shadow rounded p-4">
+        <div class="flex justify-between items-center mb-2">
+          <h5 class="text-lg font-semibold">Bulto Nro: {{ bulto.numeroBulto }}</h5>
+          <button
+            pButton
+            icon="pi pi-trash"
+            class="p-button-rounded p-button-danger p-button-sm"
+            (click)="eliminarBulto(bulto.id)"
+          ></button>
+        </div>
+
+        <div class="flex items-center gap-2 mb-3">
+          <label class="text-sm font-medium" for="peso-{{bulto.id}}">Peso (kg):</label>
+          <input
+            id="peso-{{bulto.id}}"
+            pInputText
+            type="number"
+            [(ngModel)]="bulto.peso"
+            class="w-24"
+            (blur)="actualizarPeso(bulto.id, bulto.peso)"
+          />
+        </div>
+
+        <p-table [value]="bulto.productos" [scrollable]="true" scrollHeight="200px">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Eliminar</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-prod>
+            <tr>
+              <td>{{ prod.productoNombre }}</td>
+              <td>{{ prod.cantidadAsignada }}</td>
+              <td>
+                <button
+                  pButton
+                  icon="pi pi-trash"
+                  class="p-button-rounded p-button-danger p-button-sm"
+                  (click)="eliminarProductoDeBulto(bulto.id, prod.productoId)"
+                ></button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- Botón cerrar -->
+    <div class="mt-4 text-right">
+      <button
+        pButton
+        type="button"
+        label="Cerrar"
+        (click)="cerrar()"
+        class="p-button-secondary"
+      ></button>
+    </div>
+  </div>
+</div>

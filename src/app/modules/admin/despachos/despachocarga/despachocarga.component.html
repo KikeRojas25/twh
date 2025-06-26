@@ -6,10 +6,10 @@
             <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                 <a class="text-primary-600 font-semibold hover:underline cursor-pointer">TWH</a>
                 <mat-icon class="text-gray-400">chevron_right</mat-icon>
-                <a class="text-primary-600 font-semibold hover:underline cursor-pointer">Listado de ORS</a>
+                <a class="text-primary-600 font-semibold hover:underline cursor-pointer">Validación de despacho</a>
             </div>
             <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 text-gray-800 dark:text-white">
-                Órdenes de salida
+              Generación de Despacho
             </h2>
         </div>
     </div>
@@ -51,7 +51,7 @@
 
     <!-- Acciones -->
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 sm:px-10 border">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <p-button
                 label="Asignar Transporte"
                 (click)="asignar()"
@@ -59,19 +59,33 @@
                 class="w-full">
             </p-button>
 
+          
+
             <p-button
+                label="Actualizar Guía"
+                (click)="editarGuiaMasiva()"
+                severity="warning"
+                class="w-full">
+            </p-button>
+
+               <p-button
+                label="Generar bultos"
+                (click)="abrirDetalleOrden()"
+                severity="warning"
+                class="w-full">
+            </p-button>
+
+
+
+              <p-button
                 label="Dar Salida"
                 (confirm)="darsalida()"
                 severity="danger"
                 class="w-full">
             </p-button>
 
-            <p-button
-                label="Actualizar Guía"
-                (click)="editarGuiaMasiva()"
-                severity="success"
-                class="w-full">
-            </p-button>
+
+            
         </div>
     </div>
 
@@ -112,6 +126,7 @@
                     <th class="text-center py-2">
                         <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                     </th>
+                     <th class="text-center py-2">Acciones</th>
                     <th class="text-center py-2">Nro Trabajo</th>
                     <th class="text-center py-2">Propietario</th>
                     <th class="text-center py-2">Placa</th>
@@ -128,7 +143,8 @@
                     </td>
                     <td class="ui-resizable-column">
                        
-                        <p-button  severity="secondary" (click)="ver(rowData.ordenSalidaId)" icon="fa fa-search"></p-button>
+                        <p-button title="Rótulo"  severity="secondary" (click)="ver(rowData.ordenSalidaId)" icon="fa fa-search"></p-button>
+                         <p-button title="Bultos"  severity="primary" (click)="bultos(rowData.ordenSalidaId)" icon="fa fa-file-text"></p-button>
                     </td>
                     <td class="text-center">{{ rowData.shipmentNumber }}</td>
                     <td class="text-center">{{ rowData.propietario }}</td>
