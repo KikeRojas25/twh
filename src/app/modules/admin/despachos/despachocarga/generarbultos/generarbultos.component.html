@@ -1,11 +1,11 @@
 <!-- 🔝 Acciones principales -->
 <div class="flex flex-wrap gap-3 items-center justify-start px-4 mb-4">
-  <button
-    pButton
+  <p-button
+  size="small"
     label="Crear Bulto"
     (click)="crearBulto()"
     class="p-button-success"
-  ></button>
+  ></p-button>
 
   <p-dropdown
     *ngIf="bultos.length > 0"
@@ -28,13 +28,14 @@
     class="w-24"
   />
 
-  <button
+  <p-button
     *ngIf="bultoSeleccionadoId"
-    pButton
+    size="small"
+    icon="pi pi-plus"
     label="Asignar a Bulto"
     (click)="asignarProductoABulto()"
     class="p-button-primary"
-  ></button>
+  ></p-button>
 </div>
 
 <!-- 🧱 Layout principal -->
@@ -43,6 +44,8 @@
   <div>
     <p-table
       [value]="detalles"
+        class="tabla-pequena"
+          style="width: 50%; margin: auto;"
       [paginator]="true"
       [rows]="20"
       dataKey="id"
@@ -54,12 +57,14 @@
       [globalFilterFields]="['linea', 'producto', 'lote']"
       [(selection)]="selectedItems"
     >
+
+    
       <ng-template pTemplate="header">
         <tr>
-          <th>Producto</th>
-          <th>Total</th>
-          <th>En Bultos</th>
-          <th>Pendiente</th>
+        <th style="width: 70%">Producto</th>
+          <th style="width: 5%">Total</th>
+          <th style="width: 5%">En Bultos</th>
+          <th style="width: 5%">Pendiente</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-detalle>
@@ -76,25 +81,24 @@
   <!-- 📌 Columna derecha: bultos -->
   <div>
     <div class="flex justify-end mb-3">
-  <button
-    pButton
-    type="button"
+  <p-button
+    size="small"
     label="Guardar Pesos"
     icon="pi pi-save"
     class="p-button-info"
     (click)="guardarPesosBultos()"
-  ></button>
+  ></p-button>
 </div>
     <div *ngFor="let bulto of bultos; trackBy: trackByBultoId" class="mb-4">
       <div class="bg-white shadow rounded p-4">
         <div class="flex justify-between items-center mb-2">
           <h5 class="text-lg font-semibold">Bulto Nro: {{ bulto.numeroBulto }}</h5>
-          <button
-            pButton
-            icon="pi pi-trash"
-            class="p-button-rounded p-button-danger p-button-sm"
-            (click)="eliminarBulto(bulto.id)"
-          ></button>
+              <a 
+        class="text-red-600 underline text-sm cursor-pointer hover:text-red-800"
+        (click)="eliminarBulto(bulto.id)"
+      >
+        Eliminar bulto  {{ bulto.numeroBulto }}
+      </a>
         </div>
 
         <div class="flex items-center gap-2 mb-3">
@@ -109,7 +113,11 @@
           />
         </div>
 
-        <p-table [value]="bulto.productos" [scrollable]="true" scrollHeight="200px">
+        <p-table [value]="bulto.productos" 
+           class="tabla-pequena"
+          style="width: 50%; margin: auto;"
+        
+        [scrollable]="true" scrollHeight="200px">
           <ng-template pTemplate="header">
             <tr>
               <th>Producto</th>
@@ -122,12 +130,12 @@
               <td>{{ prod.productoNombre }}</td>
               <td>{{ prod.cantidadAsignada }}</td>
               <td>
-                <button
-                  pButton
+                <p-button
+                  size="small"
                   icon="pi pi-trash"
                   class="p-button-rounded p-button-danger p-button-sm"
                   (click)="eliminarProductoDeBulto(bulto.id, prod.productoId)"
-                ></button>
+                ></p-button>
               </td>
             </tr>
           </ng-template>
@@ -137,13 +145,12 @@
 
     <!-- Botón cerrar -->
     <div class="mt-4 text-right">
-      <button
-        pButton
-        type="button"
+      <p-button
+        size="small"
         label="Cerrar"
         (click)="cerrar()"
         class="p-button-secondary"
-      ></button>
+      ></p-button>
     </div>
   </div>
 </div>

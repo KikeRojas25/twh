@@ -1,0 +1,5 @@
+::ng-deep .tabla-pequena .p-datatable-tbody td,
+::ng-deep .tabla-pequena .p-datatable-thead th {
+  font-size: 12px !important;
+  padding: 4px 8px; /* opcional para ajustar el espacio también */
+}

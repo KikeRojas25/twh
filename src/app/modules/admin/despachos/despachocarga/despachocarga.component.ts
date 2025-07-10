@@ -229,26 +229,56 @@ generarBulto(){
 
 
  darsalida() {
-  let ids = '';
-  this.selectedRow.forEach(el => {
-        ids = ids + ',' + el.id;
 
-    });
-  this.model.ids = ids.substring(1, ids.length + 1);
+    this.confirmationService.confirm({
+      acceptLabel: 'Guardar',                   // Texto del botón "Aceptar"
+      rejectLabel: 'Cancelar',                  // Texto del botón "Rechazar"
+      acceptIcon: 'pi pi-check',                // Icono del botón "Aceptar"
+      rejectIcon: 'pi pi-times',                // Icono del botón "Rechazar"
+      message: '¿Está seguro que desea dar salida de este vehículo?',
+      header: 'Confirmar Salida',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+  
 
-  this.loading = true;
 
-  this.despachoService.registrar_salidacarga(this.model).subscribe(x =>
-      {
-           this.buscar();
-           this.loading = false;
-           //success('Se ha registrado la salida con éxito');
-    }, ()=> {
 
-    }, () => {
-        //error('Error, vuelva a intentarlo');
-        this.loading = false;
-      });
+        let ids = '';
+        this.selectedRow.forEach(el => {
+              ids = ids + ',' + el.id;
+
+          });
+        this.model.ids = ids.substring(1, ids.length + 1);
+
+        console.log('darsalida', this.model.ids);
+
+
+        if (this.model.ids === '') {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Advertencia',
+            detail: 'Seleccione al menos una carga'
+          });
+          return;
+        }
+
+        this.despachoService.registrar_salidacarga(this.model).subscribe(x =>
+            {
+                this.buscar();
+                //success('Se ha registrado la salida con éxito');
+          }, ()=> {
+
+          }, () => {
+              //error('Error, vuelva a intentarlo');
+              this.loading = false;
+            });
+
+            
+
+            } ,
+            reject: () => {
+            }
+            });
  }
  bultos(ordenSalidaId: number) {
 
@@ -316,7 +346,7 @@ generarBulto(){
  
       this.dialogService.open(GenerarbultosComponent, {
         header: 'Detalle de Orden de Salida',
-        width: '1200px',
+        width: '90%',
         height: '850px',
         data: { ordenSalidaId: id }
       });

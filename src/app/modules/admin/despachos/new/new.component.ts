@@ -98,7 +98,7 @@ export class NewComponent implements OnInit {
         horaRequerida: ['15:00', Validators.required],
         clienteId: [null, Validators.required],
         direccionId: [null, Validators.required],
-        ordenCompraCliente: ['', [Validators.minLength(5), Validators.maxLength(12),Validators.required]],
+        ordenCompraCliente: ['', [Validators.minLength(5), Validators.maxLength(50),Validators.required]],
         guiaRemision: ['', [Validators.minLength(5), Validators.maxLength(50), Validators.required]],
         guiaremisioningreso: ['', [Validators.minLength(5), Validators.maxLength(50), Validators.required]],
       });
