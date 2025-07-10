@@ -139,8 +139,9 @@ export class WorkListComponent {
             endpoint = 'repPickingDAP.aspx';
         } else if (pid === 45) {
             endpoint = 'repPickingDAP.aspx';
+        } else if ([44, 103, 106, 130, 1, 125].includes(pid)) {
+            endpoint = 'reportePickingPanificadora.aspx';
         }
-     
         
 
         const url = `${baseUrl}/${endpoint}?id=${id}&pdf=${isPdf}`;
