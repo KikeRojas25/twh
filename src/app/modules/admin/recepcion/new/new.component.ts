@@ -249,7 +249,7 @@ export class NewComponent implements OnInit {
             horaEsperada: formValues.horaEsperada,
             tipoIngresoId: formValues.IdTipoIngreso,
             destinoId: formValues.IdDestino,
-            ordenCompra: formValues.ordenCompra,
+            oc: formValues.ordenCompra,
             guiaRemision: formValues.guiaRemision,
             cantidad: formValues.cantidad,
             peso: formValues.peso,

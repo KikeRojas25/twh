@@ -1,0 +1,112 @@
+<!-- WRAPPER -->
+<div class="space-y-4">
+
+    <!-- CABECERA -->
+    <div class="p-4 border rounded grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div><b>ORI:</b> {{ orden.numOrden }}</div>
+      <div><b>Propietario:</b> {{ orden.propietario }}</div>
+      <div><b>Almacén:</b> {{ orden.almacen ?? '-' }}</div>
+      <div><b>Guía/OC:</b> {{ orden.guiaRemision }}</div>
+      <div><b>Fecha esperada:</b> {{ orden.fechaEsperada | date:'dd/MM/yyyy' }}</div>
+      <div class="flex items-center gap-2">
+        <b>Estado:</b>
+        <p-tag severity="success" [value]="orden.nombreEstado"></p-tag>
+      </div>
+    </div>
+
+    <!-- CONTENIDO 2 COLUMNAS -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+      <!-- IZQUIERDA: Agregar ítem -->
+      <div class="lg:col-span-4">
+        <p-card header="Agregar nuevo ítem" class="w-full">
+          <!-- Autocomplete producto -->
+          <label class="block text-sm font-medium mb-1">Producto</label>
+          <p-autoComplete
+            [(ngModel)]="model.productoSeleccionado"
+            [suggestions]="productosFiltrados"
+            (completeMethod)="buscarProductos($event)"
+            [minLength]="3"
+            appendTo="body"
+            [delay]="300"
+            [field]="'nombreCompleto'"
+            [dropdown]="true"
+            [forceSelection]="true"
+            [disabled]="orden.nombreEstado !== 'Planificado'"
+            class="w-full">
+
+            <ng-template let-item pTemplate="item">
+              <div>{{ item.nombreCompleto }}</div>
+            </ng-template>
+
+            <ng-template let-item pTemplate="selectedItem">
+              <div>{{ item.nombreCompleto }}</div>
+            </ng-template>
+          </p-autoComplete>
+
+          <!-- Cantidad -->
+          <div class="mt-3">
+            <label class="block text-sm font-medium mb-1">Cantidad</label>
+            <input pInputText type="number"  [disabled]="orden.nombreEstado !== 'Planificado'" min="1" [(ngModel)]="model.cantidad" class="w-full">
+          </div>
+
+          <!-- Lote (opcional) -->
+          <div class="mt-3">
+            <label class="block text-sm font-medium mb-1">Lote (opcional)</label>
+            <input pInputText type="text"  [disabled]="orden.nombreEstado !== 'Planificado'" [(ngModel)]="model.lote" class="w-full">
+          </div>
+
+          <!-- Botón agregar -->
+          <div class="mt-4">
+            <button pButton label="Agregar ítem"
+            [disabled]="orden.nombreEstado !== 'Planificado'"
+             icon="pi pi-plus" (click)="agregarItem()"></button>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- DERECHA: Listado de ítems -->
+      <div class="lg:col-span-8">
+        <p-card>
+
+
+          <p-table
+            [value]="orden.detalles"
+            [paginator]="true"
+            [rows]="10"
+            [rowsPerPageOptions]="[10,20,50]"
+            dataKey="id"
+            styleClass="p-datatable-sm">
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:7rem">Línea</th>
+                <th style="width:10rem">Código</th>
+                <th>Producto</th>
+                <th style="width:8rem">Cantidad</th>
+                <th style="width:10rem">Lote</th>
+                <th style="width:10rem">Estado</th>
+                <th style="width:6rem">Acciones</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>{{ row.linea }}</td>
+                <td>{{ row.codigo }}</td>
+                <td>{{ row.producto }}</td>
+                <td>{{ row.cantidad }}</td>
+                <td>{{ row.lote || '-' }}</td>
+                <td>{{ row.estado }}</td>
+                <td class="text-right">
+                  <button pButton icon="pi pi-trash" severity="danger"
+                  [disabled]="orden.nombreEstado !== 'Planificado'"
+                   (click)="eliminarFila(row)" text></button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </div>
+  </div>

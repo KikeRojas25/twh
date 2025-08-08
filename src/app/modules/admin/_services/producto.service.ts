@@ -46,30 +46,30 @@ export class ProductoService {
     return this._httpClient.post(this.baseUrl + 'productRegister', model, httpOptions)
     .pipe(map((response: any) => {
        console.log(response);
-  
+
     }));
   }
   editarProducto(model: any){
     return this._httpClient.post(this.baseUrl + 'productEdit', model, httpOptions)
     .pipe(map((response: any) => {
        console.log(response);
-  
+
     }));
   }
   registrarHuellaDetalle(model: any){
-  
+
     return this._httpClient.post(this.baseUrl + 'HuellaDetalleRegister', model, httpOptions)
     .pipe(map((response: any) => {
        console.log(response);
-  
+
     }));
   }
   registrarHuella(model: any){
-  
+
     return this._httpClient.post(this.baseUrl + 'HuellaRegister', model, httpOptions)
     .pipe(map((response: any) => {
        console.log(response);
-  
+
     }));
   }
   editarHuella(model: any){
@@ -91,5 +91,10 @@ export class ProductoService {
       url += `&idcliente=${idcliente}`;
     }
     return this._httpClient.get<any>(url, httpOptions);
+  }
+
+  buscarProductosPorPropietario(propietarioId: number, filtro: string): Observable<any[]> {
+    const url = `${this.baseUrl}buscar?propietarioId=${propietarioId}&query=${encodeURIComponent(filtro)}`;
+    return this._httpClient.get<any[]>(url);
   }
 }

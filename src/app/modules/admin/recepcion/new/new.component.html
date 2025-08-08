@@ -114,9 +114,7 @@
               <span>{{item.label}}</span>
             </ng-template>
           </p-dropdown>
-          <div *ngIf="form.get('IdDestino').touched && form.get('IdDestino').invalid" class="text-red-500 text-sm">
-            El destino es obligatoria.
-          </div>
+      
         </div>
        
   
@@ -190,8 +188,7 @@
           <input 
             pInputText 
             formControlName="cantidad" 
-            minlength="5" 
-            maxlength="50" 
+           
             autocomplete="off" 
             type="text">
           <div *ngIf="form.get('cantidad').errors">
@@ -208,8 +205,7 @@
             <input 
               pInputText 
               formControlName="peso" 
-              minlength="5" 
-              maxlength="50" 
+            
               autocomplete="off" 
               type="text">
             <div *ngIf="form.get('peso').errors">

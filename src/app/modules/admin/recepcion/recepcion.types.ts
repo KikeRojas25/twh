@@ -2,7 +2,7 @@
 export interface OrdenRecibo {
     ordenReciboId	:  any ;
     numOrden	:  string ;
-    propietarioId	:  number ;
+    propietarioID	:  number ;
     propietario	:  string ;
     almacenId	:  number ;
     Almacen	:  string ;
@@ -16,6 +16,15 @@ export interface OrdenRecibo {
     ubicacion: string;
     detalles: OrdenReciboDetalle[];
 }
+export interface OrdenReciboDetalleForRegisterDto {
+    ordenReciboId: string;     // Guid
+    productoId: string;        // Guid
+    lote?: string | null;
+    huellaId?: string | null;  // Guid | null
+    estadoID: number;
+    cantidad: number;
+    referencia?: string | null;
+  }
 
 export interface OrdenReciboDetalle {
     id?: number;
@@ -42,7 +51,7 @@ export interface EquipoTransporte {
     dni	:  number ;
     estado: string;
     tipoVehiculo: string;
-    chofer: string;    
+    chofer: string;
     equipoTransporteId: number;
     nombreCompleto: string;
     tipoVehiculoId:number;
@@ -51,3 +60,7 @@ export interface EquipoTransporte {
     brevete: string;
 }
 
+export interface ApiMessage<T> {
+    message: string;
+    data: T;
+  }

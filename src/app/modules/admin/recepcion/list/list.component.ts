@@ -25,6 +25,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { NewComponent } from '../new/new.component';
+import { NewdetailsComponent } from '../newdetails/newdetails.component';
 
 
 @Component({
@@ -33,7 +34,7 @@ import { NewComponent } from '../new/new.component';
   styleUrls: ['./list.component.css'],
   standalone: true,
   imports: [
-    InputTextModule, 
+    InputTextModule,
     DropdownModule,
     FormsModule,
     ButtonModule,
@@ -52,7 +53,7 @@ import { NewComponent } from '../new/new.component';
   providers: [
     DialogService ,
     MessageService ,
-    ConfirmationService 
+    ConfirmationService
 
   ]
 })
@@ -60,7 +61,7 @@ export class ListComponent implements OnInit {
 
   cols: any[];
 
-  
+
 
   dateInicio: Date = new Date(Date.now() ) ;
   dateFin: Date = new Date(Date.now()) ;
@@ -143,14 +144,14 @@ tipoingreso: SelectItem[] = [];
     const almacenGuardado = localStorage.getItem('almacen');
     const propietarioGuardado = localStorage.getItem('propietario');
 
-  
 
- 
-    
+
+
+
     this.model = {};
 
 
-      
+
 
 
     this.dateInicio.setDate((new Date()).getDate() - 2);
@@ -211,7 +212,7 @@ tipoingreso: SelectItem[] = [];
         if (almacenGuardado) {
           this.model.AlmacenId = parseInt  (almacenGuardado)
         }
-    
+
         if (propietarioGuardado) {
           this.model.PropietarioId =parseInt( propietarioGuardado);
         }
@@ -225,17 +226,18 @@ tipoingreso: SelectItem[] = [];
   }
 
 
-   ver(id){
+   ver(idOrdenRecepcion){
   //  this.router.navigate(['/recibo/verordenrecibo', id]);
 
 
-    this.ordenreciboService.obtenerOrden(id).subscribe(resp => {
-      this.listData = resp.detalles;
-    });
 
-    this.mostrarPopup = true;
-
-
+    this.dialogService.open(NewdetailsComponent, {
+        header: 'Ver Detalle',
+        width: '80%',
+        data: {
+          idOrdenRecepcion: idOrdenRecepcion
+        }
+      });
 
 
    }
@@ -251,9 +253,9 @@ tipoingreso: SelectItem[] = [];
             height: '900px',
             data: {
             }
-          
+
       });
-    
+
       this.ref.onClose.subscribe((actualizado) => {
         if (actualizado) {
           this.buscar(); // 👈 refresca tu tabla
@@ -316,14 +318,14 @@ update() {
 
          this.ordenreciboService.obtenerOrden(id).subscribe(resp => {
           this.model = resp;
-    
+
            // Convertir la fecha a un objeto Date
           if (this.model.fechaEsperada) {
             this.model.fechaEsperada = new Date(this.model.fechaEsperada);
           }
-    
-    
-    
+
+
+
           console.log(this.model);
         });
 
@@ -368,12 +370,12 @@ update() {
 
 
 
-        
+
       },
       reject: () => {
-    
+
       },
-    
+
 
 
    });
@@ -382,7 +384,7 @@ update() {
    equipotransporte(){
 
 
- 
+
 
 
 
@@ -410,7 +412,7 @@ update() {
       localStorage.setItem('propietario', this.model.PropietarioId);
     }
 
-    
+
     this.model.fec_ini =  this.dateInicio;
     this.model.fec_fin =  this.dateFin ;
 
