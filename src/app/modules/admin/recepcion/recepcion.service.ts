@@ -1,8 +1,8 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { ApiMessage, EquipoTransporte, OrdenRecibo, OrdenReciboDetalle, OrdenReciboDetalleForRegisterDto } from './recepcion.types';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { InventarioGeneral } from '../_models/inventariogeneral';
 
 
@@ -52,9 +52,13 @@ export class RecepcionService {
   //   return this.http.get<CalendarEventModel[]>(this.baseUrl + 'GetListarCalendario'   , httpOptions);
   // }
 
-  registrar(model: any){
-    return this.http.post(this.baseUrl + 'register', model, httpOptions);
+ registrar(model: any): Observable<any> {
+    return this.http.post<any>(this.baseUrl + 'register', model, httpOptions)
+      .pipe(
+        catchError(this.handleError)
+      );
   }
+
 
   registerGuiaCabecera(model: any){
     return this.http.post(this.baseUrl + 'registerGuiaCabecera', model, httpOptions);
@@ -274,4 +278,40 @@ uploadFile(IdPropietario: number , IdAlmacen: number, usrid: number, file: File)
 getAllDestinosPalmas(id: any): Observable<any[]> {
   return this.http.get<any[]>(this.baseUrl + 'GetOrderDetail?Id=' + id, httpOptions);
  }
+
+
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      // Error de cliente o red
+      console.error('Ocurrió un error del lado del cliente:', error.error.message);
+    } else {
+      // Error del backend
+      console.error(
+        `Backend retornó el código ${error.status}, ` +
+        `cuerpo de error: `, error.error);
+    }
+    // Puedes enviar un mensaje más claro a la UI
+    return throwError(() => error.error?.message || 'Error en el servidor, intente nuevamente.');
+  }
+
+
+  
+  
+  registrarEquipoTransporte(IdsShipment: number, IdTraco: number, IdCarreta: number, IdConductor: number, idtipo: any) {
+  
+  
+    const dto =  {
+      IdChofer: IdConductor,
+      IdVehiculo: IdTraco,
+      IdsOrders: IdsShipment,
+    };
+  
+  
+    return this.http.post<any>(`${this.baseUrl}GenerarEquipoTransporte`, dto, httpOptions)
+    .pipe(
+      catchError(this.handleError)
+    );
+  
+  }
+
 }

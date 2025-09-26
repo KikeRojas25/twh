@@ -273,6 +273,25 @@ export const appRoutes: Route[] = [
                                             },
                                     ]
                   },
+                   {
+                    path: 'listadoproducto',
+                    loadComponent: () => import('./modules/admin/mantenimientos/producto/listadoproducto/listadoproducto.component')
+                                          .then(m => m.ListadoproductoComponent)
+                  },
+
+                  {
+                    path: 'vehiculos',
+                    loadComponent: () => import('./modules/admin/mantenimientos/vehiculos/vehiculos.component')
+                                          .then(m => m.VehiculosComponent),
+                                          children:[
+                                            {
+                                              path: 'list',
+                                              loadComponent: () => import('./modules/admin/mantenimientos/vehiculos/list/list.component')
+                                                                    .then(m => m.ListComponent)
+                                            },
+                                    ]
+                  },
+              
                 ]
               },
             {   

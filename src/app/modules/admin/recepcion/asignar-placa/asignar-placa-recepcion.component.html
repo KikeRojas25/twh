@@ -1,0 +1,97 @@
+<div class="p-fluid">
+  <!-- Contenedor Flex para Tracto y Carreta -->
+  <div class="flex-container">
+    <!-- Campo Tracto -->
+    <div class="flex-item">
+      <div class="p-field">
+        <label for="tracto-search">Tracto</label>
+        <p-autoComplete
+          id="tracto-search"
+          [(ngModel)]="selectedTracto"
+          [suggestions]="filteredTracto"
+          (completeMethod)="filterTractos($event)"
+          field="placa"
+          (onSelect)="onTractoSelect($event)"
+          appendTo="body"
+          dropdown="true"
+          placeholder="Seleccione el tracto"
+        >
+          <!-- Plantilla personalizada para cada conductor -->
+          <ng-template let-driver pTemplate="item">
+            <div class="driver-item">
+              <div>{{ driver.placa }}</div>
+              <small>Proveedor: {{ driver.proveedor }}</small>
+            </div>
+          </ng-template>
+        </p-autoComplete>
+      </div>
+    </div>
+
+    <!-- Campo Carreta -->
+    <!-- <div class="flex-item">
+      <div class="p-field">
+        <label for="carreta-search">Carreta</label>
+        <p-autoComplete
+          id="carreta-search"
+          [(ngModel)]="selectedCarreta"
+          [suggestions]="filteredCarreta"
+          (completeMethod)="filterCarretas($event)"
+          field="placa"
+          (onSelect)="onCarretaSelect($event)"
+          appendTo="body"
+          dropdown="true"
+          placeholder="Seleccione la placa"
+        >
+          <ng-template let-carreta pTemplate="item">
+            <div class="carreta-item">
+              <div>{{ carreta.placa }}</div>
+              <small>Proveedor: {{ carreta.proveedor?.razonSocial   }}</small>
+            </div>
+          </ng-template>
+        </p-autoComplete>
+      </div>
+    </div> -->
+  </div>
+
+  <!-- Campo Buscar Conductor -->
+  <div class="p-field">
+    <label for="driver-search">Conductor</label>
+    <p-autoComplete
+      id="driver-search"
+      [(ngModel)]="selectedDriver"
+      [suggestions]="filteredDrivers"
+      (completeMethod)="filterDrivers($event)"
+      field="nombreCompleto"
+      (onSelect)="onDriverSelect($event)"
+      appendTo="body"
+      dropdown="true"
+      placeholder="Ingrese el nombre del conductor"
+    >
+      <!-- Plantilla personalizada para cada conductor -->
+      <ng-template let-carreta pTemplate="item">
+        <div class="carreta-item">
+          <div>{{ carreta.nombreCompleto }}</div>
+          <small>DNI: {{ carreta.dni }}</small>
+        </div>
+      </ng-template>
+    </p-autoComplete>
+  </div>
+
+
+
+  <div class="p-field">
+  <!-- Botón de acción -->
+  <div class="button-container">
+    <button
+      pButton
+      type="button"
+      label="Asignar Conductor"
+      icon="pi pi-check"
+      class="p-button-success"
+      [style]="{ width: '150px' }"
+      [disabled]="!selectedDriver"
+      (click)="asignarConductor()"
+    ></button>
+  </div>
+</div>
+</div>

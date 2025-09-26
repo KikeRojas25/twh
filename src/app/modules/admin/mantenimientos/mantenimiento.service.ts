@@ -95,7 +95,7 @@ registrarEquipoTransporte(IdsShipment: number, IdTraco: number, IdCarreta: numbe
   };
 
 
-  return this.http.post<any>(`${this.baseUrlSalida}RegisterEquipoTransporte`, dto, httpOptions)
+  return this.http.post<any>(`${this.baseUrlSalida}GenerarShipment`, dto, httpOptions)
   .pipe(
     catchError(this.handleError)
   );

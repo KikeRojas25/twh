@@ -25,6 +25,7 @@ import { ClienteService } from '../../_services/cliente.service';
 import { DespachosService } from '../../despachos/despachos.service';
 import { PanelModule } from 'primeng/panel';
 import { RecepcionService } from '../recepcion.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-new',
@@ -59,6 +60,7 @@ import { RecepcionService } from '../recepcion.service';
 export class NewComponent implements OnInit {
 
   form: FormGroup;
+  loading = false;
 
   
   propietarios: SelectItem[] = [];
@@ -89,7 +91,9 @@ export class NewComponent implements OnInit {
 
   model: any = {}
 
-  constructor(    public dialogService: DialogService,
+  constructor(   
+    private ref: DynamicDialogRef,
+    public dialogService: DialogService,
     private almacenService: AlmacenService,
     private clienteService: ClienteService,
     private confirmationService: ConfirmationService ,
@@ -106,16 +110,16 @@ export class NewComponent implements OnInit {
         fechaEsperada: [ new Date(), Validators.required],
         horaEsperada: ['15:00', Validators.required],
         IdTipoIngreso: [null, Validators.required],
-        IdDestino : [null, ],
-        ordenCompra: ['', [Validators.minLength(5), Validators.maxLength(12),Validators.required]],
+        destino : [null, ],
+        ordenCompra: ['', [Validators.minLength(5), Validators.maxLength(20),Validators.required]],
         guiaRemision: ['', [Validators.minLength(5), Validators.maxLength(50), Validators.required]],
         cantidad:         [
           null, 
-          [Validators.required, Validators.min(1), Validators.max(100000)]
+          [, Validators.min(1), Validators.max(100000)]
         ],
         peso:             [
           null, 
-          [Validators.required, Validators.min(0.01), Validators.max(100000)]
+          [, Validators.min(0.01), Validators.max(100000)]
         ],
         volumen:          [
           null, 
@@ -224,67 +228,55 @@ export class NewComponent implements OnInit {
 //     }
 //   });
 // }
-
-  registrar() {
-
-    if (this.form.invalid) {
-      return;
-    }
+ registrar() {
+    if (this.form.invalid) return;
 
     this.confirmationService.confirm({
       message: '¿Está seguro que desea agregar la ORI?',
       header: 'Agregar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
-   
-    
-        const formValues = this.form.value;
+        const v = this.form.value;
 
-        // Asignar los valores recuperados al modelo antes de enviarlo al API
-        this.model = {
-            almacenId: formValues.almacenId,
-            propietario: this.propietarios.find(x => x.value === formValues.propietarioId)?.label || null,
-            propietarioId: formValues.propietarioId,
-            fechaEsperada: formValues.fechaEsperada,
-            horaEsperada: formValues.horaEsperada,
-            tipoIngresoId: formValues.IdTipoIngreso,
-            destinoId: formValues.IdDestino,
-            oc: formValues.ordenCompra,
-            guiaRemision: formValues.guiaRemision,
-            cantidad: formValues.cantidad,
-            peso: formValues.peso,
-            volumen: formValues.volumen,
-            proveedor: formValues.proveedor,
-            entrega: formValues.entrega,
-            usuarioId: this.decodedToken.nameid,
+        const model: any = {
+          almacenId: v.almacenId,
+          propietario: this.propietarios.find(x => x.value === v.propietarioId)?.label ?? null,
+          propietarioId: v.propietarioId,
+          fechaEsperada: v.fechaEsperada,
+          horaEsperada: v.horaEsperada,
+          tipoIngresoId: v.IdTipoIngreso,
+          destino: v.destino,
+          oc: v.ordenCompra,
+          guiaRemision: v.guiaRemision,
+          cantidad: v.cantidad,
+          peso: v.peso,
+          volumen: v.volumen,
+          proveedor: v.proveedor,
+          entrega: v.entrega,
+          usuarioId: this.decodedToken.nameid,
+          usuarioid: this.decodedToken.nameid
         };
-    this.model.usuarioid = this.decodedToken.nameid;
 
-
-    this.recepcionService.registrar(this.model).subscribe(resp =>  {
-        //this.model = resp;
-
-
-
-
-
-      }, error => {
-
-        console.log(error);
-
-      }, () => {
-        this.messageService.add({severity: 'success', summary: 'TWH', detail: 'Se registró correctamente.'})  //success('Se registró correctamente.');
-        this.router.navigate(['/picking/verordensalida',  this.model ]);
-      });
-
-
-    } ,
-    reject: () => {
-
-    }
-
+  
+        this.recepcionService
+          .registrar(model)
+          .pipe(finalize(() => (this.loading = false)))
+          .subscribe({
+            next: (resp) => {
+              // ✅ Cierra y devuelve un payload al padre (éxito)
+              this.ref.close({ ok: true, data: resp });
+            },
+            error: (err) => {
+              // ✅ O bien no cierras y muestras algo local,
+              // ✅ o cierras devolviendo el error para que el padre lo maneje:
+              this.ref.close({
+                ok: false,
+                error: err?.error?.message || 'No se pudo registrar la ORI.'
+              });
+            }
+          });
+      }
     });
-
   }
 
   

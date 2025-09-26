@@ -195,7 +195,7 @@ movimientoSalidaMasiva(Id: number) {
   const model: any = {};
   model.Id = Id;
 
-  return this.http.post(this.baseUrl + 'MovimientoSalidaMasivo?WrkId=' + Id , model, httpOptions)
+  return this.http.post(this.baseUrlPlanning + 'ValidarPicking?WrkId=' + Id , model, httpOptions)
   .pipe(
     map((response: any) => {
     }

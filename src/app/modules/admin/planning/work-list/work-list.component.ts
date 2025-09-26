@@ -135,7 +135,7 @@ export class WorkListComponent {
             endpoint = 'reportepickingPalmas.aspx';
         } else if ([59, 82].includes(pid)) {
             endpoint = 'reportePickingPalmasPT.aspx';
-        } else if (pid === 134) {
+        } else if (pid === 145) {
             endpoint = 'repPickingDAP.aspx';
         } else if (pid === 45) {
             endpoint = 'repPickingDAP.aspx';

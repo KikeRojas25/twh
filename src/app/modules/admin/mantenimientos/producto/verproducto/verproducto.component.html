@@ -1,0 +1,162 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+        <div  class="flex flex-wrap items-center font-medium">
+            <div>
+            <a  class="whitespace-nowrap text-primary-500">TWH</a>
+            </div>
+            <div class="flex items-center ml-1 whitespace-nowrap">
+                <mat-icon
+                class="fuse-horizontal-navigation-item-icon"
+                [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                <a  class="ml-1 text-primary-500">Mantenimiento de Productos del Sistema</a>
+            </div>
+        </div>
+            <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Listado de Productos</h2>
+        </div>
+    </div>
+    </div>
+
+    <!-- Filtro de búsqueda -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+      <div class="flex items-end sm:flex-nowrap gap-8">
+        <div class="flex-1">
+          <p-button severity="primary" label="Regresar" (onClick)="regresar()" styleClass="h-[50px]"></p-button>
+        </div>
+      </div>
+  </div>
+
+    <!-- Cards -->
+    <div class="p-4">
+        <div class="flex flex-col md:flex-row gap-4">
+          <!-- Card Producto -->
+          <div class="w-full md:w-1/3 bg-white rounded-lg shadow border px-4 py-0">
+            <div class="border-b border-gray-800 pb-2 mb-4">
+                <h5 class="text-lg font-semibold mb-0">Producto</h5>
+                <span class="text-sm text-gray-600 mb-0">Datos generales</span>
+            </div>
+            <form #f="ngForm" >
+                <div class="flex items-center gap-2 mb-4">                 
+                    <img class="w-10 h-10 rounded-full" src="images/Product_icon.png" alt="Avatar">
+                    <strong class="text-md">{{ model.descripcionLarga }}</strong>
+                    <span class="text-sm text-gray-500">{{ model.familia }}</span>
+                    <span class="ml-auto text-sm text-gray-400">SKU - {{ model.codigo }}</span>
+                </div>
+                <div class="mb-3">
+                    <p class="text-sm text-gray-600 mb-4">
+                        Puede editar los datos completos del producto en la sección de edición de la gestión del producto.
+                      </p>
+                    <label for="peso" class="block text-sm font-medium text-gray-700">Peso</label>
+                    <input
+                      type="text"
+                      id="peso"
+                      name="peso"
+                      [(ngModel)]="model.peso"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      disabled="true"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="unidadMedida" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
+                    <input
+                      type="text"
+                      id="unidadMedida"
+                      name="unidadMedida"
+                      [(ngModel)]="model.unidadMedida"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      disabled="true"
+                    />
+                  </div>
+            </form>   
+          </div>
+      
+          <!-- Card Huellas -->
+          <div class="w-full md:w-2/3 bg-white rounded-lg shadow border px-4 py-0">
+            <div class="flex justify-between items-center mb-4">
+                <div class="border-b border-gray-800 pb-2 mb-0">
+                    <h5 class="text-lg font-semibold mb-0">Huellas</h5>
+                    <span class="text-sm text-gray-600 mb-0">Datos generales</span>
+                </div>  
+            </div>
+            <div>
+                <p-button severity="primary" label="Nueva Huella" (onClick)="nuevaHuella(id)" icon="pi pi-plus" styleClass="h-[40px]"></p-button>
+            </div>
+            <p class="text-sm text-gray-600 mb-2">Listado de Huellas registradas para el producto</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto border border-gray-200 text-sm text-center">
+                    <thead class="bg-gray-100 text-gray-700">
+                      <tr>
+                        <th class="border px-4 py-2">Huella</th>
+                        <th class="border px-4 py-2">Cama</th>
+                        <th class="border px-4 py-2">% Uso</th>
+                        <th class="border px-4 py-2">Código Creación</th>
+                        <th class="border px-4 py-2">Creación</th>
+                        <th class="border px-4 py-2">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of huellas" class="hover:bg-gray-50">
+                        <td class="border px-4 py-2 text-left flex items-center gap-2">
+                          <img class="w-8 h-8 rounded" src="images/pallet.png" alt="Avatar" />
+                          <div>
+                            <div class="font-medium text-gray-800">{{ item.codigoHuella }}</div>
+                            <div class="text-xs text-gray-500">Huella</div>
+                          </div>
+                        </td>
+                  
+                        <td class="border px-4 py-2">
+                          <div class="font-medium">{{ item.caslvl }}</div>
+                          <div class="text-xs text-gray-500">Base de pallet</div>
+                        </td>
+                  
+                        <td class="border px-4 py-2">
+                            <div class="flex justify-between text-xs text-gray-400">
+                                <span class="text-xs text-gray-800">0</span>
+                                <span class="font-semibold text-green-600">{{ item.cantidad }} %</span>
+                            </div>
+                          <div class="w-full bg-gray-200 rounded h-2 mt-1">
+                            <div
+                              class="bg-blue-500 h-2 rounded"
+                              [style.width]="item.cantidad + '%'"
+                            ></div>
+                          </div>
+                        </td>
+                  
+                        <td class="border px-4 py-2">
+                          <div class="font-medium text-gray-800">master</div>
+                          <div class="text-xs text-gray-500">63e8ec3</div>
+                        </td>
+                  
+                        <td class="border px-4 py-2">
+                          <div class="font-medium">{{ item.fechaRegistro }}</div>
+                          <div class="text-xs text-gray-500">8:30</div>
+                        </td>
+                  
+                        <td class="border px-4 py-2 flex justify-center gap-2">
+                          <p-button
+                            severity="primary"
+                            icon="fa fa-edit"
+                            (click)="editarHuella(item.id)"
+                          ></p-button>
+                          <p-button
+                            severity="success"
+                            icon="pi pi-search"
+                            (click)="verHuella(item.id)"
+                          ></p-button>
+                        </td>
+                      </tr>
+                  
+                      <tr *ngIf="model.huella?.length === 0">
+                        <td colspan="6" class="text-gray-500 py-3 text-center">
+                          No hay huellas registradas.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>                
+            </div>
+          </div>
+        </div>
+    </div> 
+</div>
+<p-toast></p-toast>

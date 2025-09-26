@@ -88,7 +88,7 @@ export class AvancepickingComponent implements OnInit {
   // barChartData: any;
 
   // Parámetros de filtrado
-  idPropietario: number = 123; // Reemplaza con el ID dinámico según corresponda
+  idPropietario: number = 145; // Reemplaza con el ID dinámico según corresponda
   fecini?: string;
   fecfin?: string;
 
@@ -160,7 +160,7 @@ export class AvancepickingComponent implements OnInit {
 
     this.clienteService.getAllPropietarios('').subscribe(resp1 => {
  
-      const propietarioFiltrado = resp1.find(element => element.id === 134); 
+      const propietarioFiltrado = resp1.find(element => element.id === 145); 
 
       
 

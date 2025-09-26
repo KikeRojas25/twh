@@ -26,6 +26,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { NewComponent } from '../new/new.component';
 import { NewdetailsComponent } from '../newdetails/newdetails.component';
+import { AsignarPlacaRecepcionComponent } from '../asignar-placa/asignar-placa-recepcion.component';
+import { EditComponent } from '../edit/edit.component';
 
 
 @Component({
@@ -242,6 +244,39 @@ tipoingreso: SelectItem[] = [];
 
    }
 
+  asignartransporte() {
+
+    console.log('seleccinados' ,this.selectedRow);
+
+    if (!this.selectedRow) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Advertencia', 
+        detail: 'Seleccione una orden de recibo.' 
+      });
+      return;
+    }
+
+    this.ref = this.dialogService.open(AsignarPlacaRecepcionComponent, {
+      header: `Asignar Placa`,
+      width: '70%',
+      data: {
+        id: this.selectedRow.ordenReciboId   // 🔹 pasamos el id en array
+      },
+    });
+
+    this.ref.onClose.subscribe((selectedDriver) => {
+      if (selectedDriver) {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Programación guardada correctamente'
+        });
+      }
+    });
+  }
+
+
    nuevo() {
 
 
@@ -255,12 +290,27 @@ tipoingreso: SelectItem[] = [];
             }
 
       });
+      this.ref.onClose.subscribe((result: any) => {
+          if (!result) return; // cerrado sin acción
 
-      this.ref.onClose.subscribe((actualizado) => {
-        if (actualizado) {
-          this.buscar(); // 👈 refresca tu tabla
-        }
-      });
+          if (result.ok) {
+            // ✅ Notificación en el padre
+            const num = result.data?.numOrden ?? '';
+            this.messageService.add({
+              severity: 'success',
+              summary: 'TWH',
+              detail: `Se registró correctamente${num ? ` (N° ${num})` : ''}.`
+            });
+            // refresca tablas/listas, etc.
+            this.buscar();
+          } else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'TWH',
+              detail: result.error || 'No se pudo registrar la ORI.'
+            });
+          }
+        });
 
 
 
@@ -303,34 +353,65 @@ update() {
    }
    edit(id){
 
-    this.mostrarEdicionMasiva  = true;
+    // this.mostrarEdicionMasiva  = true;
 
+    
 
+        this.ref = this.dialogService.open(EditComponent, {
+          header: 'Editar ORI',
+             width: '1000px',
+            height: '900px',
+            data: { id
+            }
 
-    console.log(this.model);
+      });
+      this.ref.onClose.subscribe((result: any) => {
+          if (!result) return; // cerrado sin acción
 
-    this.generalService.getValorTabla(31).subscribe(resp => {
-         resp.forEach(x=> {
-          this.tipoingreso.push({value: x.id , label: x.valorPrincipal });
-         });
-
-
-
-         this.ordenreciboService.obtenerOrden(id).subscribe(resp => {
-          this.model = resp;
-
-           // Convertir la fecha a un objeto Date
-          if (this.model.fechaEsperada) {
-            this.model.fechaEsperada = new Date(this.model.fechaEsperada);
+          if (result.ok) {
+          
+            const num = result.data?.numOrden ?? '';
+            this.messageService.add({
+              severity: 'success',
+              summary: 'TWH',
+              detail: `Se registró correctamente${num ? ` (N° ${num})` : ''}.`
+            });
+            // refresca tablas/listas, etc.
+            this.buscar();
+          } else {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'TWH',
+              detail: result.error || 'No se pudo registrar la ORI.'
+            });
           }
-
-
-
-          console.log(this.model);
         });
 
 
-    })
+    // console.log(this.model);
+
+    // this.generalService.getValorTabla(31).subscribe(resp => {
+    //      resp.forEach(x=> {
+    //       this.tipoingreso.push({value: x.id , label: x.valorPrincipal });
+    //      });
+
+
+
+    //      this.ordenreciboService.obtenerOrden(id).subscribe(resp => {
+    //       this.model = resp;
+
+    //        // Convertir la fecha a un objeto Date
+    //       if (this.model.fechaEsperada) {
+    //         this.model.fechaEsperada = new Date(this.model.fechaEsperada);
+    //       }
+
+
+
+    //       console.log(this.model);
+    //     });
+
+
+    // })
 
 
 
@@ -342,7 +423,6 @@ update() {
    }
    delete(id){
 
-    console.log('xD');
 
     this.confirmationService.confirm({
       message: '¿Está seguro que desea eliminar la ORI?',

@@ -1,0 +1,286 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <p-toast></p-toast>
+    <form (ngSubmit)="save()" #form="ngForm">
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4"> 
+  
+            <!-- Propietario -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
+                    <p-dropdown
+                        [options]="clientes"
+                        [(ngModel)]="model.clienteId"
+                        name="cliente"
+                        #cliente="ngModel"
+                        [style]="{ 'width': '100%' }"
+                        [resetFilterOnHide]="true"
+                        [filter]="true"
+                        filterBy="label"
+                        [showClear]="true"
+                        placeholder="Selecciona un cliente"
+                        class="flex-1"
+                        required
+                        >
+                        <ng-template let-item pTemplate="selectedItem">
+                        <span>{{ item.label }}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+                <div *ngIf="cliente.invalid && (cliente.dirty || cliente.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="cliente.errors?.required">Debe seleccionar un propietario.</div>
+                </div>
+            </div>
+
+
+            <!-- Familia -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Familia</label>
+                    <p-dropdown
+                        [options]="familias"
+                        [(ngModel)]="model.familiaId"
+                        name="familia"
+                        #familia="ngModel"
+                        [style]="{ 'width': '100%' }"
+                        [resetFilterOnHide]="true"
+                        [filter]="true"
+                        filterBy="label"
+                        [showClear]="true"
+                        placeholder="Selecciona una familia"
+                        class="flex-1"
+                        required
+                        >
+                        <ng-template let-item pTemplate="selectedItem">
+                        <span>{{ item.label }}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+                <div *ngIf="familia.invalid && (familia.dirty || familia.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="familia.errors?.required">Debe seleccionar una familia.</div>
+                </div>
+            </div>
+
+            <!-- Código -->
+<div class="flex flex-col">
+  <div class="flex items-center space-x-4">
+    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Código</label>
+    <input 
+  pInputText 
+  minlength="3" 
+  maxlength="50" 
+  required
+  class="flex-1" 
+  autocomplete="on"
+  [(ngModel)]="model.codigo" 
+  name="codigo" 
+  #codigo="ngModel" 
+  type="text"
+  placeholder="SKU"
+  (blur)="validarCodigoSKU()"
+  [readonly]="isEditMode">
+
+  </div>
+</div>
+
+<!-- Descripción -->
+<div class="flex flex-col">
+  <div class="flex items-center space-x-4">
+    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Descripción</label>
+    <input 
+  pInputText 
+  minlength="3" 
+  maxlength="100" 
+  required
+  class="flex-1" 
+  autocomplete="on"
+  [(ngModel)]="model.descripcionLarga" 
+  name="descripcionLarga" 
+  #descripcionLarga="ngModel" 
+  type="text"
+  [readonly]="isEditMode">
+
+  </div>
+</div>
+
+            <!-- Unidad de Medida -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Unidad de Medida</label>
+                    <p-dropdown
+                        [options]="unidadesMedida"
+                        [(ngModel)]="model.unidadMedidaId"
+                        name="unidadMedida"
+                        #unidadMedida="ngModel"
+                        [style]="{ 'width': '100%' }"
+                        [resetFilterOnHide]="true"
+                        [filter]="true"
+                        filterBy="label"
+                       
+                        [showClear]="true"
+                        placeholder="Selecciona una unidad de medida"
+                        class="flex-1"
+                        required
+                        >
+                        <ng-template let-item pTemplate="selectedItem">
+                        <span>{{ item.label }}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+                <div *ngIf="unidadMedida.invalid && (unidadMedida.dirty || unidadMedida.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="unidadMedida.errors?.required">Debe seleccionar una Unidad de Medida.</div>
+                </div>
+            </div>
+
+            <!-- Medida UM -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Medida UM</label>
+                  <input 
+                        pInputText 
+                        required
+                        class="flex-1" 
+                        autocomplete="off"
+                      
+                        [(ngModel)]="model.peso" 
+                        name="peso" 
+                        #peso="ngModel" 
+                        type="text"
+                    >
+                </div>
+                <div *ngIf="peso.invalid && (peso.dirty || peso.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="peso.errors?.required">La medida UM es obligatorio.</div>
+                </div>
+            </div>
+
+            <!-- Canal -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Canal</label>
+                    <p-dropdown
+                        [options]="canales"
+                        [(ngModel)]="model.canalId"
+                        name="canalId"
+                        #canalId="ngModel"
+                        [style]="{ 'width': '100%' }"
+                        [resetFilterOnHide]="true"
+                        [filter]="true"
+                        filterBy="label"
+                        [showClear]="true"
+                        placeholder="Selecciona un canal"
+                        class="flex-1"
+                        required
+                        >
+                        <ng-template let-item pTemplate="selectedItem">
+                          <span>{{ item.label }}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+                <div *ngIf="canalId.invalid && (canalId.dirty || canalId.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="canalId.errors?.required">Debe seleccionar un canal.</div>
+                </div>
+            </div>
+<!-- Volumen -->
+<div class="flex flex-col">
+  <div class="flex items-center space-x-4">
+    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Volumen</label>
+    <input 
+      pInputText 
+      type="number"
+      min="0"
+      class="flex-1" 
+      autocomplete="off"
+      [(ngModel)]="model.volumen" 
+      name="volumen" 
+      #volumen="ngModel" 
+      placeholder="m³">
+  </div> <!-- ✅ ahora sí cerrado -->
+</div>
+
+            <!-- Ancho -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Ancho</label>
+                  <input 
+                        pInputText 
+                        type="number"
+                        min="0"
+                        class="flex-1" 
+                        autocomplete="off"
+                        [(ngModel)]="model.ancho" 
+                        name="ancho" 
+                        #ancho="ngModel" 
+                        placeholder="cm">
+                </div>
+            </div>
+
+            <!-- Alto -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Alto</label>
+                  <input 
+                        pInputText 
+                        type="number"
+                        min="0"
+                        class="flex-1" 
+                        autocomplete="off"
+                        [(ngModel)]="model.alto" 
+                        name="alto" 
+                        #alto="ngModel" 
+                        placeholder="cm">
+                </div>
+            </div>
+
+            <!-- Largo -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Largo</label>
+                  <input 
+                        pInputText 
+                        type="number"
+                        min="0"
+                        class="flex-1" 
+                        autocomplete="off"
+                        [(ngModel)]="model.largo" 
+                        name="largo" 
+                        #largo="ngModel" 
+                        placeholder="cm">
+                </div>
+            </div>
+
+<!-- Sobredimensionado -->
+<div class="flex flex-col">
+  <div class="flex items-center space-x-4">
+    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Sobredimensionado</label>
+    <input 
+      pInputText
+      type="number"
+      min="1"
+      max="20"
+      [(ngModel)]="model.sobredimensionado"
+      name="sobredimensionado"
+      class="flex-1">
+  </div>
+  <small class="pl-44 text-gray-500">Ingrese un número entre 1 y 20 (por defecto 1)</small>
+</div>
+</div>
+
+        <!-- Botones -->
+        <div class="row pt-2 pt-sm-5 mt-1">
+            <p-button 
+              class="btn btn-space btn-primary" 
+              type="submit"
+              [disabled]="!form.valid || codigoExistente" >
+              Guardar
+            </p-button>
+          
+            <p-button  
+              routerLinkActive="router-link-active" 
+              class="btn btn-space btn-secondary"
+              (click)="close()">
+              Cancelar
+            </p-button>
+        </div>
+    </form>
+</div>
+
+<p-confirmDialog></p-confirmDialog>

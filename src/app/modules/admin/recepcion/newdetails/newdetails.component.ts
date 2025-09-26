@@ -117,7 +117,7 @@ export class NewdetailsComponent implements OnInit {
           huellaId: null,                                      // si aplica
           estadoID: 0,                                         // pon el que corresponda
           cantidad: this.model.cantidad,
-          referencia: null
+          referencia: this.model.referencia || null
         };
 
         this.ordenreciboService.registrarDetalle(dto).subscribe({

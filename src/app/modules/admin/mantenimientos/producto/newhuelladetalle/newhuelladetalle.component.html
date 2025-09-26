@@ -1,0 +1,184 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <form (ngSubmit)="save()" #form="ngForm">
+        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4">
+            
+            <!-- Unidad de Medida -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Unidad Medida</label>
+                  <p-dropdown
+                    [options]="unidadesmedida"
+                    [(ngModel)]="model.unidadMedidaId"
+                    name="unidadmedida"
+                    #unidadmedida="ngModel"
+                    [style]="{ 'width': '100%' }"
+                    [resetFilterOnHide]="true"
+                    [filter]="true"
+                    filterBy="label"
+                    [showClear]="true"
+                    placeholder="Selecciona una unidad de medida"
+                    class="flex-1"
+                    required
+                    >
+                    <ng-template let-item pTemplate="selectedItem">
+                      <span>{{ item.label }}</span>
+                    </ng-template>
+                  </p-dropdown>
+                </div>
+                <div *ngIf="unidadmedida.invalid && (unidadmedida.dirty || unidadmedida.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="unidadmedida.errors?.required">La unidad de medida es obligatorio.</div>
+                </div>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Cantidad</label>
+                  <input 
+                        pInputText 
+                        required
+                        minlength="1"
+                        maxlength="7"
+                        class="flex-1" 
+                        autocomplete="off"
+                        [(ngModel)]="model.untQty" 
+                        name="cantidad" 
+                        #cantidad="ngModel" 
+                        type="text"
+                        placeholder="Cantidad"
+                        (keypress)="numberOnly($event)"
+                    >
+                </div>
+                <div *ngIf="cantidad.invalid && (cantidad.dirty || cantidad.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="cantidad.errors?.required">Debe ingresar la cantidad.</div>
+                </div>
+            </div>
+
+            <!-- Peso Neto -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Peso Neto</label>
+                  <input 
+                    type="number"
+                    pInputText
+                    appTwoDigitDecimaNumber
+                    [(ngModel)]="model.netwgt"
+                    name="pesoneto"
+                    #pesoneto="ngModel"
+                    placeholder="Peso Neto"
+                    class="flex-1"
+                    required
+                    >
+                </div>
+                <div *ngIf="pesoneto.invalid && (pesoneto.dirty || pesoneto.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="pesoneto.errors?.required">Debe ingresar el peso neto.</div>
+                </div>
+            </div>
+
+            <!-- Peso Bruto -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Peso Bruto</label>
+                  <input 
+                    type="number"
+                    pInputText
+                    appTwoDigitDecimaNumber
+                    [(ngModel)]="model.grswgt"
+                    name="pesobruto"
+                    #pesobruto="ngModel"
+                    placeholder="Peso Bruto"
+                    class="flex-1"
+                    required
+                  >
+                </div>
+                <div *ngIf="pesobruto.invalid && (pesobruto.dirty || pesobruto.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="pesobruto.errors?.required">Debe ingresar el peso bruto.</div>
+                </div>
+            </div>
+
+            <!-- Alto -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Alto</label>
+                  <input 
+                    type="number"
+                    pInputText
+                    appTwoDigitDecimaNumber
+                    [(ngModel)]="model.height"
+                    name="alto"
+                    #alto="ngModel"
+                    placeholder="Alto"
+                    class="flex-1"
+                    required
+                    >
+                </div>
+                <div *ngIf="alto.invalid && (alto.dirty || alto.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="alto.errors?.required">Debe ingresar el alto.</div>
+                </div>
+            </div>
+
+            <!-- Largo -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Largo</label>
+                  <input 
+                    type="number"
+                    pInputText
+                    appTwoDigitDecimaNumber
+                    [(ngModel)]="model.length"
+                    name="largo"
+                    #largo="ngModel"
+                    placeholder="Largo"
+                    class="flex-1"
+                    required
+                    >
+                </div>
+                <div *ngIf="largo.invalid && (largo.dirty || largo.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="largo.errors?.required">Debe ingresar el largo.</div>
+                </div>
+            </div>
+
+            <!-- Ancho -->
+            <div class="flex flex-col">
+                <div class="flex items-center space-x-4">
+                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Ancho</label>
+                  <input 
+                    type="number"
+                    pInputText
+                    appTwoDigitDecimaNumber
+                    [(ngModel)]="model.width"
+                    name="ancho"
+                    #ancho="ngModel"
+                    placeholder="Ancho"
+                    class="flex-1"
+                    required
+                    >
+                </div>
+                <div *ngIf="ancho.invalid && (ancho.dirty || ancho.touched)" class="text-red-500 text-sm pl-44">
+                  <div *ngIf="ancho.errors?.required">El ancho es obligatorio.</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Botones -->
+        <div class="row pt-2 pt-sm-5 mt-1">
+            <p-button 
+              class="btn btn-space btn-primary" 
+              type="submit"
+              [disabled]="!form.valid" >
+              Guardar
+            </p-button>
+          
+            <p-button  
+              routerLinkActive="router-link-active" 
+              class="btn btn-space btn-secondary"
+              (click)="close()">
+              Cancelar
+            </p-button>
+        </div>
+
+    </form>
+</div>
+
+<p-confirmDialog></p-confirmDialog>

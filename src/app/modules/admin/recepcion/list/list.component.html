@@ -118,6 +118,12 @@
     (onClick)="nuevo()" 
     [model]="items" />
   </div> 
+      <div class="flex flex-col">
+    <p-button 
+    label="Asignar Transporte" 
+    (onClick)="asignartransporte()" 
+    ></p-button>
+  </div> 
 
 
 
@@ -135,7 +141,7 @@
     [(selection)]="selectedRow"  #dt2 [paginator]="true"
     [globalFilterFields]="['numOrden', 'guiaRemision']"
     [tableStyle]="{ 'table-layout': 'fixed', 'width': '100%' }"
-    [rows]="40" selectionMode="multiple" [responsive]="true"  >
+    [rows]="40" selectionMode="single" [responsive]="true"  >
 
 
     <ng-template pTemplate="caption">

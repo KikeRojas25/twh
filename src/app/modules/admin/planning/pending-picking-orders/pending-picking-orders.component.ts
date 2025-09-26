@@ -229,28 +229,38 @@ export class PendingPickingOrdersComponent implements OnInit {
     this.model_pendientes.PropietarioId =  this.model.PropietarioId
 
 
-    this.planningService.PlanificarPicking(this.model_pendientes).subscribe(resp => {
+        this.planningService.PlanificarPicking(this.model_pendientes).subscribe(
+          (resp: any) => {
+            console.log('Planificación de picking:', resp);
 
+            if (resp.resultado) {
+              // ✅ Caso éxito
+              this.model = resp;
+              this.messageService.add({
+                severity: 'success',
+                summary: 'TWH',
+                detail: 'Se ha planificado correctamente.'
+              });
+              this.router.navigate(['/picking/listadotrabajopendiente']);
+            } else {
+              // ⚠️ Caso error de negocio (ej. no hay stock)
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Planificación fallida',
+                detail: resp.observacion || 'No se pudo planificar el picking'
+              });
+            }
+          },
+          (error) => {
+            // ❌ Caso error HTTP (400, 500, etc.)
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error en el servidor',
+              detail: error.message || 'Error inesperado'
+            });
+          }
+        );
 
-        this.model = resp;
-        this.messageService.add({severity: 'success', summary: 'TWH', detail: 'Se ha planificado correctamente.'})  //success('Se registró correctamente.');
-            
-
-
-
-      }, (error) => {
-      
-      
-         this.messageService.add({severity: 'warning', summary: 'Ocurrió un error ', detail: error  })  //success('Se registró correctamente.');
-            
-
-
-
-      }, () => {
-         this.router.navigate(['/picking/listadotrabajopendiente' ]);
-      });
-             
-  
       },
       reject: () => {
   

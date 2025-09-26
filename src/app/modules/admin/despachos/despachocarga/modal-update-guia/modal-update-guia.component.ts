@@ -80,7 +80,7 @@ export class ModalUpdateGuiaComponent  {
       rejectLabel: 'Cancelar',                  // Texto del botón "Rechazar"
       acceptIcon: 'pi pi-check',                // Icono del botón "Aceptar"
       rejectIcon: 'pi pi-times',                // Icono del botón "Rechazar"
-      message: '¿Está seguro que desea asignar este vehículo?',
+      message: '¿Está seguro que desea guardar esta información?',
       header: 'Confirmar Guardado',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
@@ -91,7 +91,7 @@ export class ModalUpdateGuiaComponent  {
     }
 
 
-    this.ordenSalidaService.UpdateGuiasxShipmentIs(this.model).subscribe(resp => {
+    this.ordenSalidaService.UpdateGuiasForOrdenesSalida(this.model).subscribe(resp => {
 
 
       this.messageService.add({severity:'success', summary:'Guía Actualizada', detail:'La guía se ha registrado correctamente'});

@@ -1,0 +1,89 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+        <div  class="flex flex-wrap items-center font-medium">
+            <div>
+            <a  class="whitespace-nowrap text-primary-500">TWH</a>
+            </div>
+            <div class="flex items-center ml-1 whitespace-nowrap">
+                <mat-icon
+                class="fuse-horizontal-navigation-item-icon"
+                [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                <a  class="ml-1 text-primary-500">Mantenimiento de Productos del Sistema</a>
+            </div>
+        </div>
+            <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Listado de Detalle de Huellas</h2>
+        </div>
+    </div>
+    </div>
+
+    <!-- Filtro de búsqueda -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex items-end sm:flex-nowrap gap-8">
+          <div class="flex-1">
+            <div class="flex flex-row gap-2">
+                <p-button severity="primary" label="Regresar" (onClick)="regresar()" styleClass="h-[50px]"></p-button>
+                <p-button severity="success" label="Nuevo Detalle de Huella" (onClick)="nuevoOrden()" icon="pi pi-plus" styleClass="h-[50px]"></p-button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Tabla Detalle Huella -->
+  <div class="flex flex-col p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="row">
+        <b> Huellas de Productos |  </b>  <span class="card-subtitle">   Listado de Detalle de Huella</span>
+    </div>
+
+    <p-table 
+        [style]="{width:'100%'}"
+        [scrollable]="true" 
+        [columns]="cols" 
+        [value]="huellas"
+        #dt [paginator]="true"
+        [rows]="10" 
+        [resizableColumns]="true" 
+        selectionMode="single" 
+        [responsive]="true"  >
+
+        <ng-template pTemplate="colgroup" let-columns>
+            <colgroup>
+                <col *ngFor="let col of columns"   [ngStyle]="{'width': col.width}" >
+            </colgroup>
+        </ng-template>
+
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+                <th  [ngStyle]="{'width': col.width}" *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
+                    {{col.header}}
+                    <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr  [pSelectableRow]="rowData">
+                <td class="ui-resizable-column text-center">
+                    <div class="ui-inputgroup">
+                        <p-button severity="danger" icon="fa fa-trash" (click)="delete(rowData.id)"></p-button>
+                    </div>
+                </td>
+                <td class="ui-resizable-column text-center"> {{rowData.unidadMedida  }}</td>
+                <td class="ui-resizable-column text-center" > {{rowData.height  }}</td>
+                <td class="ui-resizable-column text-center"> {{rowData.length  }} </td>
+                <td class="ui-resizable-column text-center"> {{rowData.width}} </td>
+                <td class="ui-resizable-column text-center"> {{rowData.grswgt}} </td>
+                <td class="ui-resizable-column text-center"> {{rowData.netwgt}} </td>
+                <td class="ui-resizable-column text-center"> {{rowData.untQty}} </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+</div>
+
+    
+</div>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>

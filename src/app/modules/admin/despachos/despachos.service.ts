@@ -22,6 +22,7 @@ const httpOptions = {
 export class DespachosService {
 
   private baseUrl = environment.baseUrl + '/api/OrdenSalida/';
+  private baseUrlDespacho = environment.baseUrl + '/api/Despacho/';
   private baseUrlConductor = environment.baseUrl + '/api/Conductor/';
   private _httpClient = inject(HttpClient);
 
@@ -69,7 +70,7 @@ deleteOrder(id: any){
 getAllCargas_pendientes(model: any): Observable<carga[]> {
   const params = '?PropietarioID=' + model.PropietarioId +
   '&EstadoId=' + model.EstadoId ;
-  return this._httpClient.get<carga[]>(this.baseUrl + 'GetAllCargas_Pendientes_Salida' + params, httpOptions);
+  return this._httpClient.get<carga[]>(this.baseUrlDespacho + 'GetAllCargas_Pendientes_Salida' + params, httpOptions);
 }
 
 
@@ -77,41 +78,41 @@ registrar_salidacarga(model: any) {
   return this._httpClient.post(this.baseUrl + 'RegisterSalidaShipment', model, httpOptions);
 }
 
-UpdateGuiasxShipmentIs(model: any){
-  return this._httpClient.post(this.baseUrl + 'UpdateGuiasxShipmentIs', model, httpOptions);
+UpdateGuiasForOrdenesSalida(model: any){
+  return this._httpClient.post(this.baseUrl + 'UpdateGuiasForOrdenesSalida', model, httpOptions);
 }
  obtenerDetalleOrdenSalida(id: number): Observable<OrdenSalidaDetalle[]> {
-    return this._httpClient.get<OrdenSalidaDetalle[]>(`${this.baseUrl}detalle/${id}`);
+    return this._httpClient.get<OrdenSalidaDetalle[]>(`${this.baseUrl}detalle/${id}`, httpOptions);
   }
 
   
   agregarBulto(ordenSalidaId: number, bulto: BultoSalida): Observable<BultoSalida> {
-    return this._httpClient.post<BultoSalida>(`${this.baseUrl}${ordenSalidaId}/bultos`, bulto);
+    return this._httpClient.post<BultoSalida>(`${this.baseUrlDespacho}${ordenSalidaId}/bultos`, bulto, httpOptions);
   }
 
   agregarDetalleBulto(bultoId: number, detalle: BultoSalidaDetalle): Observable<BultoSalidaDetalle> {
-    return this._httpClient.post<BultoSalidaDetalle>(`${this.baseUrl}bultos/${bultoId}/detalles`, detalle);
+    return this._httpClient.post<BultoSalidaDetalle>(`${this.baseUrlDespacho}bultos/${bultoId}/detalles`, detalle, httpOptions);
   }
 
   eliminarDetalleBulto(detalleId: number): Observable<any> {
-    return this._httpClient.delete(`${this.baseUrl}bultos/detalles/${detalleId}`);
+    return this._httpClient.delete(`${this.baseUrlDespacho}bultos/detalles/${detalleId}`, httpOptions);
   }
 
   eliminarBulto(bultoId: number): Observable<any> {
-    return this._httpClient.delete(`${this.baseUrl}bultos/${bultoId}`);
+    return this._httpClient.delete(`${this.baseUrlDespacho}bultos/${bultoId}`, httpOptions);
   }
 
 obtenerBultosPorOrden(ordenSalidaId: number): Observable<BultoSalida[]> {
-  return this._httpClient.get<BultoSalida[]>(`${this.baseUrl}${ordenSalidaId}/bultos`);
+  return this._httpClient.get<BultoSalida[]>(`${this.baseUrlDespacho}${ordenSalidaId}/bultos` , httpOptions);
 }
 
   validarBultosCompletos(ordenSalidaId: number): Observable<any> {
-    return this._httpClient.get<any>(`${this.baseUrl}ordenesalida/${ordenSalidaId}/validar-bultos-completos`);
+    return this._httpClient.get<any>(`${this.baseUrlDespacho}ordenesalida/${ordenSalidaId}/validar-bultos-completos` , httpOptions);
   }
 
 
 actualizarPesoBulto(bultoId: number, peso: number) {
-  return this._httpClient.put(`${this.baseUrl}bultos/${bultoId}/peso`, JSON.stringify(peso), {
+  return this._httpClient.put(`${this.baseUrlDespacho}bultos/${bultoId}/peso`, JSON.stringify(peso), {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + localStorage.getItem('token')

@@ -97,4 +97,7 @@ export class ProductoService {
     const url = `${this.baseUrl}buscar?propietarioId=${propietarioId}&query=${encodeURIComponent(filtro)}`;
     return this._httpClient.get<any[]>(url);
   }
+  getCanales(): Observable<any[]> {
+    return this._httpClient.get<any[]>(this.baseUrl + 'GetCanales', httpOptions);
+  }
 }

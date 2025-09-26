@@ -166,7 +166,7 @@ export class DespachocargaComponent implements OnInit {
 
  }
  ver (id) {
-  let url = 'http://104.36.166.65/reptwh/RepRotuloDAP.aspx?idorden=' + String(id) ;
+  let url = 'http://104.36.166.65/reptwh/RepRotuloDAP2.aspx?idorden=' + String(id) ;
   window.open(url);
 }
 
