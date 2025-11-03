@@ -17,6 +17,7 @@ import { VerubicacionComponent } from './verubicacion/verubicacion.component';
 import { ProductoService } from '../../_services/producto.service';
 import { InventarioService } from '../../_services/inventario.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-reubicarinventario',
@@ -57,6 +58,7 @@ export class ReubicarinventarioComponent implements OnInit{
 
   constructor(
     private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
     private inventarioService: InventarioService,
     private productoService: ProductoService,
     private generalService: GeneralService,
@@ -105,7 +107,7 @@ export class ReubicarinventarioComponent implements OnInit{
       });
     });
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
         resp.forEach(element => {
           this.clientes.push({ label: element.razonSocial.toUpperCase() , value: element.id });
       });

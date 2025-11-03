@@ -23,6 +23,7 @@ import { GetionmermaComponent } from './getionmerma/getionmerma.component';
 import { ExtraerpalletComponent } from './extraerpallet/extraerpallet.component';
 import { ModificarinventariomasivoComponent } from './modificarinventariomasivo/modificarinventariomasivo.component';
 import { Ubicacion } from '../inventario.type';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-ajusteinventario',
@@ -73,6 +74,8 @@ export class AjusteinventarioComponent implements OnInit{
   constructor(
         private generalService: GeneralService,
         private clienteService: ClienteService,
+        
+        private propietarioService: PropietarioService,
         private confirmationService: ConfirmationService,
         public messageService: MessageService,
         private productoService: ProductoService,
@@ -130,7 +133,7 @@ export class AjusteinventarioComponent implements OnInit{
       });
     });
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
       console.log(resp);
       resp.forEach(element => {
         this.clientes.push({ label: element.razonSocial.toUpperCase() , value: element.id });

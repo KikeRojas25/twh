@@ -22,6 +22,7 @@ import { GeneralService } from '../../_services/general.service';
 import { OrdenSalida } from '../../despachos/despachos.types';
 import { PlanningService } from '../planning.service';
 import { Vehiculo } from '../planning.types';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-planificar-despachos',
@@ -97,6 +98,7 @@ export class PlanificarDespachosComponent implements OnInit {
   constructor(
     private planningService: PlanningService,
     private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
     private generalService: GeneralService,
     private router: Router,
     private messageService: MessageService,
@@ -124,7 +126,7 @@ export class PlanificarDespachosComponent implements OnInit {
     }
   }
   cargarPropietarios() {
-    this.clienteService.getAllPropietarios('').subscribe((resp) => {
+    this.propietarioService.getAllPropietarios().subscribe((resp) => {
       this.propietarios = resp.map((propietario) => ({
         label: propietario.razonSocial,
         value: propietario.id

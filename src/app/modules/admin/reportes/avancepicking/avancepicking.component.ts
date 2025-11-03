@@ -23,6 +23,7 @@ import { CardModule } from 'primeng/card'; // Importa el módulo de Card
 import { OrderSummary } from '../reportes.types';
 import { PanelModule } from 'primeng/panel';
 import moment from 'moment';
+import { PropietarioService } from '../../_services/propietario.service';
    registerLocaleData(localeEs, 'es');
    Chart.register(ChartDataLabels);
 
@@ -100,6 +101,7 @@ export class AvancepickingComponent implements OnInit {
 
   constructor(public reporteService: ReportesService,
      private clienteService: ClienteService,
+     private propietarioService: PropietarioService,
   ) { }
 
   ngOnInit() {
@@ -158,7 +160,7 @@ export class AvancepickingComponent implements OnInit {
 
 
 
-    this.clienteService.getAllPropietarios('').subscribe(resp1 => {
+    this.propietarioService.getAllPropietarios().subscribe(resp1 => {
  
       const propietarioFiltrado = resp1.find(element => element.id === 145); 
 

@@ -20,6 +20,7 @@ import { ToastModule } from 'primeng/toast';
 import { ClienteService } from '../../_services/cliente.service';
 import { GeneralService } from '../../_services/general.service';
 import { PlanningService } from '../../planning/planning.service';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-reportecobertura',
@@ -62,6 +63,7 @@ export class ReportecoberturaComponent implements OnInit {
 
   constructor( private planningService: PlanningService,
       private clienteService: ClienteService,
+      private propietarioService: PropietarioService,
       private generalService: GeneralService,
       private router: Router,
       private messageService: MessageService,
@@ -100,7 +102,7 @@ export class ReportecoberturaComponent implements OnInit {
     localStorage.setItem('filtroPicking', JSON.stringify(this.model));
   }
   cargarPropietarios() {
-    this.clienteService.getAllPropietarios('').subscribe((resp) => {
+    this.propietarioService.getAllPropietarios().subscribe((resp) => {
       this.propietarios = resp.map((propietario) => ({
         label: propietario.razonSocial,
         value: propietario.id

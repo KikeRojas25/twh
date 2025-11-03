@@ -87,6 +87,8 @@ getAllConductores(): Observable<any[]> {
 
 registrarEquipoTransporte(IdsShipment: number, IdTraco: number, IdCarreta: number, IdConductor: number, idtipo: any) {
 
+console.log('acaestoy', IdsShipment);
+
 
   const dto =  {
     ChoferId: IdConductor,

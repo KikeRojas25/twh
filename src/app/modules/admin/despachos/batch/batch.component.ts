@@ -14,8 +14,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { DespachosService } from '../../despachos/despachos.service';
+import { AlmacenService } from '../../_services/almacen.service';
 import { CicService } from '../../cic/cic.service';
 import { ClienteService } from '../../_services/cliente.service';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-batch',
@@ -63,6 +67,7 @@ export class BatchComponent {
   public skip = 0;
   public allowUnsort = true;
   
+  almacenes: SelectItem[] = [];
   clientes: SelectItem[] = [];
   model: any = {};
 
@@ -78,14 +83,18 @@ export class BatchComponent {
   fileUploadProgress: string = null;
   uploadedFilePath: string = null;
   userId: number;
+    jwtHelper = new JwtHelperService();
+    decodedToken: any = {};
 
   
   constructor( private authService: AuthService,
     private router: Router,
-    private cicService: CicService,
+   private propietarioService: PropietarioService,
     private clienteService: ClienteService,
     private messageService: MessageService,
-    private config: PrimeNGConfig
+    private config: PrimeNGConfig,
+    private almacenService: AlmacenService,
+    private despachosService: DespachosService
     ) 
 {
 
@@ -93,16 +102,24 @@ export class BatchComponent {
 }
 
 ngOnInit(): void {
-
-this.userId = 2;
+    
+    const user  = localStorage.getItem('token');
+    this.decodedToken = this.jwtHelper.decodeToken(user);
+    this.userId = this.decodedToken.nameid;
 
 
   
-this.clienteService.getAllPropietarios('').subscribe(resp => {
+this.propietarioService.getAllPropietarios().subscribe(resp => {
 
   resp.forEach(resp => {
     this.clientes.push({value: resp.id , label: resp.razonSocial });
+    
   });
+  this.almacenService.getAllAlmacenes().subscribe(resp => {
+    resp.forEach(item => {
+      this.almacenes.push({ value: item.id, label: item.descripcion });
+    });
+});
 
 
 });
@@ -126,19 +143,36 @@ this.fileUpload.upload(); // Llama al método 'upload' del componente 'p-fileUpl
 
 
 onTemplatedUpload(event: any) {
+  const files: File[] = event.files;
 
-const files: File[] = event.files;
-for (const file of files) {
-this.cicService.uploadFile(1, file).subscribe({
-next: (response) => {
-this.messageService.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
-},
-error: (error) => {
-console.error('Error al cargar el archivo', error);
-},
-});
+for (const file of this.files) {
+  this.despachosService.uploadFileMasivo(
+      this.userId,
+      this.model.PropietarioId,
+      this.model.AlmacenId,
+      file
+  ).subscribe({
+    next: (response) => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Archivo cargado',
+        detail: 'El Excel se procesó correctamente',
+        life: 3000
+      });
+    },
+    error: (error) => {
+      console.error('Error al subir archivo', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo subir el archivo',
+        life: 3000
+      });
+      }
+    });
+  }
 }
-}
+
 
 
 onSelectedFiles(event) {
@@ -175,53 +209,94 @@ this.totalSizePercent = 0;
 }
 
 uploadSelectedFiles() {
-if (this.files.length === 0) {
-this.messageService.add({
-severity: 'error',
-summary: 'Error',
-detail: 'No files selected',
-life: 3000
-});
-return;
-}
+  if (this.files.length === 0) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No files selected',
+      life: 3000
+    });
+    return;
+  }
 
-for (const file of this.files) {
-this.cicService.uploadFile(1, file).subscribe((response: Blob) => {
+  for (const file of this.files) {
+    this.despachosService.uploadFileMasivo(
+      this.userId,
+      this.model.PropietarioId,
+      this.model.AlmacenId,
+      file
+    ).subscribe({
+      next: (response: any) => {
+        this.model.CargaId = response.idcarga;
 
+        // ✅ Marcar como completado en PrimeNG
+        if (!this.fileUpload.uploadedFiles.includes(file)) {
+          this.fileUpload.uploadedFiles.push(file);
+        }
 
+        // ✅ Sacar de pending (limpiar de la lista interna y de la tuya)
+        this.files = this.files.filter(f => f !== file);
+        const index = this.fileUpload.files.indexOf(file);
+        if (index !== -1) {
+          this.fileUpload.files.splice(index, 1);
+        }
 
-const blob = new Blob([response], { type: 'application/zip' });
-const url = window.URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = `BoletasMasivas_${Date.now}.zip`;
-a.click();
-window.URL.revokeObjectURL(url);
-
-
-this.messageService.add({
-severity: 'info',
-summary: 'Exitoso',
-detail: 'Archivo cargado',
-life: 3000
-});
-
-
-
-}, error => {
-console.error('Error downloading the file', error);
-});
-
-
-
-
-}
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Archivo cargado',
+          detail: 'El Excel se procesó correctamente',
+          life: 3000
+        });
+      },
+      error: (error) => {
+        console.error('Error subiendo archivo', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo procesar el archivo',
+          life: 3000
+        });
+      }
+    });
+  }
 }
 
 procesar(): void {
+  const carga = {
+    id: this.model.CargaId,           
+    PropietarioId: this.model.PropietarioId,
+    AlmacenId: this.model.AlmacenId,
+    Usuario_Id: this.userId
+  };
 
+  this.despachosService.procesarMasivo(carga).subscribe({
+    next: () => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Procesado',
+        detail: 'Órdenes de salida generadas correctamente',
+        life: 3000
+      });
 
+      // 👇 limpiar el listado de archivos porque ya procesó
+      this.files = [];
+      this.model.CargaId = null;
+    },
+    error: (err) => {
+      console.error('Error al procesar', err);
 
+      // 🔎 Capturar el mensaje enviado por el backend
+      const backendMessage = err?.error?.error || err.message || 'Error desconocido';
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `No se pudo procesar la carga masiva: ${backendMessage}`,
+        life: 6000
+      });
+    }
+  });
 }
+
 
 }

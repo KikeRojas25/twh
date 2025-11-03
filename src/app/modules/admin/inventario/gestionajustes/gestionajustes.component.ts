@@ -19,6 +19,7 @@ import { ClienteService } from '../../_services/cliente.service';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { Ubicacion } from '../inventario.type';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-gestionajustes',
@@ -64,6 +65,7 @@ export class GestionajustesComponent implements OnInit{
       private inventarioService: InventarioService,
       private generalService: GeneralService,
       private clienteService: ClienteService,
+      private propietarioService: PropietarioService,
       private confirmationService: ConfirmationService,
       public messageService: MessageService,
     ) { }
@@ -122,7 +124,7 @@ export class GestionajustesComponent implements OnInit{
       });
     });
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
       resp.forEach(element => {
       this.clientes.push({ label: element.razonSocial.toUpperCase() , value: element.id });
     });

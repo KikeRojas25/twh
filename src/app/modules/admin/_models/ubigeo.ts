@@ -3,5 +3,7 @@ export interface Ubigeo {
     direccion: string;
     departamento: string;
     provincia: string;
-    distrito: string
+    distrito: string;
+    idDistrito: number;
+    ubigeo: string;
 }

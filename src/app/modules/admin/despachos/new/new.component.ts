@@ -18,6 +18,7 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { GeneralService } from '../../_services/general.service';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
+import { PropietarioService } from '../../_services/propietario.service';
 
 
 
@@ -86,6 +87,7 @@ export class NewComponent implements OnInit {
     private confirmationService: ConfirmationService ,
     private generalService: GeneralService,
     private despachoService: DespachosService,
+    private propietarioService: PropietarioService,
     private messageService: MessageService,
     private fb: FormBuilder,
     private router: Router) { 
@@ -122,7 +124,7 @@ export class NewComponent implements OnInit {
   }
   cargarCombos(){
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
       resp.forEach(resp => {
         this.propietarios.push({value: resp.id , label: resp.razonSocial });
       });

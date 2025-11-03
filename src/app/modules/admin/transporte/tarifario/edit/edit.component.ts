@@ -15,6 +15,7 @@ import { TransporteService } from '../../transporte.service';
 import { GeneralService } from 'app/modules/admin/_services/general.service';
 import { ClienteService } from 'app/modules/admin/_services/cliente.service';
 import { TarifarioService } from '../tarifario.service';
+import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
 
 @Component({
   selector: 'app-edit',
@@ -52,6 +53,7 @@ export class EditComponent implements OnInit {
         private ref: DynamicDialogRef,
         private confirmationService: ConfirmationService ,
         private clienteService: ClienteService,
+        private propietarioService: PropietarioService,
         private router: Router,
         public config: DynamicDialogConfig,
   ) { }
@@ -62,7 +64,7 @@ export class EditComponent implements OnInit {
 
   cargarDatosIniciales(): void {
     forkJoin({
-      clientes:   this.clienteService.getAllPropietarios(''),
+      clientes:   this.propietarioService.getAllPropietarios(),
       tiposVehiculo: this.generalService.getValorTabla(4),
       provincias: this.generalService.GetAllProvincias(''),
       // distritos: this.mantenimientoService.GetDistritos(0)
@@ -117,7 +119,7 @@ export class EditComponent implements OnInit {
 
   cargarDropdown() {
    
-    this.clienteService.getAllPropietarios('').subscribe(resp =>    {
+    this.propietarioService.getAllPropietarios().subscribe(resp =>    {
         resp.forEach(element => {
           this.clientes.push({ value: element.id , label: element.razonSocial});
         });

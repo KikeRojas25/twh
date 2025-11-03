@@ -1,0 +1,365 @@
+<div class="flex min-w-0 flex-auto flex-col">
+    <!-- Encabezado -->
+    <div
+        class="flex items-center justify-between border-b bg-white p-6 shadow-sm"
+    >
+        <div>
+            <div
+                class="flex items-center space-x-2 text-sm font-medium text-primary-600"
+            >
+                <a>TWH</a>
+                <i class="pi pi-angle-right text-primary-500"></i>
+                <a>Órdenes de Salida</a>
+            </div>
+            <h2
+                class="mt-2 text-3xl font-extrabold tracking-tight text-gray-900"
+            >
+                Editar solicitud de salida
+            </h2>
+            <p class="text-sm text-gray-500">
+                Solo puede modificar los productos o la dirección de entrega.
+            </p>
+        </div>
+
+        <!-- Botón de guardar -->
+<div class="flex justify-end gap-2 mt-4">
+                <button
+            pButton
+            type="button"
+            label="Cancelar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            (click)="cancelar()"
+          ></button>
+
+
+
+
+        <button
+            pButton
+            type="submit"
+            form="formSalida"
+            label="Guardar cambios"
+            icon="pi pi-save"
+            class="p-button-success"
+        ></button>
+
+        </div>
+
+
+    </div>
+
+    <!-- Formulario -->
+    <form
+        [formGroup]="form"
+        (ngSubmit)="guardarCambios()"
+        id="formSalida"
+        class="space-y-8 p-6"
+    >
+        <!-- Panel 1: Datos Generales -->
+        <p-panel header="Datos Generales" class="rounded-xl shadow-sm">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <!-- Orden de Compra -->
+                <div class="flex flex-col">
+                    <label class="mb-1 font-medium"
+                        >Orden de Compra Cliente:</label
+                    >
+                    <input
+                        pInputText
+                        formControlName="ordenCompraCliente"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    />
+                </div>
+
+                <!-- Fecha Requerida -->
+                <div class="flex flex-col">
+                    <label class="mb-1 font-medium">Fecha requerida:</label>
+                    <p-calendar
+                        formControlName="fechaRequerida"
+                        [showIcon]="true"
+                        [disabled]="true"
+                        dateFormat="yy-mm-dd"
+                        [style]="{ width: '100%' }"
+                    ></p-calendar>
+                </div>
+
+                <!-- Hora Requerida -->
+                <div class="flex flex-col">
+                    <label class="mb-1 font-medium">Hora requerida (24h):</label>
+                    <p-calendar
+                        formControlName="horaRequerida"
+                        [timeOnly]="true"
+                        [disabled]="true"
+                        [style]="{ width: '100%' }"
+                    ></p-calendar>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="flex flex-col md:col-span-3">
+                    <label class="mb-1 font-medium">Observaciones:</label>
+                    <textarea
+                        pInputTextarea
+                        formControlName="observaciones"
+                        rows="2"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    ></textarea>
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Panel 2: Datos del Comprador -->
+        <p-panel header="Datos del Comprador" class="rounded-xl shadow-sm">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
+                <div class="relative flex flex-col">
+                    <label class="mb-1 font-medium">Documento (RUC/DNI):</label>
+                    <input
+                        pInputText
+                        formControlName="documento"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    />
+                </div>
+
+                <div class="relative flex flex-col">
+                    <label class="mb-1 font-medium"
+                        >Nombre / Razón Social:</label
+                    >
+                    <input
+                        pInputText
+                        formControlName="nombre"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    />
+                </div>
+
+                <div class="relative flex flex-col">
+                    <label class="mb-1 font-medium">Contacto:</label>
+                    <input
+                        pInputText
+                        formControlName="contacto"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    />
+                </div>
+
+                <div class="relative flex flex-col">
+                    <label class="mb-1 font-medium">Teléfono:</label>
+                    <input
+                        pInputText
+                        formControlName="telefono"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    />
+                </div>
+            </div>
+            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
+                <div class="relative flex flex-col">
+                    <label class="mb-2 font-medium">Correo:</label>
+                    <input
+                        pInputText
+                        formControlName="correo"
+                        readonly
+                        class="bg-gray-100 cursor-not-allowed"
+                    />
+                </div>
+
+                <div class="relative flex flex-col">
+                    <label class="mb-2 font-medium">Destino: (*)</label>
+                    <p-dropdown
+                        [options]="ubigeo"
+                        formControlName="iddestino"
+                        virtualScroll="true"
+                        [itemSize]="30"
+                        optionLabel="label"
+                        optionValue="value"
+                        filter="true"
+                        placeholder="Seleccione un destino"
+                        class="w-full"
+                        appendTo="body"
+                    >
+                        <ng-template let-item pTemplate="selectedItem">
+                            <span>{{ item.label }}</span>
+                        </ng-template>
+                    </p-dropdown>
+                </div>
+
+                <div class="flex flex-col md:col-span-2">
+                    <label class="mb-2 font-medium"
+                        >Dirección de Entrega: (*)</label
+                    >
+                    <input
+                        pInputText
+                        formControlName="direccionEntrega"
+                        placeholder="Av. El Derby 123, Santiago de Surco"
+                    />
+                </div>
+            </div>
+        </p-panel>
+
+        <!-- Panel 3: Detalle del Pedido -->
+        <p-panel header="Detalle del Pedido" class="rounded-xl shadow-sm">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <!-- Panel derecho: agregar ítem -->
+                <div>
+                    <p-card
+                        header="Agregar nuevo ítem"
+                        class="border border-gray-100 shadow-md"
+                    >
+                        <!-- Producto -->
+                        <label class="mb-1 block text-sm font-medium"
+                            >Producto</label
+                        >
+                        <p-autoComplete
+                            [(ngModel)]="model.productoSeleccionado"
+                            [suggestions]="productosFiltrados"
+                            [ngModelOptions]="{ standalone: true }"
+                            (completeMethod)="buscarProductos($event)"
+                            [minLength]="2"
+                            appendTo="body"
+                            [delay]="300"
+                            [field]="'nombreCompleto'"
+                            [dropdown]="true"
+                            [forceSelection]="true"
+                            [style]="{ width: '380px' }"
+                        >
+                            <ng-template let-item pTemplate="item">
+                                <div class="flex items-center justify-between">
+                                    <span>{{ item.nombreCompleto }}</span>
+                                    <small class="text-gray-500"
+                                        >({{ item.unidad }})</small
+                                    >
+                                </div>
+                            </ng-template>
+
+                            <ng-template let-item pTemplate="selectedItem">
+                                <div>{{ item.nombreCompleto }}</div>
+                            </ng-template>
+                        </p-autoComplete>
+
+                        <!-- Ver stock -->
+                        <div class="mt-1 text-right">
+                            <a
+                                class="cursor-pointer text-sm text-blue-600 hover:underline"
+                                (click)="verStock()"
+                                *ngIf="model.productoSeleccionado"
+                            >
+                                Ver stock disponible
+                            </a>
+                        </div>
+
+                        <!-- Cantidad -->
+                        <div class="mt-3">
+                            <label class="mb-1 block text-sm font-medium"
+                                >Cantidad</label
+                            >
+                            <input
+                                pInputText
+                                type="number"
+                                [ngModelOptions]="{ standalone: true }"
+                                min="1"
+                                [(ngModel)]="model.cantidad"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <!-- Lote -->
+                        <div class="mt-3">
+                            <label class="mb-1 block text-sm font-medium"
+                                >Lote (opcional)</label
+                            >
+                            <input
+                                pInputText
+                                type="text"
+                                [ngModelOptions]="{ standalone: true }"
+                                [(ngModel)]="model.lote"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <!-- Referencia -->
+                        <div class="mt-3">
+                            <label class="mb-1 block text-sm font-medium"
+                                >Referencia (opcional)</label
+                            >
+                            <input
+                                pInputText
+                                type="text"
+                                [ngModelOptions]="{ standalone: true }"
+                                [(ngModel)]="model.referencia"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div class="mt-4 text-right">
+                            <button
+                                pButton
+                                label="Agregar ítem"
+                                type="button"
+                                icon="pi pi-plus"
+                                (click)="agregarItem()"
+                                class="p-button-sm p-button-success"
+                            ></button>
+                        </div>
+                    </p-card>
+                </div>
+
+                <!-- Panel izquierdo: tabla de detalle -->
+                <div class="lg:col-span-2">
+                    <p-table
+                        [value]="detalle"
+                        dataKey="codigo"
+                        class="w-full text-sm"
+                    >
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 120px">Código</th>
+                                <th>Descripción</th>
+                                <th class="text-center" style="width: 100px">
+                                    Cantidad
+                                </th>
+                                <th class="text-center" style="width: 100px">
+                                    Unidad
+                                </th>
+                                <th class="text-center" style="width: 80px">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-row let-i="rowIndex">
+                            <tr>
+                                <td>{{ row.codigo }}</td>
+                                <td>{{ row.descripcion }}</td>
+                                <td class="text-center">{{ row.cantidad }}</td>
+                                <td class="text-center">
+                                    {{ row.unidadMedida }}
+                                </td>
+                                <td class="text-center">
+                                    <button
+                                        pButton
+                                        icon="pi pi-trash"
+                                        (click)="eliminarFila(i)"
+                                        class="p-button-sm p-button-danger"
+                                        type="button"
+                                    ></button>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+
+                    <div
+                        *ngIf="detalle.length === 0"
+                        class="mt-3 text-center text-gray-400"
+                    >
+                        No hay productos agregados aún.
+                    </div>
+                </div>
+            </div>
+        </p-panel>
+    </form>
+</div>
+
+<p-confirmDialog />
+<p-toast />

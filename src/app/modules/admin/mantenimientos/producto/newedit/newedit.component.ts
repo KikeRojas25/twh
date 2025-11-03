@@ -15,6 +15,7 @@
   import { ConfirmDialogModule } from 'primeng/confirmdialog';
   import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
 
 
   @Component({
@@ -49,6 +50,7 @@ import { ToastModule } from 'primeng/toast';
 
   constructor(
     private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
     private ref: DynamicDialogRef,
     private router: Router,
     private config: DynamicDialogConfig,
@@ -66,7 +68,7 @@ import { ToastModule } from 'primeng/toast';
   }
 
   cargarCombosYProducto() {
-    const propietarios$ = this.clienteService.getAllPropietarios('');
+    const propietarios$ = this.propietarioService.getAllPropietarios();
     const familias$ = this.generalService.getValorTabla(13);
     const unidades$ = this.generalService.getValorTabla(12);
     const canales$ = this.productoService.getCanales();

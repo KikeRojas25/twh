@@ -26,6 +26,7 @@ import { DespachosService } from '../../despachos/despachos.service';
 import { PanelModule } from 'primeng/panel';
 import { RecepcionService } from '../recepcion.service';
 import { finalize } from 'rxjs';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-new',
@@ -96,6 +97,7 @@ export class NewComponent implements OnInit {
     public dialogService: DialogService,
     private almacenService: AlmacenService,
     private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
     private confirmationService: ConfirmationService ,
     private generalService: GeneralService,
     private recepcionService: RecepcionService,
@@ -149,7 +151,7 @@ export class NewComponent implements OnInit {
   }
   cargarCombos(){
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
       resp.forEach(resp => {
         this.propietarios.push({value: resp.id , label: resp.razonSocial });
       });

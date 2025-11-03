@@ -121,4 +121,34 @@ actualizarPesoBulto(bultoId: number, peso: number) {
 }
 
 
+
+  uploadFileMasivo(userId: number, propietarioId: number, almacenId: number, file: File) {
+  const formData: FormData = new FormData();
+  formData.append('file', file, file.name);
+
+  return this._httpClient.post(
+    `${this.baseUrl}UploadFile?usrid=${userId}&propietarioid=${propietarioId}&almacenid=${almacenId}`,
+    formData,
+    {
+      headers: new HttpHeaders({
+        Authorization: 'Bearer ' + localStorage.getItem('token')
+      })
+    }
+  );
 }
+
+
+
+
+procesarMasivo(carga: any) {
+  return this._httpClient.post(`${this.baseUrl}ProcesarMasivo`, carga, {
+    headers: new HttpHeaders({
+      Authorization: 'Bearer ' + localStorage.getItem('token'),
+      'Content-Type': 'application/json'
+    })
+  });
+}
+}
+
+
+

@@ -19,6 +19,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { OrdenSalida } from '../despachos.types';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-list',
@@ -81,8 +82,9 @@ export class ListComponent implements OnInit {
     public dialogService: DialogService,
     private despachosService: DespachosService,
     private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
     private messageService: MessageService,
-        private confirmationService: ConfirmationService ,
+    private confirmationService: ConfirmationService ,
     private router: Router,
   ) { }
 
@@ -132,7 +134,7 @@ export class ListComponent implements OnInit {
       ];
 
   
-  this.clienteService.getAllPropietarios('').subscribe(resp => {
+  this.propietarioService.getAllPropietarios().subscribe(resp => {
 
     resp.forEach(resp => {
       this.clientes.push({value: resp.id , label: resp.razonSocial });
@@ -192,7 +194,7 @@ nuevaorden() {
      this.router.navigate(['/picking/nuevaordensalida']);
 }
 nuevaordenmasiva() {
-  this.router.navigate(['/picking/nuevaordensalida']);
+  this.router.navigate(['/picking/nuevasalidamasiva']);
 }
 
 delete(id) {

@@ -156,11 +156,7 @@ export class AsignarPlacaRecepcionComponent implements OnInit {
       accept: () => {
   
 
-    console.log('ttraco' ,this.selectedTracto);
-    console.log('Carreta' ,this.selectedCarreta);
-    console.log('Driver' ,this.selectedDriver);
-    console.log('Manifiesto' ,this.id);
-    console.log('TIpo' ,this.selectedValorTabla);
+
 
 
     this.recepcionService.registrarEquipoTransporte( this.id, this.selectedTracto.id

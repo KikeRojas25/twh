@@ -5,10 +5,9 @@
 export const environment = {
     production: false,
      
-    //baseUrl: 'http://localhost:5000', 
-      //baseUrl: 'http://199.89.55.49/apitwh3',
-    baseUrl: 'http://199.89.55.49/apitwhtest',
-     //baseUrl_2: 'http://104.36.166.65/apitwh6',
+    baseUrl: 'http://localhost:5000', 
+  //  baseUrl: 'http://199.89.55.49/apitwh3',
+   //  baseUrl: 'http://199.89.55.49/apitwhtest',
     uploadsDocuments: 'D:\\APPS\\Toscanos\\Web\\UploadedFiles\\'
 };
 

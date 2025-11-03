@@ -1,0 +1,8 @@
+.estado-badge {
+  @apply inline-flex items-center justify-center px-3 py-1 text-xs font-semibold rounded-md text-white;
+}
+.estado-creado { @apply bg-blue-500; }          /* Azul */
+.estado-planificado { @apply bg-yellow-500 text-black; } /* Amarillo */
+.estado-asignado { @apply bg-orange-500; }      /* Naranja */
+.estado-despachado { @apply bg-green-600; }     /* Verde */
+.estado-validado { @apply bg-purple-600; }      /* Morado */

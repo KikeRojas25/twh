@@ -29,9 +29,16 @@ export class ClienteService {
 
 constructor() { }
 
-getAllPropietarios(IdGrupo: string): Observable<Cliente[]> {
-  return this._httpClient.get<Cliente[]>(this.baseUrl + 'GetAllPropietarios?IdGrupo=' + IdGrupo , httpOptions);
- }
+// getAllPropietarios(IdGrupo: string): Observable<Cliente[]> {
+//   return this._httpClient.get<Cliente[]>(this.baseUrl + 'GetAllPropietarios?IdGrupo=' + IdGrupo , httpOptions);
+//  }
+
+
+getPropietariosByUsuario(idUsuario: number): Observable<Cliente[]> {
+  const url = `${this.baseUrl}usuarios/${idUsuario}/propietarios`;
+  return this._httpClient.get<Cliente[]>(url, httpOptions);
+}
+
 
  getAllGrupos(): Observable<Grupo[]> {
   return this._httpClient.get<Grupo[]>(this.baseUrl + 'GetAllGrupos?' , httpOptions);
@@ -55,5 +62,9 @@ getAllPropietarios(IdGrupo: string): Observable<Cliente[]> {
     getAllSucursal(IdCliente: number): Observable<Sucursal[]> {
         return this._httpClient.get<Sucursal[]>(this.baseUrlOrdenSalida + 'GetAllTiendas?IdCliente=' + IdCliente , httpOptions);
     }
+
+      getClientePorDocumento(documento: string): Observable<any> {
+    return this._httpClient.get<any>(`${this.baseUrl}document/${documento}`, httpOptions);
+  }
 
 }

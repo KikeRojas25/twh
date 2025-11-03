@@ -12,6 +12,8 @@ import { ClienteService } from '../../_services/cliente.service';
 import { GeneralService } from '../../_services/general.service';
 import { ReportesService } from '../reportes.service';
 import { CalendarModule } from 'primeng/calendar';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-kardexgeneral',
@@ -42,13 +44,21 @@ export class KardexgeneralComponent implements OnInit {
   dateFin: Date = new Date(Date.now()) ;
 
 
+    jwtHelper = new JwtHelperService();
+    decodedToken: any = {};
+
+
   constructor(  private clienteService: ClienteService,
     private generealService: GeneralService,
+    private propietarioService: PropietarioService,
     private reporteService: ReportesService
   ) { }
 
   ngOnInit() {
 
+
+  const user = localStorage.getItem('token');
+  this.decodedToken = this.jwtHelper.decodeToken(user);
 
     this.cols =
     [
@@ -74,14 +84,29 @@ export class KardexgeneralComponent implements OnInit {
 
 
           
-  this.clienteService.getAllPropietarios('').subscribe(resp => {
 
-    resp.forEach(resp => {
-      this.propietarios.push({value: resp.id , label: resp.razonSocial });
-    });
-  
-
+    
+ this.propietarioService.getAllPropietarios().subscribe(resp => {
+    // Si el usuario es "mondelez", filtramos solo ese
+    if (this.decodedToken.unique_name?.toLowerCase() === 'mondelez') {
+      const mondelez = resp.find(x => 
+        x.razonSocial?.toLowerCase().includes('mondelez')
+      );
+      if (mondelez) {
+        this.propietarios = [
+          { value: mondelez.id, label: mondelez.razonSocial }
+        ];
+        // Opcional: asignar por defecto
+        this.model.IdPropietario = mondelez.id;
+      }
+    } else {
+      // Si no es "mondelez", mostramos todos
+      resp.forEach(x => {
+        this.propietarios.push({ value: x.id, label: x.razonSocial });
+      });
+    }
   });
+
 
     
   this.clienteService.getAllGrupos().subscribe(resp => {
@@ -189,7 +214,7 @@ window.open(url, '_blank');
   
   this.propietarios = [];
 
-  this.clienteService.getAllPropietarios(this.model.IdGrupo).subscribe({
+  this.propietarioService.getAllPropietarios().subscribe({
     next: response => {
     
       response.forEach((x) => {

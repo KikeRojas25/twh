@@ -16,6 +16,7 @@ import { RecepcionService } from '../recepcion.service';
 import { GeneralService } from '../../_services/general.service';
 import { ClienteService } from '../../_services/cliente.service';
 import { REMOVE_STYLES_ON_COMPONENT_DESTROY } from '@angular/platform-browser';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-newbatch',
@@ -59,7 +60,7 @@ export class NewbatchComponent implements OnInit {
               private messageService: MessageService,
               private recepcionService: RecepcionService,
               private generealService: GeneralService,
-              private clienteService: ClienteService,
+              private propietarioService: PropietarioService,
               private config: PrimeNGConfig) 
               
               { 
@@ -84,7 +85,7 @@ export class NewbatchComponent implements OnInit {
     });
 
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
 
       resp.forEach(resp => {
         this.clientes.push({value: resp.id , label: resp.razonSocial });

@@ -22,6 +22,7 @@ import { PlanningService } from '../planning.service';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-pending-picking-orders',
@@ -87,7 +88,8 @@ export class PendingPickingOrdersComponent implements OnInit {
 
   constructor(
     private planningService: PlanningService,
-    private clienteService: ClienteService,
+          
+    private propietarioService: PropietarioService,
     private generalService: GeneralService,
     private router: Router,
     private messageService: MessageService,
@@ -120,7 +122,7 @@ export class PendingPickingOrdersComponent implements OnInit {
     }
   }
   cargarPropietarios() {
-    this.clienteService.getAllPropietarios('').subscribe((resp) => {
+    this.propietarioService.getAllPropietarios().subscribe((resp) => {
       this.propietarios = resp.map((propietario) => ({
         label: propietario.razonSocial,
         value: propietario.id

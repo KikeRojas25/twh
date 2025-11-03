@@ -22,6 +22,7 @@ import { carga } from '../despachos.types';
 import { AsignarPlacaComponent } from './asignar-placa/asignar-placa.component';
 import { ModalUpdateGuiaComponent } from './modal-update-guia/modal-update-guia.component';
 import { GenerarbultosComponent } from './generarbultos/generarbultos.component';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-despachocarga',
@@ -75,6 +76,7 @@ export class DespachocargaComponent implements OnInit {
               public dialogService: DialogService,
               private messageService: MessageService,
               private confirmationService: ConfirmationService,
+              private propietarioService: PropietarioService,
               private router: Router) { }
 
   ngOnInit() {
@@ -93,7 +95,7 @@ export class DespachocargaComponent implements OnInit {
     ];
 
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
       this.clientes.push({ value: 0 , label: 'Todos los propietarios'});
       resp.forEach(element => {
         this.clientes.push({ value: element.id , label: element.razonSocial});

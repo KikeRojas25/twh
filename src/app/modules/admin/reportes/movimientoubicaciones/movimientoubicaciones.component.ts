@@ -19,6 +19,7 @@ import { MatIcon } from '@angular/material/icon';
 
 import moment from 'moment';
 import { CalendarModule } from 'primeng/calendar';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
   selector: 'app-movimientoubicaciones',
@@ -55,7 +56,7 @@ fecFin: Date = new Date();  // o null por defecto
   clientes: SelectItem[] = [];
 
   constructor(private ajusteService: ReportesService,
-    private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
   ) {}
 
   ngOnInit(): void {
@@ -70,7 +71,7 @@ fecFin: Date = new Date();  // o null por defecto
 
     
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
 
       resp.forEach(resp => {
         this.clientes.push({value: resp.id , label: resp.razonSocial });

@@ -17,6 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { ClienteService } from '../../_services/cliente.service';
 import { FacturacionService } from '../facturacion.service';
 import { ResumenFacturacionPorMes } from '../facturacion.types';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
     selector: 'app-gestion-liquidacion',
@@ -85,11 +86,12 @@ export class GestionLiquidacionComponent {
 
     constructor(
         private clienteService: ClienteService,
+        private propietarioService: PropietarioService, 
         private facturacionService: FacturacionService
     ) {}
 
     ngOnInit() {
-        this.clienteService.getAllPropietarios('').subscribe((resp) => {
+        this.propietarioService.getAllPropietarios().subscribe((resp) => {
             this.clientesDropdown = resp.map((c) => ({ value: c.id, label: c.razonSocial }));
         });
 

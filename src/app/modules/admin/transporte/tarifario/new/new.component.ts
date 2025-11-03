@@ -15,6 +15,7 @@ import { ClienteService } from 'app/modules/admin/_services/cliente.service';
 import { GeneralService } from 'app/modules/admin/_services/general.service';
 import { TarifarioService } from '../tarifario.service';
 import { MantenimientoService } from 'app/modules/admin/mantenimientos/mantenimiento.service';
+import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
 
 @Component({
   selector: 'app-new',
@@ -46,7 +47,7 @@ export class NewComponent implements OnInit {
   distritosFiltrados: SelectItem[] = [];
   constructor(
               private tarifarioService: TarifarioService,
-              private clienteService: ClienteService,
+              private propietarioService: PropietarioService,
               private mantenimientoService: MantenimientoService,
               private generalService: GeneralService,
               private ref: DynamicDialogRef,
@@ -70,7 +71,7 @@ export class NewComponent implements OnInit {
 
 
 
-    this.clienteService.getAllPropietarios('').subscribe(resp =>    {
+    this.propietarioService.getAllPropietarios().subscribe(resp =>    {
 
       console.log(resp);
         resp.forEach(element => {

@@ -14,6 +14,7 @@ import { NeweditComponent } from '../newedit/newedit.component';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
 
 
 @Component({
@@ -46,6 +47,7 @@ export class ListadoproductoComponent implements OnInit{
   constructor(
     public dialogService: DialogService,
     private clienteService: ClienteService,
+      private propietarioService: PropietarioService,   
     private productoService: ProductoService,
      private messageService: MessageService,
     private router: Router
@@ -70,7 +72,7 @@ export class ListadoproductoComponent implements OnInit{
   }
 
   cargarPropietarios(){
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
       resp.forEach(x => {
         this.clientes.push({ label: x.razonSocial.toUpperCase() , value: x.id.toString() });
       });

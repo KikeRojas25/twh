@@ -21,6 +21,7 @@ import * as FileSaver from 'file-saver';
 
 
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { PropietarioService } from '../../_services/propietario.service';
 interface Column {
   field: string;
   header: string;
@@ -73,6 +74,7 @@ selectedProducts: any[] = [];
   model: any = {};
 
   constructor(private clienteService: ClienteService,
+    private propietarioService: PropietarioService,
     private facturacionService: FacturacionService,
      private confirmationService: ConfirmationService ,
      private messageService: MessageService,
@@ -81,7 +83,7 @@ selectedProducts: any[] = [];
   ngOnInit() {
 
 
-    this.clienteService.getAllPropietarios('').subscribe(resp => {
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
 
       resp.forEach(resp => {
         this.clientes.push({value: resp.id , label: resp.razonSocial });

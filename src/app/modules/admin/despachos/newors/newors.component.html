@@ -1,0 +1,275 @@
+
+<div class="flex flex-col flex-auto min-w-0">
+
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Listado de ORS</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Nueva ORS</h2>
+      </div>
+  </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="registrar()">
+    <p-panel header="Guìa de Salida" class="w-full mb-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  
+        <!-- Almacén -->
+        <div class="flex flex-col">
+          <label for="almacenes">Almacén:</label>
+          <p-dropdown 
+            formControlName="almacenId" 
+            [options]="almacenes" 
+            scrollHeight="40vh" 
+            placeholder="Seleccione un almacén" 
+            [resetFilterOnHide]="false"
+            [style]="{'width': '100%'}" 
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('almacenId').touched && form.get('almacenId').invalid" class="text-red-500 text-sm">
+            El almacén es obligatorio.
+          </div>
+        </div>
+  
+        <!-- Propietario -->
+        <div class="flex flex-col">
+          <label for="propietarios">Propietario:</label>
+          <p-dropdown 
+            formControlName="propietarioId" 
+            [options]="propietarios" 
+            [filter]="true" 
+            filterBy="label" 
+            [showClear]="true" 
+            (onChange)="onChangePropietario($event)" 
+            [style]="{'width': '100%'}" 
+            placeholder="Seleccione un propietario" 
+            [resetFilterOnHide]="false" 
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('propietarioId').touched && form.get('propietarioId').invalid" class="text-red-500 text-sm">
+            El propietario es obligatorio.
+          </div>
+        </div>
+  
+        <!-- Fecha Requerida -->
+        <div class="flex flex-col">
+          <label for="fechaRequerida">Fecha requerida:</label>
+          <p-calendar 
+            formControlName="fechaRequerida" 
+            [showIcon]="true" 
+            [style]="{'width': '100%'}" 
+            dateFormat="dd/mm/yy"></p-calendar>
+            <div *ngIf="form.get('fechaRequerida').touched && form.get('fechaRequerida').invalid" class="text-red-500 text-sm">
+              La fecha requerida es obligatoria.
+            </div>
+        </div>
+  
+        <!-- Hora Requerida -->
+        <div class="flex flex-col">
+          <label for="horaRequerida">Hora requerida: (24 hrs)</label>
+          <p-calendar 
+            formControlName="horaRequerida" 
+            [style]="{'width': '100%'}" 
+            [timeOnly]="true"></p-calendar>
+            <div *ngIf="form.get('horaRequerida').touched && form.get('horaRequerida').invalid" class="text-red-500 text-sm">
+              La hora requerida es obligatoria.
+            </div>
+        </div>
+    
+        <!-- Cliente -->
+        <div class="flex flex-col">
+          <label for="clientes">Cliente:</label>
+          <p-dropdown 
+            formControlName="clienteId" 
+            [options]="clientes" 
+            [filter]="true" 
+            placeholder="Seleccione un cliente" 
+            (onChange)="onChangeCliente($event)" 
+            [resetFilterOnHide]="false" 
+            [style]="{'width': '100%'}"  
+            [hideTransitionOptions]="'0ms'" 
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('clienteId').touched && form.get('clienteId').invalid" class="text-red-500 text-sm">
+            El cliente es obligatorio.
+          </div>
+        </div>
+  
+        <!-- Dirección de Entrega -->
+        <div class="flex flex-col">
+          <label for="direcciones">Dirección Entrega:</label>
+          <p-dropdown 
+            formControlName="direccionId" 
+            [options]="direcciones" 
+            placeholder="Seleccione una dirección de entrega" 
+            [resetFilterOnHide]="false" 
+            [hideTransitionOptions]="'0ms'" 
+            [style]="{'width': '100%'}"  
+            [showTransitionOptions]="'0ms'">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{item.label}}</span>
+            </ng-template>
+          </p-dropdown>
+          <div *ngIf="form.get('direccionId').touched && form.get('direccionId').invalid" class="text-red-500 text-sm">
+            La dirección de entrega es obligatoria.
+          </div>
+        </div>
+       
+  
+        <!-- Guía de Remisión -->
+        <div class="flex flex-col">
+          <label for="guiaRemision">Guía de Remisión (Salida):</label>
+          <input 
+            pInputText 
+            formControlName="guiaRemision" 
+            minlength="5" 
+            maxlength="50" 
+            autocomplete="off" 
+            [style]="{'width': '100%'}"  
+            type="text">
+          <div *ngIf="form.get('guiaRemision').errors">
+            <div *ngIf="form.get('guiaRemision').touched && form.get('guiaRemision').invalid" class="text-red-500 text-sm">
+              La guía de remisión de salida es obligatoria.
+            </div>
+            <div *ngIf="form.get('guiaRemision').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </p-panel>
+  
+    <p-panel header="Guìa de Ingreso (Referencia)" class="w-full mb-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  
+        <!-- Orden Entrega -->
+        <div class="flex flex-col">
+          <label for="guiaremisioningreso">Guìa de Remisión (Ingreso) :</label>
+          <input 
+            pInputText 
+            formControlName="guiaremisioningreso" 
+            minlength="5" 
+            maxlength="50" 
+            autocomplete="off" 
+            type="text">
+          <div *ngIf="form.get('guiaremisioningreso').errors">
+            <div *ngIf="form.get('guiaremisioningreso').touched && form.get('guiaremisioningreso').invalid" class="text-red-500 text-sm">
+              La guía de remisión de ingreso es obligatoria.
+            </div>
+            <div *ngIf="form.get('guiaremisioningreso').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div>
+
+         <!-- OC del Cliente -->
+         <div class="flex flex-col">
+          <label for="ordenCompraCliente">OC del Cliente:</label>
+          <input 
+            pInputText 
+            formControlName="ordenCompraCliente" 
+            minlength="5" 
+            maxlength="50" 
+            autocomplete="off" 
+            type="text">
+          <div *ngIf="form.get('ordenCompraCliente').errors">
+            <div *ngIf="form.get('ordenCompraCliente').touched && form.get('ordenCompraCliente').invalid" class="text-red-500 text-sm">
+              La orden de compra del cliente es obligatoria.
+            </div>
+            <div *ngIf="form.get('ordenCompraCliente').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div>
+  
+        <!-- Orden Infor -->
+        <!-- <div class="flex flex-col">
+          <label for="ocingreso">OC del Cliente (Ingreso):</label>
+          <input 
+            pInputText 
+            formControlName="ocingreso" 
+            minlength="5" 
+            maxlength="50" 
+            autocomplete="off" 
+            type="text">
+          <div *ngIf="form.get('ocingreso').errors">
+            <div *ngIf="form.get('ocingreso').errors?.minlength">
+              Debe tener más de 5 caracteres.
+            </div>
+          </div>
+        </div> -->
+  
+      
+      </div>
+      
+      <p-button 
+        [disabled]="!form.valid" 
+        class="btn btn-space btn-primary" 
+        type="submit">
+        Guardar
+      </p-button>
+      
+      <p-button 
+        [routerLink]="['/picking/listaordensalida']" 
+        routerLinkActive="router-link-active" 
+        class="btn btn-space btn-secondary">
+        Cancelar
+      </p-button>
+    </p-panel>
+  </form>
+
+  <p-panel header="Guías agregadas" class="w-full mb-3">
+        <p-table [value]="agregados" [tableStyle]="{ 'min-width': '50rem' }">
+          <ng-template pTemplate="header">
+              <tr>
+                  <th>Acciones </th>
+                  <th>Guía Remisión</th>
+                  <th>OC</th>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-product>
+              <tr>
+                   <td>
+                        <p-button  (click)="deleteOrder(product.id)" icon="fa fa-trash" 
+                        >
+                   
+                      </p-button>
+                   </td>
+                  <td>{{ product.guiaremision }}</td>
+                  <td>{{ product.oc }}</td>
+              </tr>
+          </ng-template>
+      </p-table>
+</p-panel>
+  
+</div>
+
+
+
+
+
+<p-confirmDialog />
+<p-toast />

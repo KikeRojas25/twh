@@ -4,10 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'primeng/api';
 import { DynamicDialogRef, DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
-import { ClienteService } from '../../_services/cliente.service';
-import { DespachosService } from '../../despachos/despachos.service';
-import { OrdenSalida } from '../../despachos/despachos.types';
-
 import { MatIcon } from '@angular/material/icon';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
@@ -28,6 +24,7 @@ import { NewComponent } from '../new/new.component';
 import { NewdetailsComponent } from '../newdetails/newdetails.component';
 import { AsignarPlacaRecepcionComponent } from '../asignar-placa/asignar-placa-recepcion.component';
 import { EditComponent } from '../edit/edit.component';
+import { PropietarioService } from '../../_services/propietario.service';
 
 
 @Component({
@@ -107,7 +104,7 @@ tipoingreso: SelectItem[] = [];
 
   constructor(private ordenreciboService: RecepcionService,
               private router: Router,
-              private clienteService: ClienteService,
+              private propietarioService: PropietarioService,
               private messageService: MessageService,
               public dialogService: DialogService,
               private generalService: GeneralService,
@@ -195,13 +192,13 @@ tipoingreso: SelectItem[] = [];
 
 
 
-    this.generalService.getAllAlmacenes().subscribe(resp => {
+             this.generalService.getAllAlmacenes().subscribe(resp => {
              this.almacenes.push({ label: "Todos" , value: undefined });
             resp.forEach(element => {
               this.almacenes.push({ value: element.id ,  label : element.descripcion});
             });
 
-            this.clienteService.getAllPropietarios('').subscribe(resp1 => {
+            this.propietarioService.getAllPropietarios().subscribe(resp1 => {
               this.clientes.push({ label: "Todos" , value: undefined });
             resp1.forEach(element => {
               this.clientes.push({ label: element.razonSocial.toUpperCase() , value: element.id });
@@ -267,6 +264,10 @@ tipoingreso: SelectItem[] = [];
 
     this.ref.onClose.subscribe((selectedDriver) => {
       if (selectedDriver) {
+
+
+        this.buscar(); // Refresca la lista después de asignar el conductor
+
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',

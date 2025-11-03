@@ -20,6 +20,7 @@ import { OrdenSalida, carga } from '../../despachos/despachos.types';
 import { PlanningService } from '../planning.service';
 import { AsignarPickerComponent } from './AsignarPicker/AsignarPicker.component';
 import { AsignarPuertaComponent } from './AsignarPuerta/AsignarPuerta.component';
+import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
     selector: 'app-work-list',
@@ -45,7 +46,7 @@ import { AsignarPuertaComponent } from './AsignarPuerta/AsignarPuerta.component'
 })
 export class WorkListComponent {
     private ordensalidaService = inject(PlanningService);
-    private clienteService = inject(ClienteService);
+    private propietarioService = inject(PropietarioService);
     private router = inject(Router);
     private dialogService = inject(DialogService);
     public authService = inject(AuthService);
@@ -86,7 +87,7 @@ export class WorkListComponent {
     }
 
     private cargarPropietarios(): void {
-        this.clienteService.getAllPropietarios('').subscribe({
+        this.propietarioService.getAllPropietarios().subscribe({
             next: (resp) => {
                 this.clientes = resp.map((el) => ({
                     value: el.id,

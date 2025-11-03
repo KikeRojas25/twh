@@ -108,6 +108,11 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/despachos/despachocarga/despachocarga.component')
                                           .then(m => m.DespachocargaComponent)
                   },
+                  {
+                    path: 'nuevaordensalida',
+                    loadComponent: () => import('./modules/admin/despachos/newors/newors.component')
+                                          .then(m => m.NeworsComponent)
+                  },
                 ]
               },
               {
@@ -253,6 +258,11 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/recepcion/new/new.component')
                                           .then(m => m.NewComponent)
                   },
+                  {  
+                    path : 'equipotransporteentrante', 
+                    loadComponent: () => import('./modules/admin/almacenaje/listtransporte/listtransporte.component')
+                                          .then(m => m.ListtransporteComponent)
+                    },
                
                 ]
               },
@@ -311,6 +321,30 @@ export const appRoutes: Route[] = [
                                                                   .then(m => m.ListComponent)
                                           }]
                  }
+              
+              ]
+           },
+            {   
+              path: 'b2b',
+              loadComponent: () => import('./modules/admin/b2b/b2b.component')
+                                    .then(m => m.B2bComponent),
+              children: [
+                {
+              
+                  path: 'ordenessalida',
+                  loadComponent: () => import('./modules/admin/b2b/list/list.component')
+                                        .then(m => m.ListComponent),
+                },
+                {
+                      path: 'new',
+                      loadComponent: () => import('./modules/admin/b2b/new/new.component')
+                                            .then(m => m.NewComponent)
+                },
+                  {
+                      path: 'edit/:id', 
+                      loadComponent: () => import('./modules/admin/b2b/edit/edit.component')
+                                            .then(m => m.EditComponent)
+                },
               
               ]
            },
