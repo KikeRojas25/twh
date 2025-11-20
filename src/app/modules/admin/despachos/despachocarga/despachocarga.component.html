@@ -19,7 +19,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
             <!-- Propietario -->
             <div class="sm:col-span-2">
-                <label class="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Propietario:</label>
+                <label class="font-bold text-gray-700 dark:text-gray-300 mb-2 block">Propietario: <span class="text-red-500">*</span></label>
                 <p-dropdown
                     [options]="clientes"
                     [(ngModel)]="model.PropietarioId"
@@ -28,8 +28,9 @@
                     [resetFilterOnHide]="false"
                     [hideTransitionOptions]="'0ms'"
                     [showTransitionOptions]="'0ms'"
-                    placeholder="Seleccione un cliente"
-                    filter="true">
+                    placeholder="Seleccione un propietario (obligatorio)"
+                    filter="true"
+                    [required]="true">
                     <ng-template let-item pTemplate="selectedItem">
                         <span>{{ item.label }}</span>
                     </ng-template>
@@ -143,7 +144,7 @@
                     </td>
                     <td class="ui-resizable-column">
                        
-                        <p-button title="Rótulo"  severity="secondary" (click)="ver(rowData.ordenSalidaId)" icon="fa fa-search"></p-button>
+                        <p-button title="Rótulo"  severity="secondary" (click)="ver(rowData.ordenSalidaId, rowData)" icon="fa fa-search"></p-button>
                          <p-button title="Bultos"  severity="primary" (click)="bultos(rowData.ordenSalidaId)" icon="fa fa-file-text"></p-button>
                     </td>
                     <td class="text-center">{{ rowData.shipmentNumber }}</td>

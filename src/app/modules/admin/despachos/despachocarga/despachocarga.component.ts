@@ -96,17 +96,13 @@ export class DespachocargaComponent implements OnInit {
 
 
     this.propietarioService.getAllPropietarios().subscribe(resp => {
-      this.clientes.push({ value: 0 , label: 'Todos los propietarios'});
       resp.forEach(element => {
         this.clientes.push({ value: element.id , label: element.razonSocial});
       });
 
       this.model.EstadoId = 25;
-      this.model.PropietarioId = 0;
-      this.despachoService.getAllCargas_pendientes(this.model).subscribe(list => {
-
-        this.lines = list;
-        });
+      this.model.PropietarioId = null; // Inicializar como null para que sea obligatorio
+      // No se hace búsqueda automática, el usuario debe seleccionar un propietario primero
     });
   }
 
@@ -167,8 +163,41 @@ export class DespachocargaComponent implements OnInit {
     
 
  }
- ver (id) {
-  let url = 'http://104.36.166.65/reptwh/RepRotuloDAP2.aspx?idorden=' + String(id) ;
+ ver (id, rowData?: any) {
+  let url: string;
+  
+  // Obtener propietarioId directamente del objeto o buscar por nombre
+  let propietarioId = rowData?.propietarioId || rowData?.PropietarioId || rowData?.propietarioID;
+  
+  // Si no está disponible directamente, buscar por nombre del propietario en la lista de clientes
+  if (!propietarioId && rowData?.propietario && this.clientes.length > 0) {
+    const propietarioEncontrado = this.clientes.find(cliente => 
+      cliente.label?.toLowerCase().trim() === rowData.propietario?.toLowerCase().trim()
+    );
+    if (propietarioEncontrado && propietarioEncontrado.value) {
+      propietarioId = propietarioEncontrado.value;
+    }
+  }
+  
+  console.log('=== DEBUG REPORTE ===');
+  console.log('PropietarioId detectado:', propietarioId, 'Tipo:', typeof propietarioId);
+  console.log('Propietario nombre:', rowData?.propietario);
+  console.log('Comparación propietarioId === 100:', propietarioId === 100);
+  console.log('RowData completo:', rowData);
+  
+  // Solo usar RepRotuloDesCona si el propietarioId es EXACTAMENTE 100 (número)
+  // Si es undefined, null, 0, o cualquier otro valor, usar el reporte por defecto
+  if (propietarioId !== undefined && propietarioId !== null && Number(propietarioId) === 100) {
+    url = 'http://104.36.166.65/reptwh/RepRotuloDesCona.aspx?idorden=' + String(id);
+    console.log('⚠️ Usando RepRotuloDesCona para propietarioId:', propietarioId);
+  } else {
+    url = 'http://104.36.166.65/reptwh/RepRotuloDAP2.aspx?idorden=' + String(id);
+    console.log('✓ Usando RepRotuloDAP2 (por defecto) para propietarioId:', propietarioId);
+  }
+  
+  console.log('URL final:', url);
+  console.log('===================');
+  
   window.open(url);
 }
 
@@ -330,6 +359,16 @@ generarBulto(){
 
  }
   buscar() {
+    // Validar que se haya seleccionado un propietario
+    if (!this.model.PropietarioId || this.model.PropietarioId === 0 || this.model.PropietarioId === null) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar un propietario para realizar la búsqueda'
+      });
+      return;
+    }
+
     this.selectedRow = [];
 
     this.model.EstadoId = 25;

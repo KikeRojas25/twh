@@ -47,9 +47,11 @@ export interface carga {
     id	:  number ;
     numCarga	:  string ;
     propietario	:  string ;
+    propietarioId?: number;
     fechaRegistro	:  Date ;
     estadoId	:  number ;
     equipotransporte: string;
+    equipoTransporte?: string;
     NombreEstado:  string ;
     ubicacion: string;
     destino: string ;
@@ -57,6 +59,10 @@ export interface carga {
     fechaInicio: string;
     destinoId: number;
     ordenSalidaId: number;
+    shipmentNumber?: string;
+    placa?: string;
+    estado?: string;
+    workNum?: string;
     
 }
 
