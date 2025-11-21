@@ -139,6 +139,8 @@ export class TrabajoAsignadoComponent implements OnInit {
             endpoint = 'reportepickingPalmas.aspx';
         } else if ([59, 82].includes(pid)) {
             endpoint = 'reportePickingPalmasPT.aspx';
+       } else if ([145, 100].includes(pid) ) {
+            endpoint = 'repPickingDAP.aspx'
         } else if (pid === 134) {
             endpoint = 'repPickingDAP.aspx';
         } else if (pid === 45) {
