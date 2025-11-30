@@ -1,0 +1,163 @@
+/* Estilos específicos del componente */
+
+/* Estilos para asegurar visibilidad de headers en tablas */
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th.bg-gray-800 {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+/* Estilos para reducir tamaño de dropdowns en Paso 2 */
+::ng-deep .p-dropdown {
+  font-size: 0.875rem !important; /* text-sm */
+  height: 2rem !important; /* py-1.5 equivalente */
+}
+
+::ng-deep .p-dropdown .p-dropdown-label {
+  padding: 0.375rem 0.75rem !important; /* py-1.5 px-3 */
+  font-size: 0.875rem !important; /* text-sm */
+  line-height: 1.25rem !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-trigger {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-trigger .p-dropdown-trigger-icon {
+  font-size: 0.75rem !important;
+}
+
+/* Ocultar botón de limpiar (X) en dropdowns */
+::ng-deep .p-dropdown .p-dropdown-clear-icon {
+  display: none !important;
+}
+
+/* Reducir tamaño del texto en el panel desplegable del dropdown */
+::ng-deep .p-dropdown-panel {
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper .p-dropdown-items .p-dropdown-item {
+  padding: 0.375rem 0.75rem !important; /* py-1.5 px-3 */
+  font-size: 0.875rem !important; /* text-sm */
+  line-height: 1.25rem !important;
+}
+
+::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper .p-dropdown-items .p-dropdown-item-label {
+  font-size: 0.875rem !important; /* text-sm */
+}
+
+/* Estilos para reducir tamaño de inputNumber */
+::ng-deep .p-inputnumber {
+  font-size: 0.875rem !important;
+}
+
+::ng-deep .p-inputnumber .p-inputnumber-input {
+  padding: 0.375rem 0.75rem !important; /* py-1.5 px-3 */
+  font-size: 0.875rem !important;
+  height: 2rem !important;
+}
+
+::ng-deep .p-inputnumber .p-inputnumber-button {
+  width: 1.5rem !important;
+  height: 1rem !important;
+}
+
+::ng-deep .p-inputnumber .p-inputnumber-button .p-button-icon {
+  font-size: 0.625rem !important;
+}
+
+/* Estilos para reducir tamaño de calendar */
+::ng-deep .p-calendar {
+  font-size: 0.875rem !important;
+}
+
+::ng-deep .p-calendar .p-inputtext {
+  padding: 0.375rem 0.75rem !important; /* py-1.5 px-3 */
+  font-size: 0.875rem !important;
+  height: 2rem !important;
+}
+
+::ng-deep .p-calendar .p-datepicker-trigger {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+::ng-deep .p-calendar .p-datepicker-trigger .p-button-icon {
+  font-size: 0.75rem !important;
+}
+
+/* Reducir tamaño del panel desplegable del calendario */
+::ng-deep .p-datepicker {
+  font-size: 0.75rem !important; /* text-xs */
+  padding: 0.5rem !important;
+}
+
+::ng-deep .p-datepicker .p-datepicker-header {
+  padding: 0.5rem !important;
+  font-size: 0.875rem !important;
+}
+
+::ng-deep .p-datepicker .p-datepicker-title {
+  font-size: 0.875rem !important;
+  padding: 0.25rem 0 !important;
+}
+
+::ng-deep .p-datepicker .p-datepicker-prev,
+::ng-deep .p-datepicker .p-datepicker-next {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+}
+
+::ng-deep .p-datepicker .p-datepicker-prev .p-button-icon,
+::ng-deep .p-datepicker .p-datepicker-next .p-button-icon {
+  font-size: 0.625rem !important;
+}
+
+::ng-deep .p-datepicker table {
+  font-size: 0.75rem !important;
+}
+
+::ng-deep .p-datepicker table th {
+  padding: 0.375rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+::ng-deep .p-datepicker table td {
+  padding: 0.25rem !important;
+}
+
+::ng-deep .p-datepicker table td > span {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1.75rem !important;
+}
+
+::ng-deep .p-datepicker .p-timepicker {
+  padding: 0.5rem !important;
+}
+
+::ng-deep .p-datepicker .p-timepicker .p-timepicker-hour,
+::ng-deep .p-datepicker .p-timepicker .p-timepicker-minute,
+::ng-deep .p-datepicker .p-timepicker .p-timepicker-second {
+  font-size: 0.75rem !important;
+  padding: 0.25rem !important;
+}
+
+::ng-deep .p-datepicker .p-timepicker .p-timepicker-button {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+::ng-deep .p-datepicker .p-timepicker .p-timepicker-button .p-button-icon {
+  font-size: 0.625rem !important;
+}
+

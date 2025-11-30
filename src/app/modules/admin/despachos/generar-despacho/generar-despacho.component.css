@@ -1,0 +1,49 @@
+/* Estilos para el botón Agregar sticky */
+::ng-deep .p-datatable .p-datatable-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Asegurar que el caption también sea sticky */
+::ng-deep .p-datatable .p-datatable-caption {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: white;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Estilos para modo oscuro */
+.dark ::ng-deep .p-datatable .p-datatable-header,
+.dark ::ng-deep .p-datatable .p-datatable-caption {
+  background-color: #1f2937;
+}
+
+/* Estilos para el scroll de la tabla */
+::ng-deep .p-datatable-scrollable-wrapper {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Mantener el header visible durante el scroll */
+::ng-deep .p-datatable-scrollable-header {
+  position: sticky;
+  top: 0;
+  z-index: 9;
+  background-color: white;
+}
+
+.dark ::ng-deep .p-datatable-scrollable-header {
+  background-color: #1f2937;
+}
+
+/* Ocultar filas cuando el grupo está colapsado */
+.hidden {
+  display: none !important;
+}
+

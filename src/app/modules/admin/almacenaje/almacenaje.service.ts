@@ -1,8 +1,9 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { EquipoTransporte } from '../recepcion/recepcion.types';
+import { InventarioGeneral } from '../_models/inventariogeneral';
 
 
 
@@ -53,7 +54,10 @@ ListarEquiposTransporte(
       .set('PropietarioId', PropietarioId)
       .set('AlmacenId', AlmacenId);
 
-    return this._httpClient.get<EquipoTransporte[]>(`${this.baseUrl}Listar-EquiposTrasporte`, { params });
+    return this._httpClient.get<EquipoTransporte[]>(`${this.baseUrl}Listar-EquiposTrasporte`, { 
+      params, 
+      headers: httpOptions.headers 
+    });
   }
 // GetTarifario(idCliente: number): Observable<tarifario[]> {
 //   return this._httpClient.get<tarifario[]>(`${this.baseUrlTarifario}listar-por-cliente/${idCliente}`);
@@ -80,6 +84,23 @@ ListarEquiposTransporte(
 //   return this._httpClient.delete(`${this.baseUrlTarifario}eliminar/${id}`);
 // }
 
+  identificar_detallemultiple(model: InventarioGeneral[], sobredimensiado?: string): Observable<any> {
+    if (sobredimensiado === undefined) {
+      sobredimensiado = '';
+    }
 
+    const body = JSON.stringify(model);
+
+    return this._httpClient.post(this.baseUrl + 'identify_detail_mix?sobredimensionado=' + sobredimensiado, body, httpOptions)
+      .pipe(
+        map((response: any) => {
+          return response;
+        }),
+        catchError(err => {
+          console.error('Error desde AlmacenajeService:', err);
+          return throwError(() => err);
+        })
+      );
+  }
 
 }

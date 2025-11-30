@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
@@ -26,12 +26,15 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { TableModule } from 'primeng/table';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { Subject, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PropietarioService } from '../../_services/propietario.service';
 import { DespachosService } from '../../despachos/despachos.service';
 import { OrdenSalida } from '../../despachos/despachos.types';
 import { B2bService } from '../b2b.service';
 import { PedidoDetalle } from '../b2b.types';
 import { PlanningService } from '../../planning/planning.service';
+import { WebSocketService } from 'app/core/services/websocket.service';
 
 @Component({
     selector: 'app-list',
@@ -57,7 +60,7 @@ import { PlanningService } from '../../planning/planning.service';
     ],
     providers: [DialogService, MessageService, ConfirmationService],
 })
-export class ListComponent implements OnInit {
+export class ListComponent implements OnInit, OnDestroy {
     ref: DynamicDialogRef | undefined;
     ocResults: any[];
     searchCriteria = { oc: '', sku: '' };
@@ -90,7 +93,7 @@ export class ListComponent implements OnInit {
     detalleOrdenModal = false;
     detalleProductos: PedidoDetalle[] = [];
     loadingDetalle = false;
-
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     constructor(
         public dialogService: DialogService,
@@ -99,8 +102,9 @@ export class ListComponent implements OnInit {
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private b2bService: B2bService,
-         private planningService: PlanningService,
-        private router: Router
+        private planningService: PlanningService,
+        private router: Router,
+        private webSocketService: WebSocketService
     ) {}
 
   ngOnInit(): void {
@@ -134,9 +138,111 @@ export class ListComponent implements OnInit {
       }
     },
     error: (err) => console.error('Error al cargar propietarios:', err),
-    complete: () => this.buscar() // ✅ Buscar una vez que se cargaron los propietarios
+    complete: () => {
+      this.buscar(); // ✅ Buscar una vez que se cargaron los propietarios
+      this._initializeWebSocketListeners(); // ✅ Inicializar listeners de WebSocket
+    }
   });
 }
+
+  /**
+   * Inicializar listeners de SignalR para refrescar automáticamente
+   */
+  private _initializeWebSocketListeners(): void {
+    // Escuchar evento de órdenes actualizadas desde SignalR
+    // Usar debounceTime para evitar actualizaciones excesivas (máximo una vez cada 1 segundo)
+    this.webSocketService
+      .on<any>('OrdenesActualizadas')
+      .pipe(
+        debounceTime(1000), // Esperar 1 segundo después del último evento antes de procesar
+        distinctUntilChanged((prev, curr) => {
+          // Solo procesar si el timestamp cambió (evitar duplicados exactos)
+          // Retorna true si son iguales (no emitir), false si son diferentes (emitir)
+          return prev?.timestamp === curr?.timestamp;
+        }),
+        takeUntil(this._unsubscribeAll)
+      )
+      .subscribe((data) => {
+        console.log('🔄 Órdenes actualizadas recibidas:', data);
+        
+        // Actualizar la lista directamente con los datos recibidos
+        // El backend envía 'ordenes' (minúscula) no 'Ordenes'
+        if (data && data.ordenes && Array.isArray(data.ordenes)) {
+          this.ordenes = data.ordenes;
+        } else if (data && data.Ordenes && Array.isArray(data.Ordenes)) {
+          // Compatibilidad con formato anterior (mayúscula)
+          this.ordenes = data.Ordenes;
+        } else {
+          // Si no vienen las órdenes en el formato esperado, refrescar manualmente
+          this.buscar();
+        }
+      });
+
+    // Escuchar evento NuevaOrden del servidor SignalR
+    this.webSocketService
+      .on<any>('NuevaOrden')
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((data) => {
+        console.log('📦 Nueva orden recibida desde SignalR:', data);
+        
+        // Mostrar mensaje informativo
+        const ordenId = data?.OrdenId || data?.ordenId || data?.ordenSalidaId || 'N/A';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Nueva Orden Creada',
+          detail: `Se ha creado una nueva orden: ${ordenId}`,
+          life: 5000
+        });
+
+        // Refrescar la búsqueda de órdenes
+        this.buscar();
+      });
+
+    // Escuchar evento específico de nuevo pedido registrado
+    this.webSocketService
+      .on<any>('nuevoPedidoB2B')
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((pedidoData) => {
+        console.log('🆕 Nuevo pedido registrado, refrescando lista...', pedidoData);
+        
+        // Mostrar mensaje informativo
+        const numOrden = pedidoData?.numOrden || pedidoData?.NumOrden || pedidoData?.ordenSalidaId || 'N/A';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Nuevo Pedido Registrado',
+          detail: `Se ha registrado un nuevo pedido: ${numOrden}`,
+          life: 5000
+        });
+
+        // Refrescar la búsqueda de órdenes
+        this.buscar();
+      });
+
+    // Escuchar evento genérico de actualización de pedidos
+    this.webSocketService
+      .on<any>('pedidoActualizado')
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((pedidoData) => {
+        console.log('🔄 Pedido actualizado, refrescando lista...', pedidoData);
+        // Refrescar la búsqueda de órdenes
+        this.buscar();
+      });
+
+    // Escuchar evento genérico de actualización de pedidos
+    this.webSocketService
+      .on<any>('pedidoActualizado')
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((pedidoData) => {
+        console.log('🔄 Pedido actualizado, refrescando lista...', pedidoData);
+        this.buscar();
+      });
+  }
+
+  ngOnDestroy(): void {
+    // Unsubscribe from all subscriptions
+    this._unsubscribeAll.next(null);
+    this._unsubscribeAll.complete();
+  }
 
 
     buscar() {

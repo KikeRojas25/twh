@@ -18,17 +18,20 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ClienteService } from '../../_services/cliente.service';
 import { GeneralService } from '../../_services/general.service';
-import { OrdenSalida } from '../../despachos/despachos.types';
-import { PlanningService } from '../planning.service';
-import { Vehiculo } from '../planning.types';
+import { OrdenSalida } from '../despachos.types';
+import { PlanningService } from '../../planning/planning.service';
 import { PropietarioService } from '../../_services/propietario.service';
+import { DespachosService } from '../despachos.service';
+import { MantenimientoService } from '../../mantenimientos/mantenimiento.service';
 
 @Component({
-  selector: 'app-planificar-despachos',
-  templateUrl: './planificar-despachos.component.html',
-  styleUrls: ['./planificar-despachos.component.css'],
+  selector: 'app-generar-despacho',
+  templateUrl: './generar-despacho.component.html',
+  styleUrls: ['./generar-despacho.component.css'],
    standalone: true,
      imports: [
         InputTextModule, 
@@ -46,7 +49,9 @@ import { PropietarioService } from '../../_services/propietario.service';
         ConfirmDialogModule,
         MatIcon,
         IconFieldModule,
-        InputIconModule
+        InputIconModule,
+        TooltipModule,
+        AutoCompleteModule
       ],
       providers: [
         DialogService ,
@@ -55,7 +60,7 @@ import { PropietarioService } from '../../_services/propietario.service';
     
       ]
 })
-export class PlanificarDespachosComponent implements OnInit {
+export class GenerarDespachoComponent implements OnInit {
 
 // Dropdowns
   almacenes: SelectItem[] = [];
@@ -71,9 +76,13 @@ export class PlanificarDespachosComponent implements OnInit {
   ordeneseleccionadas: OrdenSalida[] = [];
 
   groupedTotals: { [key: string]: { pesoTotal: number; productosTotal: number; unidadesTotal: number } } = {};
-
+  expandedGroups: { [key: string]: boolean } = {}; // Control de grupos expandidos
 
   vehicleTypes: SelectItem[] = []; // Lista de tipos de vehículo
+  placas: SelectItem[] = []; // Lista de placas
+  conductores: any[] = []; // Lista de conductores
+  filteredConductores: any[] = []; // Conductores filtrados para autocomplete
+  selectedConductor: any; // Conductor seleccionado
 
   totalPesoSeleccionado: number = 0;
   rows: number = 100;
@@ -91,16 +100,19 @@ export class PlanificarDespachosComponent implements OnInit {
 
   displayPlanificarDialog: boolean = false;
   planificarForm: any = {
-    tipoVehiculo: null,
-    placa: '',
-    fechaProgramada: null
+    placa: null,
+    fechaProgramada: null,
+    conductorId: null,
+    guiaRemision: ''
   };
 
   constructor(
     private planningService: PlanningService,
+    private despachosService: DespachosService,
     private clienteService: ClienteService,
     private propietarioService: PropietarioService,
     private generalService: GeneralService,
+    private mantenimientoService: MantenimientoService,
     private router: Router,
     private messageService: MessageService,
     private confirmationService: ConfirmationService ,
@@ -114,6 +126,7 @@ export class PlanificarDespachosComponent implements OnInit {
 
     this.cargarPropietarios();
     this.cargarAlmacenes();
+    this.cargarTiposVehiculo();
 
     this.buscar();
 
@@ -121,7 +134,7 @@ export class PlanificarDespachosComponent implements OnInit {
 
   }
   cargarFiltrosGuardados() {
-    const savedFilter = localStorage.getItem('filtroPicking');
+    const savedFilter = localStorage.getItem('filtroGenerarDespacho');
     if (savedFilter) {
       this.model = JSON.parse(savedFilter);
     }
@@ -132,7 +145,6 @@ export class PlanificarDespachosComponent implements OnInit {
         label: propietario.razonSocial,
         value: propietario.id
       }));
-    //  this.model.PropietarioId = this.propietarios[0]?.value || null;
     });
   }
 
@@ -142,12 +154,20 @@ export class PlanificarDespachosComponent implements OnInit {
         label: almacen.descripcion,
         value: almacen.id
       }));
-     // this.model.AlmacenId = this.almacenes[0]?.value || null;
+    });
+  }
+
+  cargarTiposVehiculo() {
+    this.generalService.getValorTabla(4).subscribe(resp => {
+      this.vehicleTypes = resp.map((x) => ({
+        value: x.id,
+        label: x.valorPrincipal
+      }));
     });
   }
 
   guardarFiltros() {
-    localStorage.setItem('filtroPicking', JSON.stringify(this.model));
+    localStorage.setItem('filtroGenerarDespacho', JSON.stringify(this.model));
   }
   calculateGroupTotals() {
     this.groupedTotals = {};
@@ -159,11 +179,39 @@ export class PlanificarDespachosComponent implements OnInit {
   
       if (!this.groupedTotals[estado]) {
         this.groupedTotals[estado] = { pesoTotal: 0, productosTotal: 0, unidadesTotal: 0 };
+        // Inicializar todos los grupos como colapsados por defecto
+        if (this.expandedGroups[estado] === undefined) {
+          this.expandedGroups[estado] = false;
+        }
       }
   
       this.groupedTotals[estado].pesoTotal += row.peso || 0;
-      // this.groupedTotals[estado].productosTotal += row. || 0;
-      // this.groupedTotals[estado].unidadesTotal += row.unidades || 0;
+      this.groupedTotals[estado].productosTotal += row.productos || 0;
+      this.groupedTotals[estado].unidadesTotal += row.unidades || 0;
+    });
+  }
+
+  toggleGroup(estado: string) {
+    this.expandedGroups[estado] = !this.expandedGroups[estado];
+  }
+
+  isGroupExpanded(estado: string): boolean {
+    return this.expandedGroups[estado] === true; // Por defecto colapsado
+  }
+
+  expandirTodos() {
+    // Obtener todos los estados únicos de listData
+    const estadosUnicos = [...new Set(this.listData.map(row => row.estado))];
+    estadosUnicos.forEach(estado => {
+      this.expandedGroups[estado] = true;
+    });
+  }
+
+  colapsarTodos() {
+    // Obtener todos los estados únicos de listData
+    const estadosUnicos = [...new Set(this.listData.map(row => row.estado))];
+    estadosUnicos.forEach(estado => {
+      this.expandedGroups[estado] = false;
     });
   }
   
@@ -175,7 +223,11 @@ export class PlanificarDespachosComponent implements OnInit {
 
 
     if (!this.model.PropietarioId || !this.model.AlmacenId) {
-      alert('Debe seleccionar un propietario y un almacén.');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar un propietario y un almacén.'
+      });
       return;
     }
 
@@ -191,14 +243,14 @@ export class PlanificarDespachosComponent implements OnInit {
     this.calculateGroupTotals();
 
       this.guardarFiltros(); // Guarda el filtro en localStorage
-
+      this.loading = false;
 
     });
   }
 
 
   onRowSelectOrUnselect() {
-    this.totalPesoSeleccionado = this.selectedRows.reduce((acc, row) => acc + row.peso, 0);
+    this.totalPesoSeleccionado = this.selectedRows.reduce((acc, row) => acc + (row.peso || 0), 0);
   }
   actualizarResumen() {
     this.planningService.getAllOrdenSalidaPendientesResumen(this.model).subscribe((resumen) => {
@@ -213,36 +265,99 @@ export class PlanificarDespachosComponent implements OnInit {
     this.ordeneseleccionadas.push(...this.selectedRows);
     this.listData = this.listData.filter((orden) => !this.selectedRows.includes(orden));
     this.selectedRows = [];
+    this.onRowSelectOrUnselect();
   }
 
   eliminar(orden: OrdenSalida) {
     this.ordeneseleccionadas = this.ordeneseleccionadas.filter((o) => o !== orden);
     this.listData.push(orden);
+    this.onRowSelectOrUnselect();
   }
 
-  comprobar() {
+  generarDespacho(){
+
     if (this.ordeneseleccionadas.length === 0) {
-      alert('Debe seleccionar al menos una orden de salida.');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar al menos una orden de salida para generar el despacho.'
+      });
       return;
     }
-    console.log('Comprobando stock para las órdenes seleccionadas:', this.ordeneseleccionadas);
+
+    this.confirmationService.confirm({
+      message: `
+        <p>
+          ¿Está seguro que desea generar el despacho para ${this.ordeneseleccionadas.length} orden(es) seleccionada(s)?<br>
+        </p>
+      `,
+      header: 'Generar Despacho',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+   
+    
+  
+        
+    this.ids = '';
+    this.ordeneseleccionadas.forEach( element => {
+      this.ids  = this.ids + ',' + String(element.id);
+    });
+    this.model_pendientes.ids = this.ids.substring(1);
+
+    this.loading = true;
+
+    this.despachosService.registrar_salidacarga(this.model_pendientes).subscribe({
+      next: (resp) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Despacho generado correctamente'
+        });
+        this.ordeneseleccionadas = [];
+        this.buscar();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al generar el despacho. Por favor, intente nuevamente.'
+        });
+        this.loading = false;
+      },
+      complete: () => {
+        this.loading = false;
+      }
+    });
+             
+  
+      },
+      reject: () => {
+  
+      }
+    });
   }
 
   planificar(){
 
-
-
-
-
     this.ids = '';
 
-    this.generalService.getValorTabla(4).subscribe( resp =>  {
+    // Limpiar solo placas (los tipos de vehículo ya están cargados)
+    this.placas = [];
+    this.selectedConductor = null;
+    this.filteredConductores = [];
 
-      resp.forEach(x=> {
-        this.vehicleTypes.push({value: x.id , label: x.valorPrincipal   });
-      })
+    // Cargar placas
+    this.mantenimientoService.getAllVehiculos('').subscribe((vehiculos) => {
+      this.placas = vehiculos.map((vehiculo) => ({
+        label: vehiculo.placa,
+        value: vehiculo.placa
+      }));
+    });
 
-    })
+    // Cargar conductores
+    this.mantenimientoService.getAllConductores().subscribe((conductores) => {
+      this.conductores = conductores;
+    });
 
     if (this.ordeneseleccionadas.length === 0) {
       // Mostrar mensaje de advertencia
@@ -253,16 +368,29 @@ export class PlanificarDespachosComponent implements OnInit {
       });
       return; // Detener la ejecución si no hay órdenes seleccionadas
     }
-    this.planificarForm = [];
+    this.planificarForm = {
+      placa: null,
+      fechaProgramada: null,
+      conductorId: null,
+      guiaRemision: ''
+    };
     this.displayPlanificarDialog = true;
     
   
 
+  }
 
+  filterConductores(event: any): void {
+    const query = event.query.toLowerCase();
+    this.filteredConductores = this.conductores.filter((conductor) => {
+      const nombreCompleto = conductor.nombreCompleto?.toLowerCase() || '';
+      const dni = conductor.dni?.toLowerCase() || '';
+      return nombreCompleto.includes(query) || dni.includes(query);
+    });
+  }
 
-
-
-
+  onConductorSelect(event: any): void {
+    this.planificarForm.conductorId = event?.id;
   }
 
   generarPlanning() {
@@ -285,11 +413,12 @@ export class PlanificarDespachosComponent implements OnInit {
     this.ordeneseleccionadas.forEach( element => {
       this.ids  = this.ids + ',' + String(element.id);
     });
-    this.model_pendientes.ids = this.ids;
+    this.model_pendientes.ids = this.ids.substring(1);
 
-    this.model_pendientes.IdTipoVehiculo = this.planificarForm.tipoVehiculo;
     this.model_pendientes.placa = this.planificarForm.placa;
     this.model_pendientes.fechaDespacho = this.planificarForm.fechaProgramada;
+    this.model_pendientes.conductorId = this.planificarForm.conductorId;
+    this.model_pendientes.guiaRemision = this.planificarForm.guiaRemision;
 
     // Obtener ID del usuario desde el token
     const token = localStorage.getItem('token');
@@ -322,14 +451,6 @@ export class PlanificarDespachosComponent implements OnInit {
   
       }
     });
-  }
-
-  planificarMasivo() {
-    if (this.ordeneseleccionadas.length === 0) {
-      alert('Debe seleccionar al menos una orden de salida.');
-      return;
-    }
-    console.log('Planificando masivamente las órdenes seleccionadas:', this.ordeneseleccionadas);
   }
 
   

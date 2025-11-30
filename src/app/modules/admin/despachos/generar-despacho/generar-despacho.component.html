@@ -1,0 +1,286 @@
+<div class="flex flex-col flex-auto min-w-0">
+  <!-- Encabezado -->
+
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <div  class="flex flex-wrap items-center font-medium">
+        <div>
+          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+              <mat-icon
+              class="fuse-horizontal-navigation-item-icon"
+              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+              <a  class="ml-1 text-primary-500">Despacho</a>
+          </div>
+      </div>
+          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Generar Despacho </h2>
+      </div>
+  </div>
+  </div>
+
+
+  <!-- Contenido principal -->
+  
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <!-- Filtro de búsqueda -->
+ 
+      <div class="flex flex-wrap sm:flex-nowrap gap-4">
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
+          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
+        </div>
+        <div class="flex-1">
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
+          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
+        </div>
+        <div>
+          <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>
+        </div>
+      </div>
+
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-1 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+
+    <!-- Cuadro de resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 w-full">
+      <div class="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-blue-500">{{ totalOrdenes }}</p>
+        <p class="text-gray-600 font-medium">Órdenes Pendientes</p>
+      </div>
+      <div class="bg-green-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-green-500">{{ totalProductos }}</p>
+        <p class="text-gray-600 font-medium">Productos</p>
+      </div>
+      <div class="bg-yellow-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades }}</p>
+        <p class="text-gray-600 font-medium">Unidades</p>
+      </div>
+      <div class="bg-purple-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
+        <p class="text-4xl font-bold text-purple-500">{{ totalPeso }}</p>
+        <p class="text-gray-600 font-medium">Peso Total (Kg)</p>
+      </div>
+    </div>
+
+    <!-- Contenedor de tablas -->
+    <div class="flex flex-col w-full gap-8">
+      <!-- Tabla principal -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow w-full relative">
+        <p-table 
+          #dt2
+          [value]="listData" 
+          [paginator]="false" 
+          [(rows)]="rows" 
+          rowGroupMode="subheader" 
+          groupRowsBy="estado" 
+          [rowsPerPageOptions]="[100,200,300]" 
+          selectionMode="multiple" 
+          dataKey="id"
+          [globalFilterFields]="['numOrden', 'guiaRemision']"
+          [(selection)]="selectedRows" 
+          (onRowSelect)="onRowSelectOrUnselect()"
+          (onRowUnselect)="onRowSelectOrUnselect()"
+          [scrollable]="true"
+          scrollHeight="600px"
+          class="w-full">
+          
+
+          
+          <ng-template pTemplate="caption">
+            <div class="flex flex-col gap-4">
+              <div class="flex justify-between items-center">
+                <div class="flex flex-wrap justify-center sm:justify-start gap-4 items-center">
+                  <p-button label="Agregar" severity="success" icon="pi pi-plus" (onClick)="agregarorden()" styleClass="sticky-button"></p-button>
+                  <p-button severity="info" icon="pi pi-chevron-down" (onClick)="expandirTodos()" [outlined]="true" [style]="{width: '2rem', height: '2rem', padding: '0'}" pTooltip="Expandir Todo" tooltipPosition="top"></p-button>
+                  <p-button severity="info" icon="pi pi-chevron-right" (onClick)="colapsarTodos()" [outlined]="true" [style]="{width: '2rem', height: '2rem', padding: '0'}" pTooltip="Colapsar Todo" tooltipPosition="top"></p-button>
+                </div>
+                <p-iconField iconPosition="left" class="ml-auto">
+                  <p-inputIcon>
+                    <i class="pi pi-search"></i>
+                  </p-inputIcon>
+                  <input 
+                    pInputText 
+                    type="text" 
+                    (input)="dt2.filterGlobal($event.target.value, 'contains')" 
+                    placeholder="Search keyword" />
+                </p-iconField>
+              </div>
+            </div>
+          </ng-template>
+
+
+         
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 50px;"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th pSortableColumn="estado" style="width: 80px;">Estado</th>
+              <th  pSortableColumn="guiaRemision" style="width: 80px;">GRR / OC</th>
+              <th  pSortableColumn="fechaRequerida" style="width: 120px;">Fecha Pedido</th>
+              <th  pSortableColumn="destinatario" style="width: 120px;">Destinatario</th>
+              <th  style="width: 300px;">Dirección Entrega</th>
+              <th style="width: 120px;">Cant. Productos</th>
+              <th style="width: 120px;">Cant. Unidades</th>
+              <th  pSortableColumn="peso" style="width: 120px;">Peso Total</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="groupheader" let-rowData>
+            <tr pRowGroupHeader>
+                <td colspan="5">
+                    <button 
+                      type="button" 
+                      (click)="toggleGroup(rowData.estado)"
+                      class="p-button-text p-button-rounded p-button-plain mr-2 p-0 border-0 bg-transparent cursor-pointer">
+                      <i [class]="isGroupExpanded(rowData.estado) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-gray-600"></i>
+                    </button>
+                    <span class="font-bold">{{rowData.estado}}</span>
+                </td>
+
+                <td class="text-center py-2 px-4 bg-blue-200">Total:</td>
+                <td class="text-center py-2 px-4 bg-blue-200">{{ groupedTotals[rowData.estado]?.productosTotal || 0 }}</td>
+                <td class="text-center py-2 px-4 bg-blue-200">{{ groupedTotals[rowData.estado]?.unidadesTotal || 0 }}</td>
+                <td class="text-center py-2 px-4 bg-blue-300 font-bold">  {{ (groupedTotals[rowData.estado]?.pesoTotal || 0) | number:'1.3-3' }}  kg</td>
+            </tr>
+        </ng-template>
+
+          <ng-template pTemplate="body" let-rowData>
+            <tr [pSelectableRow]="rowData" [class.hidden]="!isGroupExpanded(rowData.estado)">
+              <td class="text-center"><p-tableCheckbox [value]="rowData"></p-tableCheckbox></td>
+              <td class="text-center">{{ rowData.estado }}</td>
+              <td class="text-center">{{ rowData.guiaRemision }}</td>
+             
+              <td class="text-center">{{ rowData.fechaRequerida | date:'dd-MM-yyyy' }}</td>
+              <td class="text-left">{{ rowData.destinatario }}</td>
+              <td class="text-left">{{ rowData.direccion }}</td>
+           
+              <td class="text-center">{{ rowData.productos }}</td>
+              <td class="text-center">{{ rowData.unidades }}</td>
+              <td class="text-center">{{ rowData.peso }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Tabla secundaria -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow w-full">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex flex-wrap justify-center sm:justify-end gap-4">
+            <p-button severity="primary" label="Generar Manifiesto" (onClick)="planificar()" icon="pi pi-folder"></p-button>
+          
+          </div>
+        </div>
+        <p-table 
+          [value]="ordeneseleccionadas" 
+          [paginator]="true" 
+          [(rows)]="rows" 
+          [rowsPerPageOptions]="[20, 40, 60, 100]" 
+          class="w-full">
+          <ng-template pTemplate="header">
+            <tr>
+              <!-- <th>N° Orden</th> -->
+              <th>Guía Remisión</th>
+              <th>Fecha Requerida</th>
+              <th>Cant. Productos</th>
+              <th>Cant. Unidades</th>
+              <th>Peso Total</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowData>
+            <tr>
+              <td>{{ rowData.guiaRemision }}</td>
+              <td>{{ rowData.fechaRequerida | date:'dd-MM-yyyy' }}</td>
+              <td class="text-center">{{ rowData.productos }}</td>
+              <td class="text-center">{{ rowData.unidades }}</td>
+              <td class="text-center">{{ rowData.peso }}</td>
+              <td>
+                <button pButton icon="pi pi-trash" class="p-button-sm p-button-danger" (click)="eliminar(rowData)"></button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-confirmDialog />
+<p-toast />
+
+<div class="fixed bottom-4 right-4 bg-white p-4 shadow-lg rounded-lg flex items-center gap-2 border border-gray-300">
+  <i class="pi pi-weight text-xl text-gray-700"></i>
+  <span class="font-semibold text-gray-800">Peso Total: {{ totalPesoSeleccionado  | number:'1.3-3' }} Kg</span>
+</div>
+
+
+
+<p-dialog header="Datos de Planificación" [(visible)]="displayPlanificarDialog" [modal]="true" [closable]="false" [responsive]="true" styleClass="p-fluid" [style]="{width: '600px'}">
+  <div class="p-field">
+    <label for="placa">Placa del Vehículo</label>
+    <p-dropdown 
+      id="placa" 
+      [options]="placas" 
+      appendTo="body"
+      [(ngModel)]="planificarForm.placa" 
+      placeholder="Seleccione una placa (opcional)"
+      [filter]="true"
+      [showClear]="true"
+      [virtualScroll]="true"
+      [virtualScrollItemSize]="38">
+      <ng-template let-item pTemplate="selectedItem">
+        <span style="vertical-align:left;">{{item.label}}</span>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <div class="p-field">
+    <label for="conductor">Conductor</label>
+    <p-autoComplete
+      id="conductor"
+      [(ngModel)]="selectedConductor"
+      [suggestions]="filteredConductores"
+      (completeMethod)="filterConductores($event)"
+      field="nombreCompleto"
+      (onSelect)="onConductorSelect($event)"
+      appendTo="body"
+      dropdown="true"
+      placeholder="Ingrese el nombre del conductor">
+      <ng-template let-conductor pTemplate="item">
+        <div class="conductor-item">
+          <div>{{ conductor.nombreCompleto }}</div>
+          <small>DNI: {{ conductor.dni }}</small>
+        </div>
+      </ng-template>
+    </p-autoComplete>
+  </div>
+
+  <div class="p-field">
+    <label for="guiaRemision">Nro de Guía Remisión</label>
+    <input 
+      id="guiaRemision" 
+      type="text" 
+      pInputText 
+      [(ngModel)]="planificarForm.guiaRemision" 
+      placeholder="Ingrese el número de guía de remisión"
+      maxlength="500">
+  </div>
+
+  <div class="p-field">
+    <label for="fechaProgramada">Fecha Programada <span style="color: red;">*</span></label>
+    <p-calendar 
+      id="fechaProgramada" 
+      appendTo="body"
+      [(ngModel)]="planificarForm.fechaProgramada" 
+      dateFormat="dd/mm/yy" 
+      showIcon="true" 
+      placeholder="Seleccione una fecha">
+    </p-calendar>
+  </div>
+
+  <p-footer>
+    <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="displayPlanificarDialog = false"></button>
+    <button pButton type="button" label="Aceptar" icon="pi pi-check" (click)="generarPlanning()"></button>
+  </p-footer>
+</p-dialog>

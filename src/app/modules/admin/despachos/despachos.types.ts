@@ -20,6 +20,10 @@ export interface OrdenSalida {
     peso: number;
     estado:string;
     detalles: OrdenSalidaDetalle[];
+    destinatario?: string;
+    direccion?: string;
+    productos?: number;
+    unidades?: number;
 }
 
 export interface OrdenSalidaDetalle {

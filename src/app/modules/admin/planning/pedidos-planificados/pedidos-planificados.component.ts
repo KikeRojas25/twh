@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
+import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService, ConfirmationService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
@@ -290,8 +291,13 @@ export class PedidosPlanificadosComponent implements OnInit {
      this.model_pendientes.IdTipoVehiculo = this.planificarForm.tipoVehiculo;
      this.model_pendientes.placa = this.planificarForm.placa;
      this.model_pendientes.fechaDespacho = this.planificarForm.fechaProgramada;
- 
- 
+
+     // Obtener ID del usuario desde el token
+     const token = localStorage.getItem('token');
+     const jwtHelper = new JwtHelperService();
+     const decodedToken = token ? jwtHelper.decodeToken(token) : null;
+     const usuarioId = decodedToken?.nameid ? Number(decodedToken.nameid) : 0;
+     this.model_pendientes.UsuarioId = usuarioId;
  
      this.planningService.PlanificarDespacho(this.model_pendientes).subscribe(resp => {
  

@@ -35,7 +35,7 @@ export interface OrdenReciboDetalle {
     Lote: string;
     HuellaId?: number;
     FechaRegistro?: Date;
-    EstadoId: number;
+    estadoId: number;
     cantidad: number;
     cantidadRecibida?: number;
     cantidadFaltante?: number;

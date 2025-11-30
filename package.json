@@ -25,6 +25,7 @@
         "@angular/platform-browser-dynamic": "18.0.1",
         "@angular/router": "18.0.1",
         "@auth0/angular-jwt": "^5.2.0",
+        "@microsoft/signalr": "^10.0.0",
         "@ngneat/transloco": "6.0.4",
         "@progress/kendo-angular-buttons": "^16.8.0",
         "@progress/kendo-angular-common": "^16.8.0",
@@ -50,6 +51,7 @@
         "primeng": "^17.18.9",
         "quill": "2.0.2",
         "rxjs": "7.8.1",
+        "socket.io-client": "^4.8.1",
         "tslib": "2.6.2",
         "xlsx": "^0.18.5",
         "zone.js": "0.14.6"

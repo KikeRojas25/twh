@@ -124,17 +124,18 @@
                <tr  [pSelectableRow]="rowData">
                    <td class="ui-resizable-column">
                      <div class="ui-inputgroup">
-                      <button [disabled]="rowData.estado == 'Cerrado' || rowData.estado == 'Asignado'"  class="btn btn-space btn-outline-primary" ngbTooltip="Asignar Puerta" (click)="openDoor(rowData.id, rowData.almacenId)" type="button"><i class="fas fa-door-closed"></i></button>
-                      <button [disabled]="rowData.estado == 'Cerrado' || rowData.estado == 'Llegada'" class="btn btn-space btn-outline-primary" ngbTooltip="Descargar" (click)="openEquipoTransporte(rowData.id)" type="button"><i class="fas fa-truck-loading"></i></button>
+                      <button [disabled]="rowData.estado == 'Cerrado' || rowData.estado == 'Asignado'" class="btn btn-space btn-outline-primary" pTooltip="Asignar Puerta" tooltipPosition="top" (click)="openDoor(rowData.id, rowData.almacenId)" type="button"><i class="pi pi-building"></i></button>
+                      <button [disabled]="rowData.estado == 'Cerrado' || rowData.estado == 'Llegada'" class="btn btn-space btn-outline-primary" pTooltip="Descargar Mercadería" tooltipPosition="top" (click)="openEquipoTransporte(rowData.id)" type="button"><i class="pi pi-box"></i></button>
                      </div>
                  </td>
-                 <td class="ui-resizable-column"> {{rowData.almacen  }}</td>
-                   <td class="ui-resizable-column"> {{rowData.equipoTransporte  }}</td>
-                   <td class="ui-resizable-column"> {{rowData.puerta}} </td>
 
-                   <td class="ui-resizable-column"> {{rowData.placa  }} </td>
-                   <td class="ui-resizable-column"> {{rowData.marca  }}  </td>
-                   <td class="ui-resizable-column"> {{rowData.tipoVehiculo  }}  </td>
+                 <td class="ui-resizable-column"> {{rowData.placa  }} </td>
+                 <td class="ui-resizable-column"> {{rowData.marca  }}  </td>
+                 <td class="ui-resizable-column"> {{rowData.tipoVehiculo  }}  </td>
+                 <td class="ui-resizable-column"> {{rowData.equipoTransporte  }}</td>
+                 <td class="ui-resizable-column"> {{rowData.puerta}} </td>
+
+
 
                    <td  [ngClass]="rowData.estado == 'Llegada' ? 'old-car'
                    :  (rowData.estado == 'Asignado'?' very-old-car': null) "> {{rowData.estado}}</td>
@@ -152,6 +153,205 @@
 
 <p-confirmDialog />
 <p-toast />
+
+<!-- Modal Asignar Puerta -->
+<p-dialog 
+  [(visible)]="displayAsignarPuertaDialog" 
+  [modal]="true" 
+  [style]="{width: '600px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Asignar Puerta"
+  (onHide)="displayAsignarPuertaDialog = false">
+  
+  <div class="p-4">
+    <p class="mb-4 text-gray-600">Seleccione una puerta disponible para asignar al equipo de transporte:</p>
+    
+    <p-table 
+      [value]="puertas" 
+      [loading]="loadingPuertas"
+      [responsiveLayout]="'scroll'"
+      styleClass="p-datatable-sm"
+      [paginator]="true"
+      [rows]="10">
+      
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="ubicacion">
+            Ubicación <p-sortIcon field="ubicacion"></p-sortIcon>
+          </th>
+        
+          <th pSortableColumn="estado">
+            Estado <p-sortIcon field="estado"></p-sortIcon>
+          </th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.nombre }}</td>
+
+          <td>
+            <span [ngClass]="row.nombreEstado == 'Libre' ? 'text-green-600 font-semibold' : 'text-gray-500'">
+              {{ row.nombreEstado }}
+            </span>
+          </td>
+          <td>
+            <p-button
+              *ngIf="row.nombreEstado == 'Libre'"
+              icon="pi pi-check"
+              severity="success"
+              [outlined]="true"
+              pTooltip="Asignar esta puerta"
+              tooltipPosition="top"
+              (onClick)="asignarPuerta(row.id)"
+              [loading]="loadingPuertas">
+            </p-button>
+            <span *ngIf="row.nombreEstado != 'Libre'" class="text-gray-400 text-sm">No disponible</span>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center text-gray-500 py-4">
+            No hay puertas disponibles para este almacén.
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Cerrar" 
+      icon="pi pi-times" 
+      [text]="true"
+      (onClick)="displayAsignarPuertaDialog = false">
+    </p-button>
+  </ng-template>
+
+</p-dialog>
+
+<!-- Modal Órdenes de Recibo -->
+<p-dialog 
+  [(visible)]="displayOrdenesReciboDialog" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '1200px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="true"
+  header="Órdenes de Recibo por Equipo de Transporte"
+  (onHide)="displayOrdenesReciboDialog = false">
+  
+  <div class="p-4">
+    <div class="mb-4" *ngIf="equipoTransporteSeleccionado">
+      <p class="text-lg font-semibold text-gray-700">
+        Equipo de Transporte: <span class="text-primary-600">{{ equipoTransporteSeleccionado }}</span>
+      </p>
+    </div>
+    
+    <p-table 
+      [value]="ordenesRecibo" 
+      [loading]="loadingOrdenesRecibo"
+      [columns]="colsOrdenes"
+      [scrollable]="true"
+      scrollHeight="500px"
+      [paginator]="true"
+      [rows]="10"
+      styleClass="p-datatable-sm">
+      
+      <ng-template pTemplate="colgroup" let-columns>
+        <colgroup>
+          <col *ngFor="let col of columns" [ngStyle]="{'width': col.width}">
+        </colgroup>
+      </ng-template>
+
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th *ngFor="let col of columns" [ngStyle]="{'width': col.width}">
+            {{ col.header }}
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row let-columns="columns">
+        <tr>
+          <td>
+            <div class="flex gap-2">
+              <p-button 
+                [disabled]="row.nombreEstado == 'Almacenado' || row.nombreEstado == 'Pendiente Acomodo' || row.nombreEstado == 'Pendiente Almacenamiento'"
+                icon="pi pi-sign-in" 
+                [outlined]="true"
+                severity="primary"
+                pTooltip="Iniciar recibo múltiple" 
+                tooltipPosition="top"
+                (onClick)="identificarMultiple(row.ordenReciboId)"
+                [style]="{'width': 'auto', 'height': '2rem'}">
+              </p-button>
+              <p-button 
+                [disabled]="row.nombreEstado == 'Almacenado' || row.nombreEstado == 'Recibiendo' || row.nombreEstado == 'Pendiente Almacenamiento' || row.nombreEstado == 'Asignado'"
+                icon="pi pi-th-large" 
+                [outlined]="true"
+                severity="primary"
+                pTooltip="Acomodo" 
+                tooltipPosition="top"
+                (onClick)="acomodo(row.ordenReciboId)"
+                [style]="{'width': 'auto', 'height': '2rem'}">
+              </p-button>
+              <p-button 
+                [disabled]="row.nombreEstado == 'Almacenado' || row.nombreEstado == 'Pendiente Acomodo' || row.nombreEstado == 'Recibiendo' || row.nombreEstado == 'Asignado'"
+                icon="pi pi-building" 
+                [outlined]="true"
+                severity="primary"
+                pTooltip="Almacenamiento" 
+                tooltipPosition="top"
+                (onClick)="almacenar(row.ordenReciboId)"
+                [style]="{'width': 'auto', 'height': '2rem'}">
+              </p-button>
+            </div>
+          </td>
+          <td>
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-semibold">
+              {{ row.numOrden }}
+            </span>
+          </td>
+          <td>{{ row.almacen || row.Almacen }}</td>
+          <td>{{ row.propietario }}</td>
+          <td>
+            <span [ngClass]="getEstadoClass(row.nombreEstado)" class="px-2 py-1 rounded text-sm font-semibold">
+              {{ row.nombreEstado }}
+            </span>
+          </td>
+          <td>{{ row.ubicacion || '-' }}</td>
+          <td>{{ row.fechaRegistro | date:'dd-MM-yyyy' }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td [attr.colspan]="colsOrdenes.length" class="text-center text-gray-500 py-4">
+            No hay órdenes de recibo para este equipo de transporte.
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button 
+      label="Cerrar" 
+      icon="pi pi-times" 
+      [text]="true"
+      (onClick)="displayOrdenesReciboDialog = false">
+    </p-button>
+  </ng-template>
+
+</p-dialog>
 
 
 

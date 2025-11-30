@@ -109,6 +109,11 @@ export const appRoutes: Route[] = [
                                           .then(m => m.DespachocargaComponent)
                   },
                   {
+                    path: 'generardespacho',
+                    loadComponent: () => import('./modules/admin/despachos/generar-despacho/generar-despacho.component')
+                                          .then(m => m.GenerarDespachoComponent)
+                  },
+                  {
                     path: 'nuevaordensalida',
                     loadComponent: () => import('./modules/admin/despachos/newors/newors.component')
                                           .then(m => m.NeworsComponent)
@@ -262,6 +267,11 @@ export const appRoutes: Route[] = [
                     path : 'equipotransporteentrante', 
                     loadComponent: () => import('./modules/admin/almacenaje/listtransporte/listtransporte.component')
                                           .then(m => m.ListtransporteComponent)
+                  },
+                  {
+                    path: 'identificar-recibo-multiple/:id/:equipoTransporteId',
+                    loadComponent: () => import('./modules/admin/almacenaje/identificar-recibo-multiple/identificar-recibo-multiple.component')
+                                          .then(m => m.IdentificarReciboMultipleComponent)
                     },
                
                 ]
