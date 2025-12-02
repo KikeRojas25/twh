@@ -76,3 +76,75 @@ select.ng-invalid.ng-touched {
   width: 2rem !important;
   // height: 2rem !important;
 }
+
+/* ----------------------------------------------------------------------------------------------------- */
+/*  @ Estilos globales para Calendar (PrimeNG) - Aplicados a toda la aplicación
+/* ----------------------------------------------------------------------------------------------------- */
+
+/* Estilos para reducir tamaño de calendar */
+.p-calendar {
+  font-size: 0.875rem !important;
+}
+
+.p-calendar .p-inputtext {
+  padding: 0.375rem 0.75rem !important; /* py-1.5 px-3 - más compacto */
+  font-size: 0.875rem !important;
+  height: 2rem !important; /* Reducido de 2.25rem a 2rem */
+}
+
+.p-calendar .p-datepicker-trigger {
+  width: 2rem !important; /* Reducido de 2.25rem a 2rem */
+  height: 2rem !important; /* Reducido de 2.25rem a 2rem */
+}
+
+.p-calendar .p-datepicker-trigger .p-button-icon {
+  font-size: 0.75rem !important;
+}
+
+/* Reducir tamaño del panel desplegable del calendario */
+.p-datepicker {
+  font-size: 0.75rem !important; /* text-xs */
+  padding: 0.5rem !important;
+}
+
+.p-datepicker .p-datepicker-header {
+  padding: 0.5rem !important;
+  font-size: 0.875rem !important;
+}
+
+.p-datepicker .p-datepicker-title {
+  font-size: 0.875rem !important;
+  padding: 0.25rem 0 !important;
+}
+
+.p-datepicker .p-datepicker-prev,
+.p-datepicker .p-datepicker-next {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+}
+
+.p-datepicker .p-datepicker-prev .p-button-icon,
+.p-datepicker .p-datepicker-next .p-button-icon {
+  font-size: 0.625rem !important;
+}
+
+.p-datepicker table {
+  font-size: 0.75rem !important;
+}
+
+.p-datepicker table th {
+  padding: 0.375rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.p-datepicker table td {
+  padding: 0.25rem !important;
+}
+
+.p-datepicker table td > span {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1.75rem !important;
+}

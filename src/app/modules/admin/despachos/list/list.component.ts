@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'primeng/api';
+import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
@@ -18,7 +18,6 @@ import { CalendarModule } from 'primeng/calendar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OrdenSalida } from '../despachos.types';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { SplitButtonModule } from 'primeng/splitbutton';
 import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
@@ -40,7 +39,6 @@ import { PropietarioService } from '../../_services/propietario.service';
     ToastModule,
     CalendarModule,
     ConfirmDialogModule,
-    SplitButtonModule,
     ],
     providers: [
       DialogService,
@@ -62,8 +60,6 @@ export class ListComponent implements OnInit {
   CicloVidaOCModal = false;
   Items: any[];
   selectedOC : any = {};
-
-  items: MenuItem[];
 
   selectedRubro: any;
   selectedFamilia: any;
@@ -91,24 +87,6 @@ export class ListComponent implements OnInit {
   
   ngOnInit(): void {
 
-     this.items = [
-            {
-              label: 'Nueva ORS Masiva',
-              command: () => {
-                  this.nuevaordenmasiva();
-              }
-          },
-            { separator: true },
-           ,
-          {
-            label: 'Nueva ORS Grupo Palmas',
-            command: () => {
-                this.nuevaorden();
-            }
-        },
-        ];
-
-
     this.cols2 = [
       { header: 'NUM OC', backgroundcolor: '#125ea3', field: 'tiOrdeComp', width: '120px' },
       { header: 'COD ITEM', backgroundcolor: '#125ea3', field: 'tiOrdeComp', width: '120px' },
@@ -122,7 +100,7 @@ export class ListComponent implements OnInit {
 
     this.cols =
     [
-        {header: 'ACCIONES', field: 'numOrden' , width: '120px' },
+        {header: 'ACCIONES', field: 'numOrden' , width: '140px' },
         {header: 'ORS', field: 'numOrden'  ,  width: '120px' },
         {header: 'PROPIETARIO', field: 'propietario'  , width: '200px'   },
         {header: 'ESTADO', field: 'nombreEstado'  ,  width: '100px'  },
@@ -172,54 +150,53 @@ export class ListComponent implements OnInit {
 
 
 
-verDetalle(rowData){
-  console.log(rowData.nU_ORDE_COMP);
-  this.detalleOCModal = true;
+  verDetalle(rowData: any) {
+    console.log(rowData.nU_ORDE_COMP);
+    this.detalleOCModal = true;
 
+    // this.importacionesOcService.getDetalleOC(rowData.nU_ORDE_COMP).subscribe({
+    //   next: data => {
+    //      this.Items = data;
+    //      console.log('items', this.Items);
+    //   }
+    // })
+  }
 
+  edit(rowData: any) {
+    // Navegar a editar o abrir diálogo de edición
+    this.router.navigate(['/picking/nuevaordensalida'], {
+      queryParams: { id: rowData.ordenSalidaId }
+    });
+  }
 
-  // this.importacionesOcService.getDetalleOC(rowData.nU_ORDE_COMP).subscribe({
-  //   next: data => {
-  //      this.Items = data;
-  //      console.log('items', this.Items);
-  //   }
-  // })
+  nuevaorden() {
+    this.router.navigate(['/picking/nuevaordensalida']);
+  }
 
+  nuevaordenmasiva() {
+    this.router.navigate(['/picking/nuevasalidamasiva']);
+  }
 
-
-
-}
-
-nuevaorden() {
-     this.router.navigate(['/picking/nuevaordensalida']);
-}
-nuevaordenmasiva() {
-  this.router.navigate(['/picking/nuevasalidamasiva']);
-}
-
-delete(id) {
-
+  delete(id: number) {
     this.confirmationService.confirm({
       message: '¿Está seguro que desea eliminar el despacho?',
       header: 'Eliminar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
- 
-  
-
-          this.despachosService.deleteOrder(id).subscribe(x=> {
-
-            this.buscar();
-            this.messageService.add({severity: 'success', summary: 'TWH', detail: 'Se eliminó correctamente.'})  //success('Se registró correctamente.');
-          })
-
-    },
-    reject: () => {
-
-    }
-  });
-
-}
+        this.despachosService.deleteOrder(id).subscribe(x => {
+          this.buscar();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'TWH',
+            detail: 'Se eliminó correctamente.'
+          });
+        });
+      },
+      reject: () => {
+        // Usuario canceló
+      }
+    });
+  }
 
 
 

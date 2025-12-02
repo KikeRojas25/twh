@@ -115,7 +115,7 @@ export class ListComponent implements OnInit, OnDestroy {
   const usuarioId = this.decodedToken.nameid;
 
   this.cols = [
-    { header: 'ACCIONES', field: 'numOrden', width: '140px' },
+    { header: 'ACCIONES', field: 'numOrden', width: '180px' },
     { header: 'ORS', field: 'numOrden', width: '120px' },
     { header: 'ESTADO', field: 'nombreEstado', width: '100px' },
     { header: 'GR SALIDA', field: 'guiaRemision', width: '160px' },
@@ -270,22 +270,22 @@ export class ListComponent implements OnInit, OnDestroy {
   }
 
 
-   getEstadoClass(estado: string): string {
-  switch (estado) {
-    case 'Creado':
-      return 'estado-badge estado-creado';
-    case 'Planificado':
-      return 'estado-badge estado-planificado';
-    case 'Asignado':
-      return 'estado-badge estado-asignado';
-    case 'Despachado':
-      return 'estado-badge estado-despachado';
-    case 'Validado':
-      return 'estado-badge estado-validado';
-    default:
-      return 'estado-badge';
-  }
-}planificar(rowData: any): void {
+  getEstadoClass(estado: string): string {
+    switch (estado) {
+      case 'Creado':
+        return 'estado-creado';
+      case 'Planificado':
+        return 'estado-planificado';
+      case 'Asignado':
+        return 'estado-asignado';
+      case 'Despachado':
+        return 'estado-despachado';
+      case 'Validado':
+        return 'estado-validado';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  }planificar(rowData: any): void {
   // ✅ Validar propietario seleccionado
   if (!this.model.PropietarioId) {
     this.messageService.add({

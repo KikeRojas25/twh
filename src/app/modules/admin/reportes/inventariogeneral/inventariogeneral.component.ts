@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { ButtonModule } from 'primeng/button';
@@ -31,26 +31,32 @@ import { PropietarioService } from '../../_services/propietario.service';
 })
 export class InventariogeneralComponent implements OnInit {
   
+  @ViewChild('resultadosBlock') resultadosBlock!: ElementRef;
+
   propietarios: SelectItem[] = [];
   almacenes:  SelectItem[] = [];
   model: any =  {};
   cols: any[];
   inventarios: InventarioGeneral[] = [] ;
+  inventariosFiltrados: InventarioGeneral[] = [] ;
   grupos: SelectItem[] = [];
+  filtroGeneral: string = '';
 
 
     jwtHelper = new JwtHelperService();
     decodedToken: any = {};
 
 
-  constructor(  private clienteService: ClienteService,
+  constructor(  
+    private clienteService: ClienteService,
     private generealService: GeneralService,
     private propietarioService: PropietarioService,
     private reporteService: ReportesService
   ) { }
 
   ngOnInit() {
-
+    // Inicializar inventariosFiltrados como array vacío
+    this.inventariosFiltrados = [];
 
     const user  = localStorage.getItem('token');
     this.decodedToken = this.jwtHelper.decodeToken(user);
@@ -61,35 +67,34 @@ export class InventariogeneralComponent implements OnInit {
 
     this.cols =
     [
-      { header: 'ALMACÉN', field: 'almacen', width: '140px' },
-      { header: 'CÓDIGO', field: 'estado', width: '220px' },
-      { header: 'DESCRIPCIÓN', field: 'descripcionLarga', width: '450px' },
+      // { header: 'ALMACÉN', field: 'almacen', width: '180px' },
+      { header: 'CÓDIGO', field: 'codigo', width: '180px' },
+      { header: 'DESCRIPCIÓN', field: 'descripcionLarga', width: '350px' },
 
-      { header: 'LOTE', field: 'lotNum', width: '220px' },
-      { header: 'CANTIDAD', field: 'untQty', width: '140px' },
-      { header: 'CANTIDAD SEPARADA', field: 'cantidadSeparada', width: '140px' },
-      { header: 'STOCK DISPONIBLE', field: 'stockDisponible', width: '140px' },
+      { header: 'LOTE', field: 'lotNum', width: '120px' },
+      { header: 'CANTIDAD', field: 'untQty', width: '80px' },
+      { header: 'CANTIDAD SEPARADA', field: 'cantidadSeparada', width: '90px' },
+      { header: 'STOCK DISPONIBLE', field: 'stockDisponible', width: '80px' },
 
-      { header: 'PESO', field: 'peso', width: '100px' },
+      // { header: 'PESO', field: 'peso', width: '100px' },
       { header: 'ESTADO', field: 'estado', width: '150px' },
-      { header: 'REFERENCIA', field: 'referencia', width: '150px' },
+      // { header: 'REFERENCIA', field: 'referencia', width: '150px' },
 
 
       { header: 'LPN', field: 'lotNum', width: '120px' },
       
      
-      { header: 'F. REGISTRO', field: 'fechaRegistro', width: '120px' },
+      // { header: 'F. REGISTRO', field: 'fechaRegistro', width: '120px' },
       { header: 'UBICACIÓN', field: 'ubicacion', width: '120px' },
 
    
-      { header: 'F. EXPIRACIÓN', field: 'fechaExpire', width: '120px' },
-      { header: 'F. PRODUCCIÓN', field: 'fechaProduccion', width: '120px' },
+      // { header: 'F. EXPIRACIÓN', field: 'fechaExpire', width: '120px' },
+      // { header: 'F. PRODUCCIÓN', field: 'fechaProduccion', width: '120px' },
    
      
    
 
       ];
-
 
     
  this.propietarioService.getAllPropietarios().subscribe(resp => {
@@ -150,10 +155,60 @@ export class InventariogeneralComponent implements OnInit {
 
     this.reporteService.getInventarioGeneral(this.model.IdGrupo, this.model.IdPropietario).subscribe(resp=> {
          this.inventarios = resp;
+         this.aplicarFiltro();
 
          console.log( 'inventarios:',this.inventarios)
+         
+         // Scroll hasta el bloque de resultados después de un pequeño delay para asegurar que el DOM se haya actualizado
+         setTimeout(() => {
+           this.scrollToResultados();
+         }, 100);
     })
 
+  }
+
+  scrollToResultados(): void {
+    if (this.resultadosBlock) {
+      this.resultadosBlock.nativeElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }
+
+  aplicarFiltro(): void {
+    if (!this.filtroGeneral || this.filtroGeneral.trim() === '') {
+      this.inventariosFiltrados = [...this.inventarios];
+    } else {
+      const filtro = this.filtroGeneral.toLowerCase().trim();
+      this.inventariosFiltrados = this.inventarios.filter(item => {
+        const codigo = (item.codigo || '').toLowerCase();
+        const descripcion = (item.descripcionLarga || '').toLowerCase();
+        const lote = (item.lotNum || '').toLowerCase();
+        return codigo.includes(filtro) || descripcion.includes(filtro) || lote.includes(filtro);
+      });
+    }
+  }
+
+  onFiltroChange(): void {
+    this.aplicarFiltro();
+  }
+
+  // Métodos para calcular totalizados (usando inventarios filtrados)
+  get totalSKUs(): number {
+    if (!this.inventariosFiltrados || this.inventariosFiltrados.length === 0) return 0;
+    const skusUnicos = new Set(this.inventariosFiltrados.map(item => item.codigo).filter(codigo => codigo));
+    return skusUnicos.size;
+  }
+
+  get totalCantidades(): number {
+    if (!this.inventariosFiltrados || this.inventariosFiltrados.length === 0) return 0;
+    return this.inventariosFiltrados.reduce((sum, item) => sum + (item.untQty || 0), 0);
+  }
+
+  get totalSeparados(): number {
+    if (!this.inventariosFiltrados || this.inventariosFiltrados.length === 0) return 0;
+    return this.inventariosFiltrados.reduce((sum, item) => sum + (item.cantidadSeparada || 0), 0);
   }
  exportar(){
 

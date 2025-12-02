@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'primeng/api';
+import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { DynamicDialogRef, DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { MatIcon } from '@angular/material/icon';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +19,6 @@ import { RecepcionService } from '../recepcion.service';
 import { GeneralService } from '../../_services/general.service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { SplitButtonModule } from 'primeng/splitbutton';
 import { NewComponent } from '../new/new.component';
 import { NewdetailsComponent } from '../newdetails/newdetails.component';
 import { AsignarPlacaRecepcionComponent } from '../asignar-placa/asignar-placa-recepcion.component';
@@ -46,8 +45,7 @@ import { PropietarioService } from '../../_services/propietario.service';
     ToastModule,
     CalendarModule,
     ConfirmDialogModule,
-    MatIcon,
-    SplitButtonModule
+    MatIcon
   ],
   providers: [
     DialogService ,
@@ -94,7 +92,6 @@ tipoingreso: SelectItem[] = [];
 
   ];
   almacenes: SelectItem[] = [];
-  items: MenuItem[];
   ref: DynamicDialogRef | undefined;
 
 
@@ -121,17 +118,6 @@ tipoingreso: SelectItem[] = [];
 
 
   ngOnInit() {
-
-
-    this.items = [
-      {
-          label: 'Carga Masiva',
-          command: () => {
-              this.nuevaordenmasiva();
-          }
-      }
-    ]
-
 
     const user  = localStorage.getItem('token');
     this.decodedToken = this.jwtHelper.decodeToken(user);
@@ -177,7 +163,7 @@ tipoingreso: SelectItem[] = [];
 
     this.cols =
     [
-        {header: 'ACCIONES', field: 'numOrden' , width: '120px' },
+        {header: 'ACCIONES', field: 'numOrden' , width: '140px' },
         {header: 'ORDEN', field: 'numOrden'  ,  width: '80px' },
         {header: 'ALMACÉN', field: 'almacen'  ,  width: '120px' },
         {header: 'PROPIETARIO', field: 'propietario'  , width: '140px'   },

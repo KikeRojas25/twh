@@ -4,10 +4,7 @@
 
 export const environment = {
     production: false,
-     
     baseUrl: 'http://localhost:5000', 
-    //baseUrl: 'http://199.89.55.49/apitwh3',
-    uploadsDocuments: 'D:\\APPS\\Toscanos\\Web\\UploadedFiles\\',
     socketUrl: 'http://localhost:5000', // URL base para SignalR Hub (el servicio construirá la URL completa: {socketUrl}/hubs/ordenSalida)
     enableWebSocket: true // Habilitar/deshabilitar SignalR (poner false si el servidor aún no está configurado)
 };
