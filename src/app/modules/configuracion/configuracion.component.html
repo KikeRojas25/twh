@@ -1,0 +1,207 @@
+<div class="flex min-w-0 flex-auto flex-col">
+    <!-- Header -->
+    <div class="bg-card flex h-16 flex-0 items-center border-b px-6">
+        <div class="flex items-center">
+            <mat-icon
+                class="text-current icon-size-6"
+                [svgIcon]="'heroicons_outline:cog-8-tooth'"
+            ></mat-icon>
+            <div class="ml-3 text-2xl font-semibold">Configuración</div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-auto flex-col overflow-auto p-6">
+        <div class="mx-auto w-full max-w-2xl">
+            <!-- Profile Information Section -->
+            <div class="mb-8">
+                <h2 class="mb-4 text-xl font-semibold">Información Personal</h2>
+                <form
+                    [formGroup]="configForm"
+                    class="flex flex-col space-y-4"
+                >
+                    <!-- Name field -->
+                    <mat-form-field class="w-full">
+                        <mat-label>Nombre Completo</mat-label>
+                        <input
+                            matInput
+                            [formControlName]="'name'"
+                            placeholder="Ingrese su nombre completo"
+                        />
+                        @if (configForm.get('name').hasError('required')) {
+                            <mat-error> El nombre es requerido </mat-error>
+                        }
+                    </mat-form-field>
+
+                    <!-- DNI field -->
+                    <mat-form-field class="w-full">
+                        <mat-label>DNI</mat-label>
+                        <input
+                            matInput
+                            [formControlName]="'dni'"
+                            placeholder="Ingrese su DNI"
+                            maxlength="8"
+                        />
+                        @if (configForm.get('dni').hasError('required')) {
+                            <mat-error> El DNI es requerido </mat-error>
+                        }
+                    </mat-form-field>
+
+                    <!-- Phone field -->
+                    <mat-form-field class="w-full">
+                        <mat-label>Teléfono</mat-label>
+                        <input
+                            matInput
+                            [formControlName]="'phone'"
+                            placeholder="Ingrese su teléfono"
+                        />
+                        @if (configForm.get('phone').hasError('required')) {
+                            <mat-error> El teléfono es requerido </mat-error>
+                        }
+                    </mat-form-field>
+
+                    <!-- Save button -->
+                    <button
+                        class="fuse-mat-button-large mt-4 w-full sm:w-auto"
+                        mat-flat-button
+                        [color]="'primary'"
+                        [disabled]="configForm.disabled || configForm.invalid"
+                        (click)="saveProfile()"
+                    >
+                        @if (!configForm.disabled) {
+                            <span> Guardar Cambios </span>
+                        }
+                        @if (configForm.disabled) {
+                            <mat-progress-spinner
+                                [diameter]="24"
+                                [mode]="'indeterminate'"
+                            ></mat-progress-spinner>
+                        }
+                    </button>
+                </form>
+            </div>
+
+            <!-- Password Section -->
+            <div class="mb-8">
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-xl font-semibold">Cambiar Contraseña</h2>
+                    <button
+                        mat-stroked-button
+                        [color]="'primary'"
+                        (click)="togglePasswordFields()"
+                    >
+                        @if (!showPasswordFields) {
+                            <span> Cambiar Contraseña </span>
+                        }
+                        @if (showPasswordFields) {
+                            <span> Cancelar </span>
+                        }
+                    </button>
+                </div>
+
+                @if (showPasswordFields) {
+                    <form
+                        [formGroup]="passwordForm"
+                        class="flex flex-col space-y-4"
+                    >
+                        <!-- Current password field -->
+                        <mat-form-field class="w-full">
+                            <mat-label>Contraseña Actual</mat-label>
+                            <input
+                                matInput
+                                type="password"
+                                [formControlName]="'currentPassword'"
+                                placeholder="Ingrese su contraseña actual"
+                            />
+                            @if (
+                                passwordForm
+                                    .get('currentPassword')
+                                    .hasError('required')
+                            ) {
+                                <mat-error>
+                                    La contraseña actual es requerida
+                                </mat-error>
+                            }
+                        </mat-form-field>
+
+                        <!-- New password field -->
+                        <mat-form-field class="w-full">
+                            <mat-label>Nueva Contraseña</mat-label>
+                            <input
+                                matInput
+                                type="password"
+                                [formControlName]="'newPassword'"
+                                placeholder="Ingrese su nueva contraseña"
+                            />
+                            @if (
+                                passwordForm
+                                    .get('newPassword')
+                                    .hasError('required')
+                            ) {
+                                <mat-error>
+                                    La nueva contraseña es requerida
+                                </mat-error>
+                            }
+                            @if (
+                                passwordForm
+                                    .get('newPassword')
+                                    .hasError('minlength')
+                            ) {
+                                <mat-error>
+                                    La contraseña debe tener al menos 6
+                                    caracteres
+                                </mat-error>
+                            }
+                        </mat-form-field>
+
+                        <!-- Confirm password field -->
+                        <mat-form-field class="w-full">
+                            <mat-label>Confirmar Nueva Contraseña</mat-label>
+                            <input
+                                matInput
+                                type="password"
+                                [formControlName]="'confirmPassword'"
+                                placeholder="Confirme su nueva contraseña"
+                            />
+                            @if (
+                                passwordForm
+                                    .get('confirmPassword')
+                                    .hasError('required')
+                            ) {
+                                <mat-error>
+                                    La confirmación de contraseña es requerida
+                                </mat-error>
+                            }
+                            @if (passwordForm.hasError('passwordMismatch')) {
+                                <mat-error>
+                                    Las contraseñas no coinciden
+                                </mat-error>
+                            }
+                        </mat-form-field>
+
+                        <!-- Change password button -->
+                        <button
+                            class="fuse-mat-button-large mt-4 w-full sm:w-auto"
+                            mat-flat-button
+                            [color]="'primary'"
+                            [disabled]="
+                                passwordForm.disabled || passwordForm.invalid
+                            "
+                            (click)="changePassword()"
+                        >
+                            @if (!passwordForm.disabled) {
+                                <span> Cambiar Contraseña </span>
+                            }
+                            @if (passwordForm.disabled) {
+                                <mat-progress-spinner
+                                    [diameter]="24"
+                                    [mode]="'indeterminate'"
+                                ></mat-progress-spinner>
+                            }
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

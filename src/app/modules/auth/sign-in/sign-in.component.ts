@@ -13,7 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
@@ -25,7 +25,6 @@ import { AuthService } from 'app/core/auth/auth.service';
     animations: fuseAnimations,
     standalone: true,
     imports: [
-        RouterLink,
         FuseAlertComponent,
         FormsModule,
         ReactiveFormsModule,
@@ -65,14 +64,18 @@ export class AuthSignInComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        // Get saved username if exists
+        const savedUsername = localStorage.getItem('rememberedUsername') || '';
+        const rememberMe = savedUsername ? true : false;
+
         // Create the form
         this.signInForm = this._formBuilder.group({
             email: [
-                '',
+                savedUsername,
                 [Validators.required],
             ],
             password: ['', Validators.required],
-            rememberMe: [''],
+            rememberMe: [rememberMe],
         });
     }
 
@@ -94,6 +97,18 @@ export class AuthSignInComponent implements OnInit {
 
         // Hide the alert
         this.showAlert = false;
+
+        // Handle remember me functionality
+        const rememberMe = this.signInForm.get('rememberMe').value;
+        const username = this.signInForm.get('email').value;
+
+        if (rememberMe) {
+            // Save username to localStorage
+            localStorage.setItem('rememberedUsername', username);
+        } else {
+            // Remove saved username if checkbox is unchecked
+            localStorage.removeItem('rememberedUsername');
+        }
 
         // Sign in
         this._authService.signIn(this.signInForm.value).subscribe(
@@ -120,7 +135,7 @@ export class AuthSignInComponent implements OnInit {
                 // Set the alert
                 this.alert = {
                     type: 'error',
-                    message: 'Wrong email or password',
+                    message: 'Usuario o contraseña incorrectos',
                 };
 
                 // Show the alert

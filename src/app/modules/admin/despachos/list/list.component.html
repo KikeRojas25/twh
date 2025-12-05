@@ -17,7 +17,7 @@
       </div>
       <div class="mt-1">
         <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
-          Generar Despacho
+          Ordenes de salida 
         </h2>
       </div>
     </div>
@@ -226,7 +226,7 @@
               </span>
             </td>
 
-            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.guiaRemision || '-' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.guiaRemision  }}  - {{ rowData.ordenCompraCliente }}</td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.equipotransporte }} - {{ rowData.placa || '' }}</td>
             <td
               class="text-center px-4 py-2 text-sm"

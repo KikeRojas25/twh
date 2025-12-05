@@ -1,0 +1,25 @@
+<div class="flex min-w-0 flex-auto flex-col">
+    <!-- Header -->
+    <div class="bg-card flex h-16 flex-0 items-center border-b px-6">
+        <div class="flex items-center">
+            <mat-icon
+                class="text-current icon-size-6"
+                [svgIcon]="'heroicons_outline:chart-bar-square'"
+            ></mat-icon>
+            <div class="ml-3 text-2xl font-semibold">Dashboard TWH</div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex flex-auto flex-col overflow-hidden p-6">
+        <div class="flex h-full w-full items-center justify-center">
+            <iframe
+                title="Dashboar_TWH"
+                class="h-full w-full rounded-lg border"
+                [src]="powerBiUrl | safe"
+                frameborder="0"
+                allowFullScreen="true"
+            ></iframe>
+        </div>
+    </div>
+</div>

@@ -79,6 +79,10 @@ export const appRoutes: Route[] = [
                 loadComponent: () => import('app/modules/admin/example/example.component')
                   .then(m => m.ExampleComponent)
             },
+            {
+                path: 'configuracion',
+                loadChildren: () => import('app/modules/configuracion/configuracion.routes')
+            },
            
               {
                 path: 'facturacion',
@@ -239,6 +243,10 @@ export const appRoutes: Route[] = [
                     path: 'kardexgeneral',
                     loadComponent: () => import('./modules/admin/reportes/kardexgeneral/kardexgeneral.component')
                                           .then(m => m.KardexgeneralComponent)
+                  },
+                  {
+                    path: 'dashboard-pbi',
+                    loadChildren: () => import('./modules/admin/reportes/dashboard-pbi/dashboard-pbi.routes')
                   },
                
                 ]

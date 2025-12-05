@@ -14,8 +14,8 @@ import { Subject, finalize, takeUntil, takeWhile, tap, timer } from 'rxjs';
 export class AuthSignOutComponent implements OnInit, OnDestroy {
     countdown: number = 5;
     countdownMapping: any = {
-        '=1': '# second',
-        other: '# seconds',
+        '=1': '# segundo',
+        other: '# segundos',
     };
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 

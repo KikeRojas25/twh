@@ -6,23 +6,15 @@
     >
         <div class="mx-auto w-full max-w-100 sm:mx-0 sm:w-80">
             <!-- Logo -->
-            <div class="w-full">
-                <img src="./images/logo/logo-TWH.png"   width="700px"/>
+            <div class="w-full flex justify-center">
+                <img src="./images/logo/logo-TWH.png" class="w-48 max-w-full h-auto"/>
             </div>
 
             <!-- Title -->
             <div
-                class="mt-8 text-4xl font-extrabold leading-tight tracking-tight"
+                class="mt-4 text-4xl font-extrabold leading-tight tracking-tight"
             >
                Ingresar
-            </div>
-            <div class="mt-0.5 flex items-baseline font-medium">
-                <div>¿No tienes una cuenta?</div>
-                <a
-                    class="ml-1 text-primary-500 hover:underline"
-                    [routerLink]="['/sign-up']"
-                    >Regístrate 
-                </a>
             </div>
 
             <!-- Alert -->
@@ -51,12 +43,12 @@
 
             <!-- Sign in form -->
             <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
-                <!-- Email field -->
+                <!-- Usuario field -->
                 <mat-form-field class="w-full">
-                    <mat-label>Correo</mat-label>
+                    <mat-label>Usuario</mat-label>
                     <input id="email" matInput [formControlName]="'email'" />
                     @if (signInForm.get('email').hasError('required')) {
-                        <mat-error> El correo es requerido </mat-error>
+                        <mat-error> El usuario es requerido </mat-error>
                     }
                     <!-- @if (signInForm.get('email').hasError('email')) {
                         <mat-error>
@@ -103,7 +95,7 @@
 
                 <!-- Actions -->
                 <div
-                    class="mt-1.5 inline-flex w-full items-center justify-between"
+                    class="mt-1.5 inline-flex w-full items-center"
                 >
                     <mat-checkbox
                         class="-ml-2"
@@ -112,11 +104,6 @@
                     >
                         Recuérdame
                     </mat-checkbox>
-                    <a
-                        class="text-md font-medium text-primary-500 hover:underline"
-                        [routerLink]="['/forgot-password']"
-                        >¿Olvidó su contraseña?
-                    </a>
                 </div>
 
                 <!-- Submit button -->
@@ -137,35 +124,6 @@
                         ></mat-progress-spinner>
                     }
                 </button>
-
-                <!-- Separator -->
-                <div class="mt-8 flex items-center">
-                    <div class="mt-px flex-auto border-t"></div>
-                    <div class="text-secondary mx-2">O continuar con</div>
-                    <div class="mt-px flex-auto border-t"></div>
-                </div>
-
-                <!-- Single sign-on buttons -->
-                <div class="mt-8 flex items-center space-x-4">
-                    <button class="flex-auto" type="button" mat-stroked-button>
-                        <mat-icon
-                            class="icon-size-5"
-                            [svgIcon]="'feather:google'"
-                        ></mat-icon>
-                    </button>
-                    <button class="flex-auto" type="button" mat-stroked-button>
-                        <mat-icon
-                            class="icon-size-5"
-                            [svgIcon]="'feather:twitter'"
-                        ></mat-icon>
-                    </button>
-                    <button class="flex-auto" type="button" mat-stroked-button>
-                        <mat-icon
-                            class="icon-size-5"
-                            [svgIcon]="'feather:github'"
-                        ></mat-icon>
-                    </button>
-                </div>
             </form>
         </div>
     </div>
