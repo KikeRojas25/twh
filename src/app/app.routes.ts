@@ -281,7 +281,16 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/almacenaje/identificar-recibo-multiple/identificar-recibo-multiple.component')
                                           .then(m => m.IdentificarReciboMultipleComponent)
                     },
-               
+                    {path : 'acomodopallets/:uid/:uid2', 
+                      loadComponent: () => import('./modules/admin/almacenaje/acomodopallets/acomodopallets.component')
+                                          .then(m => m.AcomodopalletsComponent)
+                    } ,
+                    {path : 'almacenamiento/:uid/:uid2', 
+                      loadComponent: () => import('./modules/admin/almacenaje/almacenamiento/almacenamiento.component')
+                                          .then(m => m.AlmacenamientoComponent)
+                    } ,
+
+
                 ]
               },
               {

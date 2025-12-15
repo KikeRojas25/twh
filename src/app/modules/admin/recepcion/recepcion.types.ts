@@ -4,7 +4,7 @@ export interface OrdenRecibo {
     numOrden	:  string ;
     propietarioID	:  number ;
     propietario	:  string ;
-    almacenId	:  number ;
+    almacenID	:  number ;
     Almacen	:  string ;
     guiaRemision	:  string ;
     fechaEsperada	:  Date ;
@@ -32,7 +32,7 @@ export interface OrdenReciboDetalle {
     linea: string;
     productoId: any;
     producto: string;
-    Lote: string;
+    lote: string;
     HuellaId?: number;
     FechaRegistro?: Date;
     estadoId: number;

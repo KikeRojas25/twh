@@ -11,7 +11,7 @@ import { Distrito, Provincia } from '../transporte/transporte.types';
 // Interfaces adicionales si son necesarias
 export interface Nivel {
   id: number;
-  nombre: string;
+  descripcion: string;
 }
 
 export interface Master {

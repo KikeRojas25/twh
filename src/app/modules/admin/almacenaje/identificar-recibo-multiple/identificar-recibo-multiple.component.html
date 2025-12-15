@@ -22,23 +22,21 @@
       </div>
     </div>
     <div class="flex items-center gap-2 mt-4 sm:mt-0">
-      <button
-        class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150"
-        pButton
+      <p-button
+        styleClass="p-button-sm"
         icon="pi pi-check"
         label="Terminar"
         iconPos="left"
         [loading]="loading"
         (onClick)="terminarIdentificacion()">
-      </button>
-      <button
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-sm transition-all duration-150"
-        pButton
+      </p-button>
+      <p-button
+        styleClass="p-button-sm"
         icon="pi pi-arrow-left"
         label="Regresar"
         iconPos="left"
         (onClick)="regresar()">
-      </button>
+      </p-button>
     </div>
   </div>
 
@@ -54,6 +52,7 @@
       </div>
       <div class="p-4">
         <p-table 
+          #tablaOrdenDetalles
           [value]="ordenDetalles" 
           [loading]="loading"
           [columns]="colsDetalles"
@@ -62,6 +61,8 @@
           [paginator]="true"
           [rows]="5"
           selectionMode="single"
+          dataKey="id"
+          [(selection)]="selectedOrdenDetalle"
           (onRowSelect)="identificar($event)"
           styleClass="p-datatable-sm">
           
@@ -252,36 +253,36 @@
           <!-- Botones de Acción -->
           <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
       
-            <button
-              class="px-3 py-1.5 text-xs font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-              pButton
+            <p-button
+              styleClass="p-button-sm"
               label="Generar automáticamente"
               icon="pi pi-box"
               iconPos="left"
               [disabled]="!f.valid"
               [loading]="loading"
-              (onClick)="generarPallets()">
-            </button>
-            <button
-              class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-              pButton
+              severity="secondary"
+              (click)="generarPalletsAutomatico()">
+            </p-button>
+            <p-button
+              styleClass="p-button-sm"
               label="Marcar como Faltante"
               icon="pi pi-exclamation-triangle"
               iconPos="left"
               [disabled]="!f.valid"
               [loading]="loading"
-              (onClick)="agregarFaltantes()">
-            </button>
-            <button
-            class="px-3 py-1.5 text-xs font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-            pButton
+              severity="danger"
+              (click)="agregarFaltantes()">
+            </p-button>
+            <p-button
+            styleClass="p-button-sm"
             label="Agregar manualmente"
             icon="pi pi-plus"
             iconPos="left"
             [disabled]="!f.valid || loading"
-            (onClick)="actualizar()"
+            severity="warning"
+            (click)="actualizar()"
             [loading]="loading">
-          </button>
+          </p-button>
           </div>
         </form>
         </div>

@@ -11,7 +11,7 @@ import { EquipoTransporte } from '../../recepcion/recepcion.types';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { ClienteService } from '../../_services/cliente.service';
 import { GeneralService } from '../../_services/general.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RecepcionService } from '../../recepcion/recepcion.service';
 import { forkJoin } from 'rxjs';
 import { AlmacenService } from '../../_services/almacen.service';
@@ -155,6 +155,7 @@ export class ListtransporteComponent implements OnInit {
     private generalService: GeneralService,
     private propietarioService: PropietarioService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private recepcionService: RecepcionService,
     private inventarioService: InventarioService,
     private productoService: ProductoService,
@@ -166,6 +167,19 @@ export class ListtransporteComponent implements OnInit {
     this.configurarCalendario();
     this.inicializarFechas();
     this.cargarCombosIniciales();
+    
+    // Verificar si hay un parámetro en la ruta para abrir el modal automáticamente
+    this.activatedRoute.queryParams.subscribe(params => {
+      if (params['equipoTransporteId']) {
+        const equipoTransporteId = Number(params['equipoTransporteId']);
+        if (equipoTransporteId && !isNaN(equipoTransporteId)) {
+          // Esperar a que se carguen los transportes antes de abrir el modal
+          setTimeout(() => {
+            this.openEquipoTransporte(equipoTransporteId);
+          }, 500);
+        }
+      }
+    });
   }
 
   private configurarCalendario(): void {
@@ -373,7 +387,7 @@ export class ListtransporteComponent implements OnInit {
       next: (resp) => {
         this.modelDetail = resp;
         this.modelDetail.untQty = resp.cantidad;
-        this.modelDetail.LotNum = resp.Lote;
+        this.modelDetail.LotNum = resp.lote;
         
         // Cargar huellas
         this.productoService.getHuellas(resp.productoId).subscribe(huellas => {

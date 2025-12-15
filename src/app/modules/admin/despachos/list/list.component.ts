@@ -12,6 +12,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { DespachosService } from '../despachos.service';
 import { ClienteService } from '../../_services/cliente.service';
 import { CalendarModule } from 'primeng/calendar';
@@ -39,6 +40,7 @@ import { PropietarioService } from '../../_services/propietario.service';
     ToastModule,
     CalendarModule,
     ConfirmDialogModule,
+    TooltipModule,
     ],
     providers: [
       DialogService,
@@ -69,9 +71,15 @@ export class ListComponent implements OnInit {
   model: any = { guiaremision : ''};
   ordenes: OrdenSalida[] = [];
   
+  // Variables para el diálogo de fecha de salida
+  mostrarDialogFechaSalida = false;
+  ordenSalidaSeleccionada: OrdenSalida | null = null;
+  fechaSalidaEditada: Date = new Date();
 
   dateInicio: Date = new Date(Date.now()) ;
   dateFin: Date = new Date(Date.now()) ;
+  
+  es: any;
 
 
   constructor(
@@ -86,6 +94,20 @@ export class ListComponent implements OnInit {
 
   
   ngOnInit(): void {
+    // Configurar calendario en español
+    this.es = {
+      firstDayOfWeek: 1,
+      dayNames: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+      dayNamesShort: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+      dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+      monthNames: [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ],
+      monthNamesShort: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+      today: 'Hoy',
+      clear: 'Borrar'
+    };
 
     this.cols2 = [
       { header: 'NUM OC', backgroundcolor: '#125ea3', field: 'tiOrdeComp', width: '120px' },
@@ -100,7 +122,7 @@ export class ListComponent implements OnInit {
 
     this.cols =
     [
-        {header: 'ACCIONES', field: 'numOrden' , width: '140px' },
+        {header: 'ACCIONES', field: 'numOrden' , width: '260px' },
         {header: 'ORS', field: 'numOrden'  ,  width: '120px' },
         {header: 'PROPIETARIO', field: 'propietario'  , width: '200px'   },
         {header: 'ESTADO', field: 'nombreEstado'  ,  width: '100px'  },
@@ -196,6 +218,63 @@ export class ListComponent implements OnInit {
         // Usuario canceló
       }
     });
+  }
+
+  editarFechaSalida(rowData: OrdenSalida): void {
+    this.ordenSalidaSeleccionada = rowData;
+    // Si tiene fecha de salida, usarla; si no, usar la fecha requerida como referencia
+    this.fechaSalidaEditada = (rowData as any).fechaSalida 
+      ? new Date((rowData as any).fechaSalida) 
+      : (rowData.fechaRequerida ? new Date(rowData.fechaRequerida) : new Date());
+    this.mostrarDialogFechaSalida = true;
+  }
+
+  guardarFechaSalida(): void {
+    if (!this.ordenSalidaSeleccionada) {
+      return;
+    }
+
+    if (!this.fechaSalidaEditada) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Debe seleccionar una fecha válida.'
+      });
+      return;
+    }
+
+    const ordenSalidaId = this.ordenSalidaSeleccionada.ordenSalidaId || this.ordenSalidaSeleccionada.id;
+
+    this.despachosService.actualizarFechaSalida(ordenSalidaId, this.fechaSalidaEditada).subscribe({
+      next: (response: any) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: response.message || 'Fecha de salida actualizada correctamente.'
+        });
+        this.mostrarDialogFechaSalida = false;
+        this.ordenSalidaSeleccionada = null;
+        this.buscar(); // Recargar la lista
+      },
+      error: (error) => {
+        console.error('Error al actualizar fecha de salida:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error?.error?.message || error?.message || 'Error al actualizar la fecha de salida.'
+        });
+        
+      },
+      complete: () => {
+      
+      }
+    });
+  }
+
+  cancelarEditarFechaSalida(): void {
+    this.mostrarDialogFechaSalida = false;
+    this.ordenSalidaSeleccionada = null;
+    this.fechaSalidaEditada = new Date();
   }
 
 

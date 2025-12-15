@@ -59,37 +59,34 @@ ListarEquiposTransporte(
       headers: httpOptions.headers 
     });
   }
-// GetTarifario(idCliente: number): Observable<tarifario[]> {
-//   return this._httpClient.get<tarifario[]>(`${this.baseUrlTarifario}listar-por-cliente/${idCliente}`);
-// }
 
-// guardarTarifa(tarifa: any): Observable<any> {
-//   return this._httpClient.post<any>(`${this.baseUrlTarifario}agregar`, tarifa).pipe(
-//     catchError(err => {
-//       console.error('Error desde el servicio:', err);
-//       return throwError(() => err);
-//     })
-//   );
-// }
 
-// getTarifaById(id: number): Observable<any> {
-//   return this._httpClient.get<any>(`${this.baseUrlTarifario}GetTarifaById/${id}`);
-// }
 
-// actualizarTarifa(id: number, tarifa: any): Observable<any> {
-//   return this._httpClient.put<any>(`${this.baseUrlTarifario}editar/${id}`, tarifa);
-// }
+// generación de un pallet o mas, en base a la huella seleccionada
+identificar_detalle(model: any) {
+  return this._httpClient.post(this.baseUrl + 'identify_detail', model, httpOptions)
+  .pipe(
+    map((response: any) => {
+      }
+   ));
+}
 
-// eliminarTarifa(id: number): Observable<any> {
-//   return this._httpClient.delete(`${this.baseUrlTarifario}eliminar/${id}`);
-// }
+
+
 
   identificar_detallemultiple(model: InventarioGeneral[], sobredimensiado?: string): Observable<any> {
     if (sobredimensiado === undefined) {
       sobredimensiado = '';
     }
 
+
+    
+    if (!model || model.length === 0) {
+      console.error('ERROR: El modelo recibido está vacío o es null/undefined');
+    }
+
     const body = JSON.stringify(model);
+
 
     return this._httpClient.post(this.baseUrl + 'identify_detail_mix?sobredimensionado=' + sobredimensiado, body, httpOptions)
       .pipe(

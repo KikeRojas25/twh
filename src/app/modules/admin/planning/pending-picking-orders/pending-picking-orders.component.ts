@@ -147,7 +147,11 @@ export class PendingPickingOrdersComponent implements OnInit {
 
   buscar() {
     if (!this.model.PropietarioId || !this.model.AlmacenId) {
-      alert('Debe seleccionar un propietario y un almacén.');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar un propietario y un almacén.'
+      });
       return;
     }
 
@@ -185,7 +189,7 @@ export class PendingPickingOrdersComponent implements OnInit {
 
   comprobar() {
     if (this.ordeneseleccionadas.length === 0) {
-      alert('Debe seleccionar al menos una orden de salida.');
+      
       return;
     }
     console.log('Comprobando stock para las órdenes seleccionadas:', this.ordeneseleccionadas);
@@ -279,7 +283,11 @@ export class PendingPickingOrdersComponent implements OnInit {
 
   planificarMasivo() {
     if (this.ordeneseleccionadas.length === 0) {
-      alert('Debe seleccionar al menos una orden de salida.');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Debe seleccionar al menos una orden de salida.'
+      });
       return;
     }
     console.log('Planificando masivamente las órdenes seleccionadas:', this.ordeneseleccionadas);

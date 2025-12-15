@@ -44,8 +44,7 @@ getAllOrdenSalidaPendientes(model: any): Observable<OrdenSalida[]> {
   }
    const params = '?PropietarioID=' + model.PropietarioId +
    '&AlmacenId=' + model.AlmacenId ;
-    '&fec_ini='  +
-    '&fec_fin='  ;
+
  
    return this.http.get<OrdenSalida[]>(this.baseUrl + 'GetAllOrderPendiente' + params, httpOptions);
  }

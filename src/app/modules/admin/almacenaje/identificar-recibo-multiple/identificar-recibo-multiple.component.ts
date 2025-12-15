@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
+import { Table } from 'primeng/table';
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -20,7 +21,7 @@ import { ProductoService } from '../../_services/producto.service';
 import { GeneralService } from '../../_services/general.service';
 import { AlmacenajeService } from '../almacenaje.service';
 import { OrdenRecibo, OrdenReciboDetalle } from '../../recepcion/recepcion.types';
-import { InventarioGeneral } from '../../_models/inventariogeneral';
+import { InventarioGeneral, InventarioDetalle } from '../../_models/inventariogeneral';
 
 @Component({
   selector: 'app-identificar-recibo-multiple',
@@ -48,23 +49,32 @@ import { InventarioGeneral } from '../../_models/inventariogeneral';
   styleUrls: ['./identificar-recibo-multiple.component.css']
 })
 export class IdentificarReciboMultipleComponent implements OnInit {
-  
-  id: number = 0;
+  @ViewChild('productserie') searchElement!: ElementRef;
+  @ViewChild('dis') input!: ElementRef;
+  @ViewChild('tablaOrdenDetalles') tablaOrdenDetalles!: Table;
+
+  id: any = 0;
   equipoTransporteId: number = 0;
   orden: OrdenRecibo | null = null;
   ordenDetalles: OrdenReciboDetalle[] = [];
+  selectedOrdenDetalle: OrdenReciboDetalle | null = null;
   loading = false;
-  
+
+  modeldetail: any = {};
+  model: any = {};
+
   // Formulario
   modelDetail: any = {};
-  addInventario: Partial<InventarioGeneral>[] = [];
+  addInventario: InventarioGeneral[] = [];
   inventario: InventarioGeneral[] = [];
+  inventarioDetalles: InventarioDetalle[] = [];
+  inventarioDetalle: InventarioDetalle = {};
   huellas: SelectItem[] = [];
   huellaDetalle: SelectItem[] = [];
   estados: SelectItem[] = [];
   nivel: SelectItem[] = [];
   sobredimensionado: boolean = false;
-  
+
   es: any;
   
   colsDetalles = [
@@ -94,6 +104,13 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     { header: '#Scaneados', field: 'scanQty', width: '70px' },
   ];
 
+  cols4 = [
+    { header: 'ACC', field: 'numOrden', width: '40px' },
+    { header: 'PRODUCT ID', field: 'lodNum', width: '150px' },
+    { header: 'MAC', field: 'descripcionLarga', width: '150px' },
+    { header: 'SERIE', field: 'ubicacion', width: '180px' }
+  ];
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
@@ -103,7 +120,8 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     private generalService: GeneralService,
     private almacenajeService: AlmacenajeService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit(): void {
@@ -114,6 +132,7 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     this.cargarEstados();
     this.cargarNiveles();
     this.cargarOrden();
+    
   }
 
   configurarCalendario(): void {
@@ -170,9 +189,31 @@ export class IdentificarReciboMultipleComponent implements OnInit {
   }
 
   identificar(event: any): void {
-    const detalleId = event.data?.id;
+    const detalleSeleccionado: OrdenReciboDetalle = event.data;
+    
+    if (!detalleSeleccionado) {
+      console.warn('No se proporcionó un detalle válido');
+      return;
+    }
+
+    // Verificar si la línea ya está completa (entregada)
+    if (this.estaCompleto(detalleSeleccionado)) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Información',
+        detail: 'Esta línea ya ha sido completada. El formulario se ha limpiado.'
+      });
+      
+      // Limpiar el Paso 2 y deseleccionar
+      this.limpiarPaso2();
+      this.deseleccionarPaso1();
+      return;
+    }
+
+    const detalleId = detalleSeleccionado.id;
     if (!detalleId) {
       console.warn('No se proporcionó un ID de detalle válido');
+      this.limpiarPaso2();
       return;
     }
     
@@ -186,15 +227,20 @@ export class IdentificarReciboMultipleComponent implements OnInit {
             summary: 'Advertencia',
             detail: 'No se recibió información del detalle.'
           });
+          this.limpiarPaso2();
           return;
         }
 
+        console.log('resp:', resp);
+
         this.modelDetail = { ...resp };
         this.modelDetail.untQty = resp.cantidad || 0;
-        this.modelDetail.LotNum = resp.Lote || '';
+        this.modelDetail.LotNum = resp.lote || '';
         this.modelDetail.codigo = (resp as any).codigo || '';
         this.modelDetail.producto = resp.producto || '';
         this.modelDetail.linea = resp.linea || '';
+
+      
         
         // Asignar estadoId - usar setTimeout para asegurar que los estados estén cargados
         setTimeout(() => {
@@ -336,7 +382,7 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     console.log('Total de productos existentes:', total);
     console.log('addInventario antes de agregar:', this.addInventario.length);
     
-    const nuevoItem = {
+    const nuevoItem: InventarioGeneral = {
       productoId: this.modelDetail.productoId,
       untQty: this.modelDetail.untQty,
       descripcionLarga: this.modelDetail.producto,
@@ -352,7 +398,39 @@ export class IdentificarReciboMultipleComponent implements OnInit {
       fechaManufactura: this.modelDetail.fechaManufactura,
       fechaExpire: this.modelDetail.fechaExpire,
       referencia: this.modelDetail.referencia,
-      peso: this.modelDetail.peso
+      peso: this.modelDetail.peso,
+      // Propiedades obligatorias con valores por defecto
+      cliente: this.orden?.propietario || '',
+      codigoTWH: null,
+      fechaProduccion: this.modelDetail.fechaManufactura ? (this.modelDetail.fechaManufactura instanceof Date ? this.modelDetail.fechaManufactura.toISOString() : String(this.modelDetail.fechaManufactura)) : '',
+      cantidadSeparada: 0,
+      stockDisponible: 0,
+      unidadAlmacenamiento: null,
+      fechaEsperada: this.orden?.fechaEsperada ? (this.orden.fechaEsperada instanceof Date ? this.orden.fechaEsperada.toISOString() : String(this.orden.fechaEsperada)) : '',
+      transportista: this.orden?.equipotransporte || '',
+      placa: '',
+      pesoProducto: this.modelDetail.peso || 0,
+      chofer: '',
+      unidadMedida: '',
+      guiaRemision: this.orden?.guiaRemision || '',
+      tipoIngreso: '',
+      tipoMerma: null,
+      motivoMerma: null,
+      areaMerma: null,
+      oc: '',
+      fechaRegistroMerma: '',
+      razonSocial: this.orden?.propietario || '',
+      destino: null,
+      grupo: null,
+      canal: null,
+      proveedor: null,
+      tipoUbicacion: '',
+      volumen: 0,
+      bultos: 0,
+      pesoGuia: 0,
+      contar: 0,
+      bolsa: 0,
+      observacion: ''
     };
     
     console.log('Nuevo item a agregar:', nuevoItem);
@@ -458,10 +536,53 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     
     console.log('Llamando a almacenajeService.identificar_detallemultiple...');
     console.log('Parámetros:');
-    console.log('  - addInventario:', this.addInventario);
+    console.log('  - addInventario ANTES de copiar:', JSON.stringify(this.addInventario, null, 2));
+    console.log('  - addInventario.length:', this.addInventario.length);
+    console.log('  - addInventario === null/undefined?:', this.addInventario === null || this.addInventario === undefined);
     console.log('  - sobredimensionadoId:', sobredimensionadoId?.toString());
     
-    this.almacenajeService.identificar_detallemultiple(this.addInventario as any, sobredimensionadoId?.toString()).subscribe({
+    // Verificar que el array tenga elementos antes de continuar
+    if (!this.addInventario || this.addInventario.length === 0) {
+      console.error('ERROR CRÍTICO: addInventario está vacío o es null/undefined antes de crear copia');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No hay items para generar el pallet. Agregue items primero usando el botón "Agregar".'
+      });
+      this.loading = false;
+      return;
+    }
+    
+    // Crear una copia profunda del array para evitar problemas de referencia
+    let addInventarioCopia: InventarioGeneral[];
+    try {
+      addInventarioCopia = JSON.parse(JSON.stringify(this.addInventario)) as InventarioGeneral[];
+      console.log('  - addInventario DESPUÉS de copiar:', JSON.stringify(addInventarioCopia, null, 2));
+      console.log('  - addInventarioCopia.length:', addInventarioCopia.length);
+      console.log('  - addInventarioCopia es array?:', Array.isArray(addInventarioCopia));
+    } catch (error) {
+      console.error('ERROR al crear copia del array:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al preparar los datos para enviar. Intente nuevamente.'
+      });
+      this.loading = false;
+      return;
+    }
+    
+    if (!addInventarioCopia || addInventarioCopia.length === 0) {
+      console.error('ERROR: addInventario está vacío al momento de enviar');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No hay items para generar el pallet. El array está vacío.'
+      });
+      this.loading = false;
+      return;
+    }
+    
+    this.almacenajeService.identificar_detallemultiple(addInventarioCopia as any, sobredimensionadoId?.toString()).subscribe({
       next: (response) => {
         console.log('=== GENERAR PALLET ÉXITO ===');
         console.log('Respuesta del servidor:', response);
@@ -513,23 +634,154 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     });
   }
 
-  generarPallets(): void {
+
+  generarPalletsAutomatico(): void {
+    // Validación inicial
+
+
+    if (!this.modelDetail.productoId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Debe seleccionar una línea de orden primero.'
+      });
+      return;
+    }
+
+    // Mostrar diálogo de confirmación y luego ejecutar directamente
+    this.confirmationService.confirm({
+      message: '¿Está seguro de generar los pallets automáticamente?',
+      header: 'Confirmar',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        // Ejecutar directamente la generación llamando a identificar_detallemultiple
+        this.ejecutarGeneracionPalletsAutomatico();
+      }
+    });
+  }
+
+  private ejecutarGeneracionPalletsAutomatico(): void {
+    // Validar que se haya seleccionado un detalle de orden
+    if (!this.modelDetail || !this.modelDetail.productoId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Debe seleccionar una línea de orden primero.'
+      });
+      return;
+    }
+
+    // Validar que el ID de la orden esté disponible
+    if (!this.id) {
+      this.id = this.activatedRoute.snapshot.params['id'] || this.activatedRoute.snapshot.params['uid'];
+      if (!this.id) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo obtener el ID de la orden. Recargue la página.'
+        });
+        return;
+      }
+    }
+
     this.loading = true;
-    this.recepcionService.identificar_detalle(this.modelDetail).subscribe({
-      next: () => {
+    
+    // Usar modelDetail en lugar de modeldetail para consistencia
+    this.almacenajeService.identificar_detalle(this.modelDetail).subscribe({
+      next: (response) => {
+        console.log('Pallets generados automáticamente:', response);
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
-          detail: 'Pallets generados correctamente.'
+          detail: 'Los pallets se generaron automáticamente correctamente.'
         });
-        this.modelDetail = {};
-        this.cargarOrden();
+        
+        // Limpiar paso 2 y deseleccionar paso 1
+        this.limpiarPaso2();
+        this.deseleccionarPaso1();
+        
+        // Recargar la orden después del éxito
+        this.recargarOrden();
       },
       error: (err) => {
-        console.error('Error:', err);
+        console.error('Error al generar pallets automáticamente:', err);
+        
+        // Extraer mensaje de error específico si está disponible
+        let mensajeError = 'No se pudieron generar los pallets automáticamente.';
+        if (err?.error) {
+          if (typeof err.error === 'string') {
+            mensajeError = err.error;
+          } else if (err.error?.message) {
+            mensajeError = err.error.message;
+          } else if (err.error?.error) {
+            mensajeError = err.error.error;
+          }
+        } else if (err?.message) {
+          mensajeError = err.message;
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: mensajeError
+        });
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Método auxiliar para recargar la orden después de operaciones exitosas
+   */
+  private recargarOrden(): void {
+    if (!this.id) {
+      this.id = this.activatedRoute.snapshot.params['id'] || this.activatedRoute.snapshot.params['uid'];
+    }
+    
+    if (!this.id) {
+      console.error('No se pudo obtener el ID de la orden para recargar');
+      this.loading = false;
+      return;
+    }
+
+    this.recepcionService.obtenerOrden(this.id).subscribe({
+      next: (resp) => {
+        this.orden = resp;
+        this.ordenDetalles = resp.detalles || [];
+        this.mostrarInventario();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error al recargar la orden:', err);
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Advertencia',
+          detail: 'Los pallets se generaron, pero no se pudo recargar la orden. Recargue la página manualmente.'
+        });
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Limpia el formulario del Paso 2 (modelDetail y campos relacionados)
+   */
+  private limpiarPaso2(): void {
+    this.modelDetail = {};
+    this.huellas = [];
+    this.huellaDetalle = [];
+    this.sobredimensionado = false;
+  }
+
+  /**
+   * Deselecciona la fila seleccionada en el Paso 1 (tabla de líneas de orden)
+   */
+  private deseleccionarPaso1(): void {
+    // Deseleccionar usando la propiedad de binding (esto actualiza la UI automáticamente)
+    this.selectedOrdenDetalle = null;
+    
+    // Forzar detección de cambios para asegurar que la UI se actualice
+    // La deselección se hará automáticamente por el binding bidireccional [(selection)]
   }
 
   agregarFaltantes(): void {
@@ -596,7 +848,7 @@ export class IdentificarReciboMultipleComponent implements OnInit {
 
   mostrarInventario(): void {
     if (!this.id) return;
-    this.inventarioService.GetAllInventario(this.id).subscribe(resp => {
+    this.inventarioService.GetAllInventarioByOrdenReciboId(this.id).subscribe(resp => {
       this.inventario = resp;
     });
   }
@@ -624,6 +876,181 @@ export class IdentificarReciboMultipleComponent implements OnInit {
 
   getCodigo(row: any): string {
     return row.codigo || (row as any).codigo || '-';
+  }
+
+  // Método para generar pallets por pedido
+  generarPalletsPorPedido(): void {
+    this.loading = true;
+    this.recepcionService.identificar_detallePorPedido(this.modelDetail).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Pallets generados por pedido correctamente.'
+        });
+        this.modelDetail = {};
+        this.addInventario = [];
+        this.cargarOrden();
+      },
+      error: (err) => {
+        console.error('Error:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron generar los pallets por pedido.'
+        });
+        this.loading = false;
+      }
+    });
+  }
+
+  // Método para registrar detalles de inventario (escaneo de serie)
+  registrarDetalle(id: number): void {
+    this.inventarioDetalle = {} as InventarioDetalle;
+    this.inventarioDetalle.inventarioId = id;
+
+    if (this.searchElement) {
+      this.searchElement.nativeElement.focus();
+    }
+
+    this.inventarioService.GetAllInventarioDetalle(id).subscribe(resp => {
+      this.inventarioDetalles = resp;
+    });
+  }
+
+  // Método para registrar código de producto escaneado
+  registerProduct(): void {
+    this.inventarioDetalle.codigoProducto = this.model.productserie;
+  }
+
+  // Método para registrar código MAC escaneado
+  registerMac(): void {
+    this.inventarioDetalle.codigoMac = this.model.macserie;
+  }
+
+  // Método para registrar código de serie escaneado
+  registerSerie(): void {
+    this.inventarioDetalle.codigoSerie = this.model.serie;
+
+    if (!this.inventarioDetalle.codigoMac) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se escaneó correctamente el código MAC.'
+      });
+      return;
+    }
+    if (!this.inventarioDetalle.codigoProducto) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se escaneó correctamente el código de producto.'
+      });
+      return;
+    }
+    if (!this.inventarioDetalle.codigoSerie) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se escaneó correctamente el código de serie.'
+      });
+      return;
+    }
+
+    const inven = this.inventario.find(x => x.id === this.inventarioDetalle.inventarioId);
+    if (inven) {
+      this.inventarioDetalle.productoId = inven.productoId;
+    }
+
+    this.model = {};
+    if (this.searchElement) {
+      this.searchElement.nativeElement.focus();
+    }
+
+    this.inventarioService.registrar_inventariodetalle(this.inventarioDetalle).subscribe({
+      next: (resp) => {
+        if (resp === false) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'El código de producto ya existe.'
+          });
+        } else {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Se escaneó con éxito.'
+          });
+        }
+
+        if (this.inventarioDetalle.inventarioId) {
+          this.inventarioService.GetAllInventarioDetalle(this.inventarioDetalle.inventarioId).subscribe(resp1 => {
+            this.inventarioDetalles = resp1;
+            this.mostrarInventario();
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo registrar el detalle de inventario.'
+        });
+      }
+    });
+  }
+
+  // Método para eliminar detalle de inventario
+  eliminarDetalle(id: number): void {
+    this.confirmationService.confirm({
+      message: '¿Está seguro de eliminar este detalle?',
+      header: 'Confirmar',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.inventarioService.delInventarioDetall(id).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Se eliminó con éxito.'
+            });
+            if (this.searchElement) {
+              this.searchElement.nativeElement.focus();
+            }
+            if (this.inventarioDetalle.inventarioId) {
+              this.inventarioService.GetAllInventarioDetalle(this.inventarioDetalle.inventarioId).subscribe(resp => {
+                this.inventarioDetalles = resp;
+                this.mostrarInventario();
+              });
+            }
+          },
+          error: (err) => {
+            console.error('Error:', err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo eliminar el detalle.'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  // Método para generar etiquetas
+  generarEtiquetas(): void {
+    const url = `http://104.36.166.65/reptwh/impresionEtiquetas_twh.aspx?orden=${this.id}`;
+    window.open(url);
+  }
+
+  // Método de validación para solo permitir números
+  numberOnly(event: any): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
   }
 }
 

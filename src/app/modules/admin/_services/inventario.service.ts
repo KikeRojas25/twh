@@ -129,6 +129,25 @@ terminar_acomodo(Id: number) {
       ));
  }
 
+
+ asignarYTerminarAcomodo(inventario: InventarioGeneral[], ordenReciboId: number) {
+  const body = {
+    inventario: inventario,
+    ordenReciboId: ordenReciboId
+  };
+
+  return this.http.post(this.baseUrl + 'asignar_y_terminar_acomodo', body, httpOptions)
+    .pipe(
+      map((response: any) => {
+        return response;
+      })
+    );
+}
+
+
+
+
+
 almacenamiento(Id: number) {
   const model: any = {};
   model.Id = Id;
@@ -139,24 +158,24 @@ almacenamiento(Id: number) {
         }
       ));
 }
-almacenamientoMasivo(Id: any) {
-  const model: any = {};
-  model.Id = Id;
-
-  return this.http.post(this.baseUrl + 'almacenamientomasivo', model, httpOptions)
-      .pipe(
-        map((response: any) => {
-        }
-      ));
+almacenamientoMasivo(ordenReciboId: string) {
+  return this.http.post(
+    `${this.baseUrl}almacenamientomasivo`, 
+    `"${ordenReciboId}"`, // GUID serializado como string JSON
+    httpOptions
+  ).pipe(
+    map((response: any) => {
+      return response;
+    })
+  );
 }
-
 getAll(OrdenReciboID: number): Observable<InventarioGeneral[]> {
     const params = 'Id=' + OrdenReciboID ;
     return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetAll?' + params, httpOptions);
 }
 GetAllInventario(OrdenReciboId: any): Observable<InventarioGeneral[]> {
   const params = 'OrdenReciboId=' + OrdenReciboId ;
-  return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetAllInventario?' + params, httpOptions);
+  return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetInventarioGeneral?' + params, httpOptions);
 }
 GetInventario(id: number): Observable<InventarioGeneral> {
   const params = 'id=' + id ;
@@ -173,6 +192,15 @@ GetAllInventario2(model: any ): Observable<InventarioGeneral[]> {
   const params = 'idalmacen=' + model.AlmacenId + '&idproducto= ' + model.ProductoId + '&lote=' + model.lote ;
   return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetAllInventario2?' + params, httpOptions);
 }
+
+
+GetAllInventarioByOrdenReciboId(Id: any ): Observable<InventarioGeneral[]> {
+  const params = 'OrdenReciboId=' + Id ;
+  return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetInventarioGeneralByOrdenReciboId?' + params, httpOptions);
+}
+
+
+
 GetReporteUbicaciones(model: any): Observable<InventarioGeneral[]> {
   const params = 'idalmacen=' + model.AlmacenId + '&ubicacion=' + model.ubicacion + '&idarea=' + model.areaId ;
   return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetReporteUbicaciones?' + params, httpOptions);
@@ -336,12 +364,12 @@ procesarCarga_Inventario(Id: number, PropietarioId: number, ) : any {
 
 
   proponerAjuste(data: InventarioForEdit): Observable<any> {
-    return this.http.post(`${this.baseUrl}proponer-ajuste`, data);
+    return this.http.post(`${this.baseUrl}proponer-ajuste`, data, httpOptions);
   }
 
 
   actualizarFechaLote(data: any): Observable<any> {
-  return this.http.post(`${this.baseUrl}actualizarfechalote`, data);
+  return this.http.post(`${this.baseUrl}actualizarfechalote`, data, httpOptions);
 }
 
 

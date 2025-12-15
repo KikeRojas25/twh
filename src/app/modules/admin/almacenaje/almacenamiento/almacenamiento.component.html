@@ -1,0 +1,125 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <div>
+          <a [routerLink]="['/recibo/listaordenrecibida', this.EquipoTransporteId]" 
+             class="whitespace-nowrap text-gray-700 hover:text-gray-900 cursor-pointer">
+            Equipos de Transporte
+          </a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <span class="ml-1 text-gray-700">Almacenamiento</span>
+        </div>
+      </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Almacenamiento
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-6">
+    <!-- Toolbar -->
+    <div class="mb-6">
+      <div class="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="flex justify-end space-x-3">
+          <p-button 
+            (click)="regresar()" 
+            label="Regresar"
+            icon="pi pi-arrow-left"
+            severity="secondary">
+          </p-button>
+          <p-button 
+            (click)="masivo()" 
+            label="Ingreso Masivo"
+            icon="pi pi-check"
+            severity="warning">
+          </p-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="bg-gray-50 border-b border-gray-200 px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-gray-800 font-semibold">Inventario de la Orden de Recibo</h3>
+            <p class="text-sm text-gray-600 mt-1">Detalle del inventario</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <p-table 
+          [value]="inventarios" 
+          [paginator]="true" 
+          [rows]="100"
+          [rowsPerPageOptions]="[100, 200, 500, 1000]"
+          [responsive]="true"
+          [scrollable]="true"
+          styleClass="p-datatable-sm"
+          #dt
+          [globalFilterFields]="['lodNum', 'descripcionLarga', 'ubicacion', 'ubicacionUltima']">
+          
+          <ng-template pTemplate="caption">
+            <div class="flex justify-end">
+              <span class="p-input-icon-left">
+                <i class="pi pi-search"></i>
+                <input 
+                  pInputText 
+                  type="text" 
+                  (input)="dt.filterGlobal($event.target.value, 'contains')"
+                  placeholder="Buscar..." 
+                  class="p-inputtext p-component" />
+              </span>
+            </div>
+          </ng-template>
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="text-left">LPN</th>
+              <th class="text-left">Producto</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-left">Ubicación</th>
+              <th class="text-left">Ubicación Destino</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-inventario>
+            <tr>
+              <td class="font-medium text-gray-900">{{ inventario.lodNum }}</td>
+              <td class="text-gray-700">{{ inventario.descripcionLarga }}</td>
+              <td class="text-center font-semibold text-blue-700">{{ inventario.untQty }}</td>
+              <td class="text-gray-700">{{ inventario.ubicacion }}</td>
+              <td class="text-gray-700">{{ inventario.ubicacionProxima }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center py-8">
+                <div class="flex flex-col items-center justify-center">
+                  <i class="pi pi-inbox text-4xl text-gray-400 mb-2"></i>
+                  <p class="text-gray-600 font-medium">No se encontraron registros</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <p-confirmDialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmDialog>
+  
+  <!-- Toast -->
+  <p-toast></p-toast>
+</div>
+

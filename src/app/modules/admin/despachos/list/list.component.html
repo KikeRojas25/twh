@@ -203,6 +203,16 @@
                   [size]="small"
                   [raised]="true"
                 ></p-button>
+
+                <p-button
+                  severity="info"
+                  icon="fa fa-calendar"
+                  (click)="editarFechaSalida(rowData)"
+                  [size]="small"
+                  [raised]="true"
+                  pTooltip="Editar fecha de salida"
+                  tooltipPosition="top"
+                ></p-button>
               </div>
             </td>
 
@@ -324,6 +334,59 @@
         iconPos="left"
         (click)="detalleOCModal = false">
       </button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Dialog para editar fecha de salida -->
+  <p-dialog
+    header="Editar Fecha de Salida"
+    [(visible)]="mostrarDialogFechaSalida"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    styleClass="p-fluid"
+  >
+    <ng-template pTemplate="content">
+      <div class="flex flex-col gap-4 py-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Orden de Salida: <strong>{{ ordenSalidaSeleccionada?.numOrden }}</strong>
+          </label>
+        </div>
+        
+        <div class="flex flex-col">
+          <label for="fechaSalida" class="block text-sm font-medium text-gray-700 mb-2">
+            Fecha de Salida <span class="text-red-500">*</span>
+          </label>
+          <p-calendar
+            id="fechaSalida"
+            [(ngModel)]="fechaSalidaEditada"
+            [locale]="es"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            appendTo="body"
+            styleClass="w-full"
+            [styleClass]="'text-sm border-gray-300'"
+          ></p-calendar>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="cancelarEditarFechaSalida()"
+          [disabled]="loading"
+        ></p-button>
+        <p-button
+          label="Guardar"
+          icon="pi pi-check"
+          (onClick)="guardarFechaSalida()"
+          [loading]="loading"
+        ></p-button>
+      </div>
     </ng-template>
   </p-dialog>
 

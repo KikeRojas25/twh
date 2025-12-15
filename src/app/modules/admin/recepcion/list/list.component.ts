@@ -19,6 +19,7 @@ import { RecepcionService } from '../recepcion.service';
 import { GeneralService } from '../../_services/general.service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { NewComponent } from '../new/new.component';
 import { NewdetailsComponent } from '../newdetails/newdetails.component';
 import { AsignarPlacaRecepcionComponent } from '../asignar-placa/asignar-placa-recepcion.component';
@@ -45,6 +46,7 @@ import { PropietarioService } from '../../_services/propietario.service';
     ToastModule,
     CalendarModule,
     ConfirmDialogModule,
+    TooltipModule,
     MatIcon
   ],
   providers: [
@@ -98,6 +100,7 @@ tipoingreso: SelectItem[] = [];
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
   supervisor = false;
+  esAdministrador = false;
 
   constructor(private ordenreciboService: RecepcionService,
               private router: Router,
@@ -124,6 +127,29 @@ tipoingreso: SelectItem[] = [];
 
     const supervisorIds = ['95', '30','126']; 
     this.supervisor = supervisorIds.includes(this.decodedToken.nameid);
+
+    // Verificar si el usuario es administrador
+    // Buscar el rol en diferentes propiedades comunes del token JWT
+    const roles = this.decodedToken.role || 
+                  this.decodedToken.roles || 
+                  this.decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+                  this.decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'];
+    
+    if (Array.isArray(roles)) {
+      this.esAdministrador = roles.some((r: string) => 
+        r.toLowerCase().includes('admin') || r.toLowerCase().includes('administrador')
+      );
+    } else if (typeof roles === 'string') {
+      this.esAdministrador = roles.toLowerCase().includes('admin') || 
+                             roles.toLowerCase().includes('administrador');
+    }
+    
+    // Si no se encuentra en el token, verificar por IDs específicos (similar a supervisor)
+    // Puedes agregar IDs de administradores aquí si es necesario
+    // const adminIds = ['1', '2']; // Ejemplo
+    // if (!this.esAdministrador) {
+    //   this.esAdministrador = adminIds.includes(this.decodedToken.nameid);
+    // }
 
 
     const almacenGuardado = localStorage.getItem('almacen');
@@ -339,6 +365,27 @@ update() {
    });
    }
    edit(id){
+    // Buscar la orden para verificar el estado
+    const orden = this.ordenes.find(o => o.ordenReciboId === id);
+    
+    if (!orden) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se encontró la orden de recibo.'
+      });
+      return;
+    }
+
+    // Validar si se puede editar
+    if (!this.puedeEditar(orden)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Solo se puede editar órdenes en estado Planificado o si eres administrador.'
+      });
+      return;
+    }
 
     // this.mostrarEdicionMasiva  = true;
 
@@ -409,6 +456,27 @@ update() {
 
    }
    delete(id){
+    // Buscar la orden para verificar el estado
+    const orden = this.ordenes.find(o => o.ordenReciboId === id);
+    
+    if (!orden) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se encontró la orden de recibo.'
+      });
+      return;
+    }
+
+    // Validar si se puede eliminar
+    if (!this.puedeEliminar(orden)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Solo se puede eliminar órdenes en estado Planificado o si eres administrador.'
+      });
+      return;
+    }
 
 
     this.confirmationService.confirm({
@@ -494,6 +562,24 @@ update() {
    editarordenes() {
     this.mostrarEdicionMasiva  = true;
    }
+
+  /**
+   * Verifica si se puede editar una orden
+   * Solo se puede editar si el estado es "Planificado" (4) o si el usuario es administrador
+   */
+  puedeEditar(orden: OrdenRecibo): boolean {
+    const estadoPlanificado = 4;
+    return orden.estadoID === estadoPlanificado || this.esAdministrador;
+  }
+
+  /**
+   * Verifica si se puede eliminar una orden
+   * Solo se puede eliminar si el estado es "Planificado" (4) o si el usuario es administrador
+   */
+  puedeEliminar(orden: OrdenRecibo): boolean {
+    const estadoPlanificado = 4;
+    return orden.estadoID === estadoPlanificado || this.esAdministrador;
+  }
 
 
 }

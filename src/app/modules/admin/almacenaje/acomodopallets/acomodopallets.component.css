@@ -1,0 +1,415 @@
+/* Clearfix utility */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Draggable list items */
+li[class*="clearfix"] {
+  list-style-type: none;
+}
+
+/* Estilos mejorados para las tarjetas de paletas - Diseño compacto */
+.pallet-card {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  min-height: 75px;
+}
+
+.pallet-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+}
+
+.pallet-card:active {
+  transform: scale(0.99);
+}
+
+/* Estilo especial para "Todas los Pallets" - Color más oscuro y distintivo */
+.pallet-card-all {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+  border-color: #030712 !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.pallet-card-all .text-gray-900 {
+  color: #f9fafb !important;
+}
+
+.pallet-card-all .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+.pallet-card-all .text-gray-500 {
+  color: #d1d5db !important;
+}
+
+.pallet-card-all .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.pallet-card-all .text-blue-600 {
+  color: #93c5fd !important;
+}
+
+.pallet-card-all .text-indigo-600 {
+  color: #a5b4fc !important;
+}
+
+.pallet-card-all .text-indigo-800 {
+  color: #c7d2fe !important;
+}
+
+.pallet-card-all .bg-indigo-100 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.pallet-card-all .bg-purple-100 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.pallet-card-all .border-blue-200 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.pallet-card-all:hover {
+  border-color: #374151 !important;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
+}
+
+/* Efecto de arrastre */
+.pallet-card[pdraggable]:hover {
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* Efecto de brillo animado */
+.pallet-shine {
+  pointer-events: none;
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.pallet-card:hover .pallet-shine {
+  transform: translateX(100%);
+  opacity: 0.3;
+  transition: transform 0.6s, opacity 0.3s;
+}
+
+/* Efecto cuando se está arrastrando */
+.pallet-card.dragging {
+  opacity: 0.5;
+  transform: rotate(5deg) scale(0.95);
+}
+
+/* Estilos para el estado especial "Todas los Pallets" */
+.pallet-card:has([class*="Todas"]) {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-color: #d97706;
+}
+
+.pallet-card:has([class*="Todas"]) .text-gray-900 {
+  color: #1f2937;
+}
+
+.pallet-card:has([class*="Todas"]) .text-gray-500 {
+  color: #374151;
+}
+
+/* Mejora de scrollbar para el contenedor de paletas */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pallet-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Active and Inactive states for boxes - Diseño mejorado de racks */
+.active1 {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: not-allowed;
+  font-weight: 600;
+  font-size: 0.813rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1.5px solid #374151;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.active1::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.active1:hover::before {
+  left: 100%;
+}
+
+.inactive {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.813rem;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3), 0 2px 4px rgba(37, 99, 235, 0.2);
+  border: 1.5px solid #1e40af;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inactive::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.inactive:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px rgba(37, 99, 235, 0.4), 0 4px 6px rgba(37, 99, 235, 0.3);
+  border-color: #1e3a8a;
+}
+
+.inactive:hover::after {
+  width: 200px;
+  height: 200px;
+}
+
+.inactive:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+/* Efecto cuando se arrastra sobre el droppable */
+.inactive.p-droppable-drag-over {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #047857;
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.5), 0 0 0 3px rgba(16, 185, 129, 0.3);
+  transform: scale(1.05);
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.5), 0 0 0 3px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.7), 0 0 0 5px rgba(16, 185, 129, 0.5);
+  }
+}
+
+.box {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  text-align: center;
+  border-radius: 6px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mejoras adicionales para el grid de racks */
+.box span {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+}
+
+/* Efecto de profundidad en los racks */
+.active1,
+.inactive {
+  position: relative;
+}
+
+.active1::after,
+.inactive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* Mejora visual para el estado parcial si existe */
+.box[class*="parcial"] {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #b45309;
+  box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+}
+
+/* Tooltip visual para racks ocupados */
+.active1:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .inactive,
+  .active1 {
+    font-size: 0.75rem;
+    padding-top: 0.75em;
+    padding-bottom: 0.75em;
+    min-height: 50px;
+  }
+}
+
+.box-stretched {
+  height: 100%;
+}
+
+/* PrimeNG Toolbar styling */
+:host ::ng-deep .ui-toolbar {
+  background-color: white !important;
+  border: 0px !important;
+}
+
+:host ::ng-deep button {
+  margin-right: 0.25em;
+}
+
+:host ::ng-deep .ui-splitbutton {
+  margin-left: 0.25em;
+}
+
+:host ::ng-deep .ui-splitbutton button {
+  margin-right: 0;
+}
+
+/* Form field styling */
+.input-form-field {
+  width: 100%;
+  padding: 1px 1px;
+  border-radius: 1px;
+}
+
+.input-form-field div.mat-form-field-underline {
+  display: none;
+}
+
+.input-form-field div.mat-form-field-infix {
+  border-top: 5px;
+}
+
+.input-form-field div.mat-form-field-wrapper {
+  padding-bottom: 5px;
+}
+
+.input-form-field div.mat-form-field-suffix button {
+  height: 32px;
+  width: 32px;
+}
+
+/* Calendar/Datepicker positioning */
+.ui-datepicker {
+  top: 129px !important;
+}
+
+/* Material button overrides */
+.mat-fab.mat-primary,
+.mat-flat-button.mat-primary,
+.mat-mini-fab.mat-primary,
+.mat-raised-button.mat-primary {
+  position: absolute !important;
+  top: 40px !important;
+  left: -30px !important;
+  z-index: 1000 !important;
+  background: #fdd835 !important;
+  color: #000000 !important;
+}
+
+/* Table styling */
+th,
+td {
+  text-align: left;
+  font-size: 0.90em;
+  height: 5px;
+}
+
+.old-car {
+  background-color: #1ca979 !important;
+  color: #ffffff !important;
+}
+
+.very-old-car {
+  background-color: #f12a2a !important;
+  color: #ffffff !important;
+}
+
+.wrapper-div {
+  display: flex;
+  align-items: center;
+}
+
+.example-button-row button,
+.example-button-row a {
+  margin-right: 8px;
+}
+
+.highlight {
+  background: rgb(224, 216, 238);
+}
+
+td.mat-cell,
+th.mat-header-cell {
+  border-bottom-width: 0px;
+}

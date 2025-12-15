@@ -145,8 +145,16 @@ procesarMasivo(carga: any) {
     headers: new HttpHeaders({
       Authorization: 'Bearer ' + localStorage.getItem('token'),
       'Content-Type': 'application/json'
-    })
-  });
+    })
+  });
+}
+
+actualizarFechaSalida(ordenSalidaId: number, fechaSalida: Date): Observable<any> {
+  const dto = {
+    ordenSalidaId: ordenSalidaId,
+    fechaSalida: fechaSalida
+  };
+  return this._httpClient.post(`${this.baseUrl}ActualizarFechaSalida`, dto, httpOptions);
 }
 }
 
