@@ -11,14 +11,14 @@ import { DropdownModule } from 'primeng/dropdown';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
-  selector: 'app-AsignarPicker',
-  templateUrl: './AsignarPicker.component.html',
-  styleUrls: ['./AsignarPicker.component.css'],
+  selector: 'app-AsignarValidator',
+  templateUrl: './AsignarValidator.component.html',
+  styleUrls: ['./AsignarValidator.component.css'],
   standalone : true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, DropdownModule , ButtonModule],
   providers: [UserService, PlanningService]
 })
-export class AsignarPickerComponent implements OnInit {
+export class AsignarValidatorComponent implements OnInit {
   usuarios: User[] = [];
   usuarioSeleccionado: User | null = null;
 
@@ -31,7 +31,7 @@ export class AsignarPickerComponent implements OnInit {
 
   ngOnInit() {
 
- this.userService.getUsersForRol([6]).subscribe({
+ this.userService.getUsersForRol([6,29]).subscribe({
       next: (res) => (this.usuarios = res),
       error: (err) => console.error('Error al cargar usuarios', err)
     });
@@ -43,7 +43,7 @@ export class AsignarPickerComponent implements OnInit {
 
     const ids = this.config.data.codigo.map(e => e.id).join(',');
 
-    this.planningService.assignmentOfUser(ids, this.usuarioSeleccionado.id).subscribe({
+    this.planningService.assignmentOfUserValidator(ids, this.usuarioSeleccionado.id).subscribe({
       next: () => {
         // puedes retornar datos al cerrar
         this.ref.close(true);
@@ -59,3 +59,4 @@ export class AsignarPickerComponent implements OnInit {
 
 
 }
+

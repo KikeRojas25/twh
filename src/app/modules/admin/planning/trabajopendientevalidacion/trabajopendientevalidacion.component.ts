@@ -19,14 +19,14 @@ import { ClienteService } from '../../_services/cliente.service';
 
 import { carga, OrdenSalida } from '../../despachos/despachos.types';
 import { PlanningService } from '../planning.service';
-import { AsignarPickerComponent } from '../work-list/AsignarPicker/AsignarPicker.component';
+import { AsignarValidatorComponent } from '../work-list/AsignarValidator/AsignarValidator.component';
 import { AsignarPuertaComponent } from '../work-list/AsignarPuerta/AsignarPuerta.component';
 import { PropietarioService } from '../../_services/propietario.service';
 
 @Component({
-  selector: 'app-trabajo-asignado',
-  templateUrl: './trabajo-asignado.component.html',
-  styleUrls: ['./trabajo-asignado.component.css'],
+  selector: 'app-trabajopendientevalidacion',
+  templateUrl: './trabajopendientevalidacion.component.html',
+  styleUrls: ['./trabajopendientevalidacion.component.css'],
    standalone: true,
       imports: [
           CommonModule,
@@ -45,7 +45,7 @@ import { PropietarioService } from '../../_services/propietario.service';
       ],
        providers: [DialogService, MessageService, ConfirmationService],
 })
-export class TrabajoAsignadoComponent implements OnInit {
+export class TrabajoPendienteValidacionComponent implements OnInit {
 
  private ordensalidaService = inject(PlanningService);
     private clienteService = inject(ClienteService);
@@ -220,10 +220,10 @@ export class TrabajoAsignadoComponent implements OnInit {
             return;
         }
 
-        const ref = this.dialogService.open(AsignarPickerComponent, {
+        const ref = this.dialogService.open(AsignarValidatorComponent, {
             width: '400px',
             height: '300px',
-            header: 'Asignar Responsable de Picking',
+            header: 'Asignar Responsable Validador',
             closable: true,
             data: { codigo: this.selectedRow, descripcion: '' },
         });
@@ -299,7 +299,7 @@ export class TrabajoAsignadoComponent implements OnInit {
             return;
         }
 
-        console.log('selectedRow', this.selectedRow);
+
 
         const row = this.selectedRow[0];
 
@@ -316,8 +316,6 @@ export class TrabajoAsignadoComponent implements OnInit {
             accept: () => {
 
 
-
-       //error("Vuelva a programar la ORS");
 
                 this.ordensalidaService
                     .movimientoSalidaMasiva(this.selectedRow[0].id)
@@ -340,7 +338,7 @@ export class TrabajoAsignadoComponent implements OnInit {
         this.selectedRow = null;
 
      
-        this.ordensalidaService.getAllWork_Asignado(this.model).subscribe({
+        this.ordensalidaService.GetPendingValidationWorks(this.model).subscribe({
             next: (list) => {
                 this.cargas = list;
                 console.log('model', this.cargas);

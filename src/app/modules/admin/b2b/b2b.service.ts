@@ -25,6 +25,7 @@ private baseUrlPedidos = environment.baseUrl + '/api/public/PedidosB2B/';
 private baseUrlGeneral = environment.baseUrl + '/api/General/';
 private baseUrlPlanning = environment.baseUrl + '/api/Planning/';
 private baseUrl = environment.baseUrl + '/api/public/inventory/';
+private baseUrlInventario = environment.baseUrl + '/api/inventario/';
 private _httpClient = inject(HttpClient);
 
 constructor() { }
@@ -64,5 +65,12 @@ getPedidoById(id: number): Observable<any> {
   planificarPicking(model: any): Observable<any> {
     return this._httpClient.post<any>(`${this.baseUrlPlanning}PlanificarPicking`, model);
   }
+
+
+getStockProductoAgrupadoPorLote(productoId: string): Observable<any> {
+  return this._httpClient.get<any>( `${this.baseUrlInventario }GetStockProductoAgrupadoPorLote?productoId=${productoId}`,
+    httpOptions
+  );
+}
 
 }

@@ -66,10 +66,14 @@ export class UserService {
         );
     }
 
-getUsersForRol(idrol: number): Observable<User[]> {
+getUsersForRol(roles: number[]): Observable<User[]> {
+    if (!roles || roles.length === 0) {
+        throw new Error('Debe especificar al menos un rol.');
+    }
 
-    console.log('getUsersForRol', httpOptions);
-    return this._httpClient.get<User[]>(this.baseUrl + 'GetUsersForRol?idrol=' + idrol   , httpOptions);
+    // Construir query string para array: ?roles=1&roles=2&roles=3
+    const queryParams = roles.map(rol => `roles=${rol}`).join('&');
+    return this._httpClient.get<User[]>(this.baseUrl + 'GetUsersForRol?' + queryParams, httpOptions);
  }
 
 }

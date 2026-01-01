@@ -17,10 +17,10 @@
       </div>
       <div class="mt-1">
         <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
-          Nueva Solicitud de Salida
+          Nueva Orden de Salida
         </h2>
         <p class="mt-1 text-sm text-gray-500">
-          Complete los campos para registrar un nuevo pedido de salida.
+          Datos de cabecera de la orden de salida
         </p>
       </div>
     </div>
@@ -39,7 +39,7 @@
         pButton
         type="submit"
         form="formSalida"
-        label="Guardar solicitud"
+        label="Guardar"
         icon="pi pi-save"
         iconPos="left">
       </button>
@@ -53,191 +53,244 @@
     id="formSalida"
     class="p-6 space-y-6"
   >
-    <!-- Panel 1: Datos Generales -->
+    <!-- Panel: Datos de cabecera de la orden de salida -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
-        <h3 class="text-base font-semibold text-gray-100">Datos Generales</h3>
+        <h3 class="text-base font-semibold text-gray-100">Datos de cabecera de la orden de salida</h3>
       </div>
       <div class="p-4">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <!-- Orden de Compra -->
-          <div class="flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Orden de Compra Cliente:</label>
-            <input
-              pInputText
-              formControlName="ordenCompraCliente"
-              placeholder="Ej: OC-102233"
-              autocomplete="off"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <!-- Columna Izquierda -->
+          <div class="space-y-4">
+            <!-- Almacén -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Almacén: <span class="text-red-500">*</span></label>
+              <p-dropdown
+                formControlName="almacenId"
+                [options]="almacenes"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                [style]="{ 'width': '100%' }"
+                appendTo="body"
+                [resetFilterOnHide]="false"
+                [hideTransitionOptions]="'0ms'"
+                [showTransitionOptions]="'0ms'"
+                placeholder="seleccione un almacen"
+                [ngClass]="{
+                  'p-invalid': (form.get('almacenId')?.touched || form.get('almacenId')?.dirty) && form.get('almacenId')?.invalid
+                }"
+                styleClass="text-sm">
+                <ng-template let-item pTemplate="selectedItem">
+                  <span style="vertical-align: left">{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+              <small *ngIf="(form.get('almacenId')?.touched || form.get('almacenId')?.dirty) && form.get('almacenId')?.invalid" class="p-error text-xs mt-1">
+                El almacén es obligatorio.
+              </small>
+            </div>
 
-          <!-- Fecha Requerida -->
-          <div class="flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Fecha requerida:</label>
-            <p-calendar
-              formControlName="fechaRequerida"
-              [showIcon]="true"
-              appendTo="body"
-              dateFormat="yy-mm-dd"
-              [style]="{ width: '100%' }"
-              styleClass="text-sm border-gray-300"
-            ></p-calendar>
-          </div>
+            <!-- Propietario -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Propietario: <span class="text-red-500">*</span></label>
+              <p-dropdown
+                formControlName="propietarioId"
+                [options]="propietarios"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                [style]="{ 'width': '100%' }"
+                appendTo="body"
+                [resetFilterOnHide]="false"
+                [hideTransitionOptions]="'0ms'"
+                [showTransitionOptions]="'0ms'"
+                placeholder="seleccione un propietario"
+                [ngClass]="{
+                  'p-invalid': (form.get('propietarioId')?.touched || form.get('propietarioId')?.dirty) && form.get('propietarioId')?.invalid
+                }"
+                styleClass="text-sm">
+                <ng-template let-item pTemplate="selectedItem">
+                  <span style="vertical-align: left">{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+              <small *ngIf="(form.get('propietarioId')?.touched || form.get('propietarioId')?.dirty) && form.get('propietarioId')?.invalid" class="p-error text-xs mt-1">
+                El propietario es obligatorio.
+              </small>
+            </div>
 
-          <!-- Hora Requerida -->
-          <div class="flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Hora requerida (24h):</label>
-            <p-calendar
-              formControlName="horaRequerida"
-              [timeOnly]="true"
-              appendTo="body"
-              [style]="{ width: '100%' }"
-              styleClass="text-sm border-gray-300"
-            ></p-calendar>
-          </div>
+            <!-- Fecha Requerida -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Fecha de requerida: <span class="text-red-500">*</span></label>
+              <p-calendar
+                formControlName="fechaRequerida"
+                [showIcon]="true"
+                appendTo="body"
+                dateFormat="yy-mm-dd"
+                [style]="{ width: '100%' }"
+                [ngClass]="{
+                  'p-invalid': (form.get('fechaRequerida')?.touched || form.get('fechaRequerida')?.dirty) && form.get('fechaRequerida')?.invalid
+                }"
+                styleClass="text-sm"
+              ></p-calendar>
+              <small *ngIf="(form.get('fechaRequerida')?.touched || form.get('fechaRequerida')?.dirty) && form.get('fechaRequerida')?.invalid" class="p-error text-xs mt-1">
+                La fecha requerida es obligatoria.
+              </small>
+            </div>
 
-          <!-- Observaciones -->
-          <div class="flex flex-col md:col-span-3">
-            <label class="text-xs font-medium text-gray-700 mb-1">Observaciones:</label>
-            <textarea
-              pInputTextarea
-              formControlName="observaciones"
-              rows="2"
-              placeholder="Ej: Entregar en horario de oficina."
-              class="w-full text-sm border-gray-300"
-            ></textarea>
-          </div>
-        </div>
-      </div>
-    </div>
+            <!-- Hora Requerida -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Hora requerida: <span class="text-red-500">*</span></label>
+              <p-calendar
+                formControlName="horaRequerida"
+                [timeOnly]="true"
+                appendTo="body"
+                [style]="{ width: '100%' }"
+                [ngClass]="{
+                  'p-invalid': (form.get('horaRequerida')?.touched || form.get('horaRequerida')?.dirty) && form.get('horaRequerida')?.invalid
+                }"
+                styleClass="text-sm"
+              ></p-calendar>
+              <small *ngIf="(form.get('horaRequerida')?.touched || form.get('horaRequerida')?.dirty) && form.get('horaRequerida')?.invalid" class="p-error text-xs mt-1">
+                La hora requerida es obligatoria.
+              </small>
+            </div>
 
-    <!-- Panel 2: Datos del Comprador -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
-        <h3 class="text-base font-semibold text-gray-100">Datos del Comprador</h3>
-      </div>
-      <div class="p-4">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Documento (RUC/DNI):</label>
-            <div class="flex items-center">
-              <input
-                pInputText
-                formControlName="documento"
-                placeholder="20654321876"
-                autocomplete="off"
-                (blur)="buscarClientePorDocumento()"
-                class="flex-1 text-sm border-gray-300"
-              />
+            <!-- Cliente -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Cliente: <span class="text-red-500">*</span></label>
+              <p-dropdown
+                formControlName="clienteId"
+                [options]="clientes"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                [style]="{ 'width': '100%' }"
+                appendTo="body"
+                [resetFilterOnHide]="false"
+                [hideTransitionOptions]="'0ms'"
+                [showTransitionOptions]="'0ms'"
+                placeholder="seleccione un cliente"
+                [disabled]="!form.get('propietarioId')?.value"
+                [ngClass]="{
+                  'p-invalid': (form.get('clienteId')?.touched || form.get('clienteId')?.dirty) && form.get('clienteId')?.invalid
+                }"
+                styleClass="text-sm">
+                <ng-template let-item pTemplate="selectedItem">
+                  <span style="vertical-align: left">{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+              <small *ngIf="(form.get('clienteId')?.touched || form.get('clienteId')?.dirty) && form.get('clienteId')?.invalid" class="p-error text-xs mt-1">
+                El cliente es obligatorio.
+              </small>
+            </div>
 
-              <!-- Indicador -->
-              <ng-container *ngIf="estadoCliente === 'encontrado'">
-                <i
-                  class="pi pi-check-circle ml-2 cursor-pointer text-green-500"
-                  pTooltip="Cliente encontrado"
-                  tooltipPosition="top"
-                ></i>
-              </ng-container>
-
-              <ng-container *ngIf="estadoCliente === 'no_encontrado'">
-                <i
-                  class="pi pi-exclamation-circle ml-2 cursor-pointer text-yellow-500"
-                  pTooltip="Cliente no encontrado"
-                  tooltipPosition="top"
-                ></i>
-              </ng-container>
+            <!-- Dirección Entrega -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Dirección Entrega: <span class="text-red-500">*</span></label>
+              <p-dropdown
+                formControlName="direccionId"
+                [options]="direcciones"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                [style]="{ 'width': '100%' }"
+                appendTo="body"
+                [resetFilterOnHide]="false"
+                [hideTransitionOptions]="'0ms'"
+                [showTransitionOptions]="'0ms'"
+                placeholder="seleccione una dirección de entrega"
+                [disabled]="!form.get('clienteId')?.value"
+                [ngClass]="{
+                  'p-invalid': (form.get('direccionId')?.touched || form.get('direccionId')?.dirty) && form.get('direccionId')?.invalid
+                }"
+                styleClass="text-sm">
+                <ng-template let-item pTemplate="selectedItem">
+                  <span style="vertical-align: left">{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+              <small *ngIf="(form.get('direccionId')?.touched || form.get('direccionId')?.dirty) && form.get('direccionId')?.invalid" class="p-error text-xs mt-1">
+                La dirección de entrega es obligatoria.
+              </small>
             </div>
           </div>
 
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Nombre / Razón Social:</label>
-            <input
-              pInputText
-              formControlName="nombre"
-              placeholder="Ej: Comercial ABC S.A.C."
-              [readonly]="estadoCliente === 'encontrado'"
-              class="w-full text-sm border-gray-300"
-            />
+          <!-- Columna Derecha -->
+          <div class="space-y-4">
+            <!-- OC del Cliente -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">OC del Cliente: <span class="text-red-500">*</span></label>
+              <input
+                pInputText
+                formControlName="ordenCompraCliente"
+                placeholder="Ej: OC-102233"
+                autocomplete="off"
+                [ngClass]="{
+                  'p-invalid': (form.get('ordenCompraCliente')?.touched || form.get('ordenCompraCliente')?.dirty) && form.get('ordenCompraCliente')?.invalid
+                }"
+                class="w-full text-sm"
+              />
+              <small *ngIf="(form.get('ordenCompraCliente')?.touched || form.get('ordenCompraCliente')?.dirty) && form.get('ordenCompraCliente')?.invalid" class="p-error text-xs mt-1">
+                La orden de compra del cliente es obligatoria.
+              </small>
+            </div>
 
-            <!-- Botón para registrar nuevo cliente -->
-            <button
-              *ngIf="estadoCliente === 'no_encontrado'"
-              pButton
-              type="button"
-              label="Registrar cliente"
-              icon="pi pi-user-plus"
-              class="p-button-sm p-button-text mt-1 self-end text-blue-600"
-              (click)="abrirDialogNuevoCliente()"
-            ></button>
-          </div>
+            <!-- Guía de Remisión -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Guía de Remisión:</label>
+              <input
+                pInputText
+                formControlName="guiaRemision"
+                placeholder="Ingrese la guía de remisión"
+                autocomplete="off"
+                class="w-full text-sm border-gray-300"
+              />
+            </div>
 
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Contacto (*):</label>
-            <input
-              pInputText
-              formControlName="contacto"
-              placeholder="Nombre del contacto"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
+            <!-- Orden Entrega -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Orden Entrega:</label>
+              <input
+                pInputText
+                formControlName="ordenEntrega"
+                placeholder="Ingrese la orden de entrega"
+                autocomplete="off"
+                class="w-full text-sm border-gray-300"
+              />
+            </div>
 
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Teléfono (*):</label>
-            <input
-              pInputText
-              formControlName="telefono"
-              placeholder="999888777"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
-        </div>
+            <!-- Orden Infor -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Orden Infor:</label>
+              <input
+                pInputText
+                formControlName="ordenInfor"
+                placeholder="Ingrese la orden Infor"
+                autocomplete="off"
+                class="w-full text-sm border-gray-300"
+              />
+            </div>
 
-        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Correo:</label>
-            <input
-              pInputText
-              formControlName="correo"
-              placeholder="compras@abc.com.pe"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
-
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Destino: (*)</label>
-            <p-dropdown
-              [options]="ubigeo"
-              formControlName="iddestino"
-              virtualScroll="true"
-              [itemSize]="30"
-              optionLabel="label"
-              optionValue="value"
-              filter="true"
-              placeholder="Seleccione un destino"
-              class="w-full"
-              appendTo="body"
-              styleClass="text-sm border-gray-300"
-              [ngClass]="{
-                'ng-invalid ng-dirty':
-                  form.get('iddestino')?.touched &&
-                  form.get('iddestino')?.invalid,
-              }"
-            >
-              <ng-template let-item pTemplate="selectedItem">
-                <span>{{ item.label }}</span>
-              </ng-template>
-            </p-dropdown>
-          </div>
-
-          <div class="flex flex-col md:col-span-2">
-            <label class="text-xs font-medium text-gray-700 mb-1">Dirección de Entrega: (*)</label>
-            <input
-              pInputText
-              formControlName="direccionEntrega"
-              placeholder="Av. El Derby 123, Santiago de Surco"
-              class="w-full text-sm border-gray-300"
-            />
+            <!-- Tipo Descarga -->
+            <div class="flex flex-col">
+              <label class="text-xs font-medium text-gray-700 mb-1">Tipo Descarga:</label>
+              <p-dropdown
+                formControlName="tipoDescargaId"
+                [options]="tiposDescarga"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                [style]="{ 'width': '100%' }"
+                appendTo="body"
+                [resetFilterOnHide]="false"
+                [hideTransitionOptions]="'0ms'"
+                [showTransitionOptions]="'0ms'"
+                placeholder="seleccione un tipo de descarga"
+                styleClass="text-sm border-gray-300">
+                <ng-template let-item pTemplate="selectedItem">
+                  <span style="vertical-align: left">{{ item.label }}</span>
+                </ng-template>
+              </p-dropdown>
+            </div>
           </div>
         </div>
       </div>
@@ -342,6 +395,29 @@
                     [(ngModel)]="model.referencia"
                     class="w-full text-sm border-gray-300"
                   />
+                </div>
+
+                <!-- Estado -->
+                <div class="mt-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Estado</label>
+                  <p-dropdown
+                    [options]="estados"
+                    [(ngModel)]="model.estadoId"
+                    [ngModelOptions]="{ standalone: true }"
+                    [filter]="true"
+                    filterBy="label"
+                    [showClear]="false"
+                    [style]="{ 'width': '100%' }"
+                    appendTo="body"
+                    [resetFilterOnHide]="false"
+                    [hideTransitionOptions]="'0ms'"
+                    [showTransitionOptions]="'0ms'"
+                    placeholder="Seleccione un estado"
+                    styleClass="text-sm border-gray-300">
+                    <ng-template let-item pTemplate="selectedItem">
+                      <span style="vertical-align: left">{{ item.label }}</span>
+                    </ng-template>
+                  </p-dropdown>
                 </div>
 
                 <!-- Botón -->
@@ -627,6 +703,7 @@
                   <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 120px">Referencia</th>
                   <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 80px">Cantidad</th>
                   <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 80px">Unidad</th>
+                  <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 120px">Estado</th>
                   <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 80px">Acciones</th>
                 </tr>
               </ng-template>
@@ -645,6 +722,12 @@
                   </td>
                   <td class="text-center px-4 py-2 text-amber-700 text-sm font-medium">{{ row.cantidad }}</td>
                   <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.unidadMedida }}</td>
+                  <td class="text-center px-4 py-2 text-gray-700 text-sm">
+                    <span *ngIf="row.estadoId" class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
+                      {{ getEstadoLabel(row.estadoId) }}
+                    </span>
+                    <span *ngIf="!row.estadoId" class="text-gray-400 text-xs">-</span>
+                  </td>
                   <td class="text-center px-4 py-2">
                     <button
                       pButton
@@ -680,3 +763,4 @@
 
 <p-confirmDialog />
 <p-toast />
+

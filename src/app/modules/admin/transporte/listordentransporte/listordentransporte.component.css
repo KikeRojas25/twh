@@ -1,0 +1,232 @@
+/* Estilos específicos del componente si son necesarios */
+
+/* Estilos específicos del componente Despachos List */
+
+/* Estilos para asegurar visibilidad de headers en tablas */
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #374151 !important;
+  }
+  
+  ::ng-deep .p-datatable .p-datatable-thead > tr > th.bg-gray-800 {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+  }
+  
+  /* Estilos para reducir tamaño de dropdowns */
+  ::ng-deep .p-dropdown {
+    font-size: 0.875rem !important; /* text-sm */
+    height: 2.25rem !important;
+  }
+  
+  ::ng-deep .p-dropdown .p-dropdown-label {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important; /* text-sm */
+    line-height: 1.25rem !important;
+  }
+  
+  ::ng-deep .p-dropdown .p-dropdown-trigger {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+  }
+  
+  /* Estilos para reducir tamaño de calendar */
+  ::ng-deep .p-calendar {
+    font-size: 0.875rem !important;
+  }
+  
+  ::ng-deep .p-calendar .p-inputtext {
+    padding: 0.375rem 0.75rem !important; /* py-1.5 px-3 - más compacto */
+    font-size: 0.875rem !important;
+    height: 2rem !important; /* Reducido de 2.25rem a 2rem */
+  }
+  
+  ::ng-deep .p-calendar .p-datepicker-trigger {
+    width: 2rem !important; /* Reducido de 2.25rem a 2rem */
+    height: 2rem !important; /* Reducido de 2.25rem a 2rem */
+  }
+  
+  ::ng-deep .p-calendar .p-datepicker-trigger .p-button-icon {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Reducir tamaño del panel desplegable del calendario */
+  ::ng-deep .p-datepicker {
+    font-size: 0.75rem !important; /* text-xs */
+    padding: 0.5rem !important;
+  }
+  
+  ::ng-deep .p-datepicker .p-datepicker-header {
+    padding: 0.5rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  ::ng-deep .p-datepicker .p-datepicker-title {
+    font-size: 0.875rem !important;
+    padding: 0.25rem 0 !important;
+  }
+  
+  ::ng-deep .p-datepicker .p-datepicker-prev,
+  ::ng-deep .p-datepicker .p-datepicker-next {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+  
+  ::ng-deep .p-datepicker .p-datepicker-prev .p-button-icon,
+  ::ng-deep .p-datepicker .p-datepicker-next .p-button-icon {
+    font-size: 0.625rem !important;
+  }
+  
+  ::ng-deep .p-datepicker table {
+    font-size: 0.75rem !important;
+  }
+  
+  ::ng-deep .p-datepicker table th {
+    padding: 0.375rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  ::ng-deep .p-datepicker table td {
+    padding: 0.25rem !important;
+  }
+  
+  ::ng-deep .p-datepicker table td > span {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.75rem !important;
+  }
+  
+  /* Estilos para inputs de texto */
+  ::ng-deep .p-inputtext {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  
+  /* Hover effects para filas de tabla */
+  ::ng-deep .p-datatable .p-datatable-tbody > tr {
+    transition: background-color 0.15s ease-in-out;
+  }
+  
+  ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+    background-color: #f9fafb !important;
+  }
+  
+  /* Estilos para el diálogo */
+  ::ng-deep .p-dialog .p-dialog-header {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+    padding: 1rem 1.5rem !important;
+    border-bottom: 1px solid #374151 !important;
+  }
+  
+  ::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    color: #ffffff !important;
+  }
+  
+  ::ng-deep .p-dialog .p-dialog-content {
+    padding: 1.5rem !important;
+  }
+  
+  /* Estilos para botones pequeños en la tabla */
+  ::ng-deep .p-datatable .p-button.p-button-sm {
+    padding: 0.375rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  ::ng-deep .p-datatable .p-button .p-button-icon {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Estilos para split button */
+  ::ng-deep .p-splitbutton {
+    font-size: 0.875rem !important;
+    position: relative !important;
+    display: inline-flex !important;
+  }
+  
+  ::ng-deep .p-splitbutton .p-button {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Overlay del menú desplegable - z-index alto para aparecer sobre la grilla */
+  ::ng-deep .p-splitbutton .p-menu-overlay,
+  ::ng-deep .p-splitbutton .p-tieredmenu-overlay,
+  ::ng-deep body > .p-menu-overlay,
+  ::ng-deep body > .p-tieredmenu-overlay {
+    z-index: 9999 !important;
+    position: fixed !important;
+  }
+  
+  /* Menú desplegable del split button - posicionamiento absoluto */
+  ::ng-deep .p-splitbutton .p-menu,
+  ::ng-deep .p-splitbutton .p-tieredmenu,
+  ::ng-deep .p-menu-overlay .p-menu,
+  ::ng-deep .p-tieredmenu-overlay .p-tieredmenu {
+    z-index: 9999 !important;
+    position: absolute !important;
+  }
+  
+  /* Lista del menú */
+  ::ng-deep .p-splitbutton .p-menu .p-menu-list,
+  ::ng-deep .p-splitbutton .p-tieredmenu .p-tieredmenu-list,
+  ::ng-deep .p-menu-overlay .p-menu-list,
+  ::ng-deep .p-tieredmenu-overlay .p-tieredmenu-list {
+    z-index: 9999 !important;
+    position: relative !important;
+  }
+  
+  /* Asegurar que el contenedor del split button no cause desplazamiento */
+  ::ng-deep .p-splitbutton-menu-button {
+    position: relative !important;
+  }
+  
+  /* Evitar que el menú cause desplazamiento de elementos aledaños */
+  ::ng-deep .p-splitbutton .p-menu,
+  ::ng-deep .p-splitbutton .p-tieredmenu {
+    margin: 0 !important;
+    top: 100% !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+  
+  /* Asegurar que el overlay del menú no afecte el layout */
+  ::ng-deep .p-menu-overlay,
+  ::ng-deep .p-tieredmenu-overlay {
+    pointer-events: none !important;
+  }
+  
+  ::ng-deep .p-menu-overlay .p-menu,
+  ::ng-deep .p-tieredmenu-overlay .p-tieredmenu {
+    pointer-events: auto !important;
+  }
+  
+  /* Asegurar que los contenedores no oculten el menú */
+  ::ng-deep .p-splitbutton {
+    overflow: visible !important;
+  }
+  
+  /* Asegurar que el contenedor padre no tenga overflow hidden */
+  ::ng-deep .flex.flex-wrap.gap-2 {
+    overflow: visible !important;
+  }
+  
+  /* Estilos para paginador */
+  ::ng-deep .p-paginator {
+    background-color: #ffffff !important;
+    border-top: 1px solid #e5e7eb !important;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+    min-width: 2rem !important;
+    height: 2rem !important;
+    font-size: 0.875rem !important;
+  }
+  
+  

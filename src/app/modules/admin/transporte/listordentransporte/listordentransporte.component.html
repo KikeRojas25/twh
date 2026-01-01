@@ -1,0 +1,279 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <div>
+          <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">Warehouse</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Transporte</a>
+        </div>
+      </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Listado de Órdenes de Transporte
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <!-- <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Filtros de Búsqueda</h3>
+    </div> -->
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <!-- Remitente -->
+        <div class="flex flex-col">
+          <label for="remitente" class="text-xs font-medium text-gray-700 mb-1">Remitente:</label>
+          <p-dropdown
+            name="remitente"
+            [options]="remitentes"
+            [(ngModel)]="model.remitente_id"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Seleccione un remitente"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <!-- Estado -->
+        <div class="flex flex-col">
+          <label for="estado" class="text-xs font-medium text-gray-700 mb-1">Estado:</label>
+          <p-dropdown
+            name="estado"
+            [options]="estados"
+            [(ngModel)]="model.estado_id"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Seleccione un estado"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="flex flex-col">
+          <label for="fechaInicio" class="text-xs font-medium text-gray-700 mb-1">Fecha Inicio:</label>
+          <p-calendar
+            [(ngModel)]="dateInicio"
+            [locale]="es"
+            dateFormat="dd/mm/yy"
+            appendTo="body"
+            [showIcon]="true"
+            [style]="{ width: '100%' }"
+            inputStyleClass="text-sm border-gray-300"
+            placeholder="Seleccione fecha inicio"
+            [showClear]="true">
+          </p-calendar>
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="flex flex-col">
+          <label for="fechaFin" class="text-xs font-medium text-gray-700 mb-1">Fecha Fin:</label>
+          <p-calendar
+            [(ngModel)]="dateFin"
+            [locale]="es"
+            dateFormat="dd/mm/yy"
+            appendTo="body"
+            [showIcon]="true"
+            [style]="{ width: '100%' }"
+            inputStyleClass="text-sm border-gray-300"
+            placeholder="Seleccione fecha fin"
+            [showClear]="true">
+          </p-calendar>
+        </div>
+
+        <!-- Shipment -->
+        <div class="flex flex-col">
+          <label for="shipment" class="text-xs font-medium text-gray-700 mb-1">Shipment:</label>
+          <input
+            pInputText
+            id="shipment"
+            name="shipment"
+            [(ngModel)]="model.shipment"
+            autocomplete="off"
+            type="text"
+            placeholder="Ingrese shipment"
+            class="w-full text-sm border-gray-300"
+          />
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150"
+            pButton
+            icon="fa fa-search"
+            label="Buscar"
+            iconPos="left"
+            [loading]="loading"
+            (click)="buscar()">
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-all duration-150"
+            pButton
+            icon="fa fa-times"
+            label="Limpiar"
+            iconPos="left"
+            (click)="limpiarFiltros()">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Resultados -->
+  <div #resultadosBlock class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2 border-b border-gray-700">
+      <h3 class="text-sm font-semibold text-gray-100">Listado de Órdenes de Transporte</h3>
+      <p class="text-xs text-amber-300 mt-0.5">
+        Total de registros: {{ ordenesFiltradas.length }} 
+        <span *ngIf="filtroGeneral">(filtrados de {{ ordenesTransporte.length }})</span>
+      </p>
+    </div>
+
+    <!-- Filtro General - Cerca de la grilla -->
+    <div class="px-4 pt-4 pb-2 border-b border-gray-200 bg-gray-50">
+      <div class="flex flex-col">
+        <label for="filtroGeneral" class="text-xs font-medium text-gray-700 mb-1">
+          Buscar (Número OT, Shipment, Delivery, Remitente, Destinatario, Factura, OC, Guías):
+        </label>
+        <input
+          pInputText
+          id="filtroGeneral"
+          name="filtroGeneral"
+          [(ngModel)]="filtroGeneral"
+          (ngModelChange)="onFiltroChange()"
+          autocomplete="off"
+          type="text"
+          placeholder="Buscar..."
+          class="w-full text-sm border-gray-300"
+        />
+      </div>
+    </div>
+
+    <div class="p-4">
+      <p-table
+        [style]="{ width: '100%' }"
+        [scrollable]="true"
+        scrollHeight="600px"
+        [columns]="cols"
+        [value]="ordenesFiltradas"
+        #dt
+        [paginator]="true"
+        [rows]="40"
+        [rowsPerPageOptions]="[40, 80, 120, 240]"
+        [loading]="loading"
+        [responsive]="true"
+        [tableStyle]="{ 'table-layout': 'fixed', width: '100%' }"
+        styleClass="p-datatable-sm"
+      >
+        <!-- Encabezados -->
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col
+              *ngFor="let col of columns"
+              [ngStyle]="{ width: col.width }"
+            />
+          </colgroup>
+        </ng-template>
+        
+        <ng-template pTemplate="header" let-columns>
+          <tr class="bg-gray-800 text-white">
+            <th
+              *ngFor="let col of columns"
+              [ngStyle]="{ width: col.width }"
+              pResizableColumn
+              pReorderableColumn
+              [pSortableColumn]="col.field"
+              class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700"
+            >
+              {{ col.header }}
+              <p-sortIcon [field]="col.field"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+
+        <!-- Cuerpo -->
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+          <tr [pSelectableRow]="rowData" class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.numero_ot }}</td>
+
+
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.numero_manifiesto }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.estado }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.TipoEntrega }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.Placa }}</td>
+
+
+
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.shipment }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.delivery }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.remitente }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.destinatario }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.factura }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.oc }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.guias }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.cantidad | number:'1.2-2' }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.volumen | number:'1.2-2' }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.peso | number:'1.2-2' }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.distrito_servicio }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.direccion_destino_servicio }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.fecha_salida | date:'dd/MM/yyyy' }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.hora_salida }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.direccion_entrega }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.provincia_entrega }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.fecha_entrega | date:'dd/MM/yyyy' }}</td>
+            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.hora_entrega }}</td>
+        
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.Chofer }}</td>
+            <td class="text-center px-4 py-2 text-sm">
+              <span 
+                [ngClass]="{
+                  'px-2 py-1 rounded text-xs font-medium': true,
+                  'bg-red-100 text-red-800': rowData.por_asignar,
+                  'bg-green-100 text-green-800': !rowData.por_asignar
+                }">
+                {{ rowData.por_asignar ? 'Sí' : 'No' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="cols.length" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No hay registros disponibles</span>
+                <span class="text-gray-400 text-xs mt-1">Use los filtros para buscar órdenes de transporte</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+

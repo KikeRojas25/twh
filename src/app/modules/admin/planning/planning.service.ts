@@ -119,10 +119,14 @@ getWork(id: any): Observable<carga> {
   const params = '?id=' + id ;
   return this.http.get<carga>(this.baseUrl + 'GetWork' + params, httpOptions);
 }
-getAllWork_Asignado(model: any): Observable<carga[]> {
+GetPendingValidationWorks(model: any): Observable<carga[]> {
   const params = '?PropietarioID=' + model.PropietarioId ;
-  return this.http.get<carga[]>(this.baseUrlPlanning + 'GetAllWorkAssigned' + params, httpOptions);
+  return this.http.get<carga[]>(this.baseUrlPlanning + 'GetPendingValidationWorks' + params, httpOptions);
 }
+
+
+
+
 
 InicioPicking(ids: string) {
   const model: any = {};
@@ -183,6 +187,19 @@ assignmentOfUser(ids: string , UserId: string) {
   model.UserId = UserId;
 
   return this.http.post(this.baseUrlPlanning + 'assignmentOfUser', model, httpOptions)
+  .pipe(
+    map((response: any) => {
+    }
+  )
+); 
+}
+
+assignmentOfUserValidator(ids: string , UserId: string) {
+  const model: any = {};
+  model.ids = ids;
+  model.UserId = UserId;
+
+  return this.http.post(this.baseUrlPlanning + 'assignmentOfUserValidator', model, httpOptions)
   .pipe(
     map((response: any) => {
     }

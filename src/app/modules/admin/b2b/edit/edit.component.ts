@@ -60,6 +60,8 @@ export class EditComponent implements OnInit {
   estadoCliente: 'pendiente' | 'encontrado' | 'no_encontrado' = 'pendiente';
   dialogStockVisible = false;
   stockInfo: any = null;
+  dialogLotesVisible = false;
+  lotesInfo: any[] = [];
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
 
@@ -306,7 +308,13 @@ agregarItem(): void {
         direccionEntrega: this.form.value.direccionEntrega,
         iddestino: this.form.value.iddestino
       },
-      detalle: this.detalle
+      detalle: this.detalle.map((x) => ({
+        codigo: x.codigo,
+        cantidad: x.cantidad,
+        unidadMedidaId: x.unidadMedidaId,
+        lote: x.lote,
+        referencia: x.referencia
+      }))
     };
 
 
@@ -359,6 +367,164 @@ agregarItem(): void {
     }
   });
   }
+
+verStock() {
+  console.log('Producto seleccionado:', this.model.productoSeleccionado);
+
+  if (!this.model.productoSeleccionado?.codigo) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Aviso',
+      detail: 'Seleccione un producto antes de consultar el stock.'
+    });
+    return;
+  }
+
+  this.dialogStockVisible = true;
+  this.stockInfo = null;
+
+  const codigo = this.model.productoSeleccionado.codigo;
+
+  this.b2bService.getInventarioPorCodigo(codigo).subscribe({
+    next: (resp: any) => {
+      if (resp?.success && resp.data?.length > 0) {
+        this.stockInfo = resp.data[0];
+      } else {
+        this.stockInfo = {
+          codigo,
+          descripcionLarga: this.model.productoSeleccionado.nombreCompleto,
+          stockDisponibleTotal: 0,
+          unidadAlmacenamiento: '-',
+          estado: 'Sin registro'
+        };
+      }
+    },
+    error: () => {
+      this.stockInfo = {
+        codigo,
+        descripcionLarga: this.model.productoSeleccionado.nombreCompleto,
+        stockDisponibleTotal: 0,
+        unidadAlmacenamiento: '-',
+        estado: 'Error de conexión'
+      };
+    }
+  });
+}
+
+verLotes() {
+  console.log('📦 Consultando lotes para producto:', this.model.productoSeleccionado);
+
+  if (!this.model.productoSeleccionado?.id) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Aviso',
+      detail: 'Seleccione un producto antes de consultar los lotes.'
+    });
+    return;
+  }
+
+  this.dialogLotesVisible = true;
+  this.lotesInfo = [];
+
+  const productoId = this.model.productoSeleccionado.id;
+
+  this.b2bService.getStockProductoAgrupadoPorLote(productoId).subscribe({
+    next: (resp: any) => {
+      console.log('✅ Respuesta de lotes:', resp);
+
+      if (resp && Array.isArray(resp) && resp.length > 0) {
+        this.lotesInfo = resp.map(lote => ({
+          numeroLote: lote.lotNum,
+          cantidadDisponible: lote.untQty,
+          unidad: lote.codigo ? 'UND' : 'UND',
+          codigo: lote.codigo,
+          descripcionLarga: lote.descripcionLarga,
+          fechaVencimiento: null,
+          ubicacion: null,
+          estado: lote.untQty > 0 ? 'Disponible' : 'Sin stock'
+        }));
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Lotes encontrados',
+          detail: `Se encontraron ${this.lotesInfo.length} lote(s) disponible(s)`
+        });
+      } else {
+        this.lotesInfo = [];
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Sin lotes',
+          detail: 'No se encontraron lotes disponibles para este producto.'
+        });
+      }
+    },
+    error: (err) => {
+      console.error('❌ Error al consultar lotes:', err);
+      this.lotesInfo = [];
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo consultar los lotes disponibles.'
+      });
+    }
+  });
+}
+
+seleccionarLote(lote: any) {
+  console.log('✅ Lote seleccionado:', lote);
+
+  this.model.lote = lote.numeroLote;
+
+  if (this.model.cantidad > lote.cantidadDisponible) {
+    this.model.cantidad = lote.cantidadDisponible;
+  } else if (!this.model.cantidad) {
+    this.model.cantidad = Math.min(1, lote.cantidadDisponible);
+  }
+
+  this.dialogLotesVisible = false;
+
+  this.messageService.add({
+    severity: 'success',
+    summary: 'Lote seleccionado',
+    detail: `Lote ${lote.numeroLote} - Disponible: ${lote.cantidadDisponible} ${lote.unidad}`
+  });
+}
+
+calcularStockTotal(): number {
+  if (!this.lotesInfo || this.lotesInfo.length === 0) {
+    return 0;
+  }
+  return this.lotesInfo.reduce((total, lote) => total + (lote.cantidadDisponible || 0), 0);
+}
+
+obtenerProximoVencimiento(): string {
+  if (!this.lotesInfo || this.lotesInfo.length === 0) {
+    return 'N/A';
+  }
+
+  const lotesConFecha = this.lotesInfo
+    .filter(lote => lote.fechaVencimiento)
+    .sort((a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime());
+
+  if (lotesConFecha.length === 0) {
+    return 'Sin vencimiento';
+  }
+
+  const fechaProxima = new Date(lotesConFecha[0].fechaVencimiento);
+  return fechaProxima.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+eliminarFila(index: number) {
+  this.confirmationService.confirm({
+    message: '¿Desea eliminar este producto?',
+    header: 'Confirmar',
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      this.detalle.splice(index, 1);
+      this.messageService.add({ severity: 'info', summary: 'Eliminado', detail: 'Producto eliminado.' });
+    }
+  });
+}
 
 cancelar() {
   this.confirmationService.confirm({

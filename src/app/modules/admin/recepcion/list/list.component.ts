@@ -125,7 +125,7 @@ tipoingreso: SelectItem[] = [];
     const user  = localStorage.getItem('token');
     this.decodedToken = this.jwtHelper.decodeToken(user);
 
-    const supervisorIds = ['95', '30','126']; 
+    const supervisorIds = ['95', '30','126', ]; 
     this.supervisor = supervisorIds.includes(this.decodedToken.nameid);
 
     // Verificar si el usuario es administrador

@@ -20,6 +20,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { OrdenSalida } from '../despachos.types';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PropietarioService } from '../../_services/propietario.service';
+import { GeneralService } from '../../_services/general.service';
 
 @Component({
   selector: 'app-list',
@@ -54,6 +55,7 @@ export class ListComponent implements OnInit {
   ocResults: any[];
   searchCriteria = { oc: '', sku: '' };
   clientes: SelectItem[] = [];
+  almacenes: SelectItem[] = [];
   familias: any[] = [];
   subfamilias: any[] = [];
   cols: any[];
@@ -87,6 +89,7 @@ export class ListComponent implements OnInit {
     private despachosService: DespachosService,
     private clienteService: ClienteService,
     private propietarioService: PropietarioService,
+    private generalService: GeneralService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService ,
     private router: Router,
@@ -110,14 +113,11 @@ export class ListComponent implements OnInit {
     };
 
     this.cols2 = [
-      { header: 'NUM OC', backgroundcolor: '#125ea3', field: 'tiOrdeComp', width: '120px' },
-      { header: 'COD ITEM', backgroundcolor: '#125ea3', field: 'tiOrdeComp', width: '120px' },
-      { header: 'DES ITEM', backgroundcolor: '#125ea3', field: 'nuOrdeComp', width: '120px' },
-      { header: 'CANTIDAD ORDENADA', backgroundcolor: '#125ea3', field: 'stOrde', width: '120px' },
-      { header: 'CANTIDAD INGRESADA', backgroundcolor: '#125ea3', field: 'deRubr', width: '120px' },
-      { header: 'IMPORTE', backgroundcolor: '#125ea3', field: 'deRubr', width: '120px' },
-      { header: 'TOTAL', backgroundcolor: '#125ea3', field: 'deRubr', width: '120px' },
-
+      { header: 'CÓDIGO', backgroundcolor: '#125ea3', field: 'ProductoId', width: '100px' },
+      { header: 'PRODUCTO', backgroundcolor: '#125ea3', field: 'producto', width: '150px' },
+      { header: 'LOTE', backgroundcolor: '#125ea3', field: 'Lote', width: '100px' },
+      { header: 'CANTIDAD', backgroundcolor: '#125ea3', field: 'cantidad', width: '90px' },
+      { header: 'ESTADO', backgroundcolor: '#125ea3', field: 'EstadoId', width: '90px' },
     ]
 
     this.cols =
@@ -133,18 +133,21 @@ export class ListComponent implements OnInit {
         {header: 'F. REGISTRO', field: 'fechaRegistro', width: '120px'    },
       ];
 
-  
-  this.propietarioService.getAllPropietarios().subscribe(resp => {
+    // Recuperar valores guardados del localStorage antes de cargar dropdowns (solo fechas y guía)
+    this.cargarFiltrosDesdeLocalStorage();
 
-    resp.forEach(resp => {
-      this.clientes.push({value: resp.id , label: resp.razonSocial });
+    // Cargar almacenes primero
+    this.cargarAlmacenes();
+  
+    // Cargar propietarios
+    this.propietarioService.getAllPropietarios().subscribe(resp => {
+      resp.forEach(resp => {
+        this.clientes.push({value: resp.id , label: resp.razonSocial });
+      });
+
+      // Después de cargar los propietarios, restaurar la selección guardada
+      this.restaurarPropietarioSeleccionado();
     });
-  
-
-  });
-
-
-    this.buscar();
   }
 
   
@@ -155,10 +158,57 @@ export class ListComponent implements OnInit {
     this.model.fec_ini =  this.dateInicio;
     this.model.fec_fin =  this.dateFin ;
   
-    localStorage.setItem('AlmacenId', this.model.AlmacenId);
-    localStorage.setItem('PropietarioId', this.model.PropietarioId);
-    localStorage.setItem('Intervalo', this.model.intervalo);
-    localStorage.setItem('Estado', this.model.EstadoId);
+    // Guardar todos los filtros en localStorage con prefijo específico para despachos
+    // Guardar PropietarioId (incluso si es null/undefined para permitir limpiar el filtro)
+    if (this.model.PropietarioId !== null && this.model.PropietarioId !== undefined) {
+      localStorage.setItem('despachos_PropietarioId', this.model.PropietarioId.toString());
+    } else {
+      localStorage.removeItem('despachos_PropietarioId');
+    }
+    
+    // Guardar AlmacenId (incluso si es null/undefined para permitir limpiar el filtro)
+    if (this.model.AlmacenId !== null && this.model.AlmacenId !== undefined) {
+      localStorage.setItem('despachos_AlmacenId', this.model.AlmacenId.toString());
+    } else {
+      localStorage.removeItem('despachos_AlmacenId');
+    }
+    if (this.model.intervalo) {
+      localStorage.setItem('despachos_Intervalo', this.model.intervalo);
+    }
+    if (this.model.EstadoId) {
+      localStorage.setItem('despachos_Estado', this.model.EstadoId);
+    }
+    if (this.dateInicio) {
+      localStorage.setItem('despachos_DateInicio', this.dateInicio.toISOString());
+    }
+    if (this.dateFin) {
+      localStorage.setItem('despachos_DateFin', this.dateFin.toISOString());
+    }
+    // Guardar guía de remisión (incluso si está vacía para permitir limpiar)
+    if (this.model.guiaremision) {
+      localStorage.setItem('despachos_GuiaRemision', this.model.guiaremision);
+    } else {
+      localStorage.removeItem('despachos_GuiaRemision');
+    }
+    
+    // También mantener los valores sin prefijo para compatibilidad
+    if (this.model.PropietarioId !== null && this.model.PropietarioId !== undefined) {
+      localStorage.setItem('PropietarioId', this.model.PropietarioId.toString());
+    } else {
+      localStorage.removeItem('PropietarioId');
+    }
+    
+    if (this.model.AlmacenId !== null && this.model.AlmacenId !== undefined) {
+      localStorage.setItem('AlmacenId', this.model.AlmacenId.toString());
+    } else {
+      localStorage.removeItem('AlmacenId');
+    }
+    if (this.model.intervalo) {
+      localStorage.setItem('Intervalo', this.model.intervalo);
+    }
+    if (this.model.EstadoId) {
+      localStorage.setItem('Estado', this.model.EstadoId);
+    }
   
     this.despachosService.getAllOrdenSalida(this.model).subscribe(list => {
         this.ordenes = list;
@@ -168,20 +218,133 @@ export class ListComponent implements OnInit {
         });
      }
 
+  cargarAlmacenes() {
+    this.generalService.getAllAlmacenes().subscribe(resp => {
+      this.almacenes.push({ label: "Todos", value: undefined });
+      resp.forEach(element => {
+        this.almacenes.push({ value: element.id, label: element.descripcion });
+      });
+
+      // Después de cargar los almacenes, restaurar la selección guardada
+      this.restaurarAlmacenSeleccionado();
+      
+      // Intentar ejecutar búsqueda si ambos dropdowns están listos
+      this.intentarBuscarSiTodoListo();
+    });
+  }
+
+  restaurarAlmacenSeleccionado() {
+    const almacenIdGuardado = localStorage.getItem('despachos_AlmacenId');
+    if (almacenIdGuardado && this.almacenes.length > 0) {
+      // Intentar encontrar por valor numérico o string
+      const almacenIdNum = parseInt(almacenIdGuardado, 10);
+      const existe = this.almacenes.find(a => 
+        a.value === almacenIdNum || 
+        a.value === almacenIdGuardado ||
+        (a.value !== undefined && a.value.toString() === almacenIdGuardado)
+      );
+      if (existe) {
+        this.model.AlmacenId = existe.value;
+        console.log('Almacén restaurado:', existe.label);
+      }
+    }
+    
+    // Intentar ejecutar búsqueda si ambos dropdowns están listos
+    this.intentarBuscarSiTodoListo();
+  }
+
+  restaurarPropietarioSeleccionado() {
+    const propietarioIdGuardado = localStorage.getItem('despachos_PropietarioId');
+    if (propietarioIdGuardado && this.clientes.length > 0) {
+      const id = parseInt(propietarioIdGuardado, 10);
+      const existe = this.clientes.find(c => c.value === id);
+      if (existe) {
+        this.model.PropietarioId = id;
+        console.log('Propietario restaurado:', existe.label);
+      }
+    }
+    
+    // Intentar ejecutar búsqueda si ambos dropdowns están listos
+    this.intentarBuscarSiTodoListo();
+  }
+
+  intentarBuscarSiTodoListo() {
+    // Solo buscar si ambos dropdowns están cargados
+    if (this.almacenes.length > 0 && this.clientes.length > 0) {
+      // Dar un pequeño delay para asegurar que los valores se establecieron
+      setTimeout(() => {
+        this.buscar();
+      }, 100);
+    }
+  }
+
+  cargarFiltrosDesdeLocalStorage(): void {
+    // Solo recuperar fechas y guía aquí, los dropdowns se restaurarán después de cargarse
+    // Los valores de PropietarioId y AlmacenId se restaurarán en restaurarPropietarioSeleccionado() y restaurarAlmacenSeleccionado()
+
+    // Recuperar fechas
+    const dateInicioStr = localStorage.getItem('despachos_DateInicio');
+    if (dateInicioStr) {
+      this.dateInicio = new Date(dateInicioStr);
+    }
+
+    const dateFinStr = localStorage.getItem('despachos_DateFin');
+    if (dateFinStr) {
+      this.dateFin = new Date(dateFinStr);
+    }
+
+    // Recuperar número de guía
+    const guiaRemision = localStorage.getItem('despachos_GuiaRemision');
+    if (guiaRemision) {
+      this.model.guiaremision = guiaRemision;
+    }
+
+    const intervalo = localStorage.getItem('despachos_Intervalo');
+    if (intervalo) {
+      this.model.intervalo = intervalo;
+    }
+
+    const estado = localStorage.getItem('despachos_Estado');
+    if (estado) {
+      this.model.EstadoId = estado;
+    }
+  }
 
 
 
 
-  verDetalle(rowData: any) {
-    console.log(rowData.nU_ORDE_COMP);
+
+  verDetalle(rowData: OrdenSalida) {
     this.detalleOCModal = true;
+    this.Items = []; // Limpiar items anteriores
+    
+    // Obtener el ID de la orden (puede ser ordenSalidaId o id)
+    const ordenSalidaId = rowData.ordenSalidaId || rowData.id;
+    
+    if (!ordenSalidaId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo obtener el ID de la orden de salida.'
+      });
+      return;
+    }
 
-    // this.importacionesOcService.getDetalleOC(rowData.nU_ORDE_COMP).subscribe({
-    //   next: data => {
-    //      this.Items = data;
-    //      console.log('items', this.Items);
-    //   }
-    // })
+    this.despachosService.obtenerDetalleOrdenSalida(ordenSalidaId).subscribe({
+      next: (data) => {
+        this.Items = data || [];
+        console.log('Detalle de la orden:', this.Items);
+      },
+      error: (err) => {
+        console.error('Error al obtener detalle:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo obtener el detalle de la orden de salida.'
+        });
+        this.Items = [];
+      }
+    });
   }
 
   edit(rowData: any) {
@@ -197,6 +360,10 @@ export class ListComponent implements OnInit {
 
   nuevaordenmasiva() {
     this.router.navigate(['/picking/nuevasalidamasiva']);
+  }
+
+  nuevaOrdenB2B() {
+    this.router.navigate(['/picking/neworder']);
   }
 
   delete(id: number) {

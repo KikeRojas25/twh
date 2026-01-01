@@ -1,0 +1,59 @@
+/* Estilos para el contador flotante */
+.contador-flotante {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos para la cabecera sticky del caption */
+.sticky-caption {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: white;
+}
+
+.dark .sticky-caption {
+  background-color: #1f2937;
+}
+
+/* Asegurar que el header sticky funcione correctamente con scrollable */
+::ng-deep .p-datatable-scrollable .p-datatable-thead > tr > th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  background-color: #1f2937 !important;
+  color: white !important;
+}
+
+/* Para tablas sin scrollable también */
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
+  background-color: #1f2937 !important;
+  color: white !important;
+}
+
+/* Asegurar que el wrapper de scroll tenga el fondo correcto */
+::ng-deep .p-datatable-scrollable-wrapper {
+  position: relative;
+}
+
+/* Estilos para el header del scrollable */
+::ng-deep .p-datatable-scrollable-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: #1f2937;
+}
+

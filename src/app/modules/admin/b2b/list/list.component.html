@@ -41,6 +41,7 @@
             filterBy="label"
             [showClear]="true"
             [style]="{ width: '100%' }"
+            appendTo="body"
             [resetFilterOnHide]="false"
             [hideTransitionOptions]="'0ms'"
             [showTransitionOptions]="'0ms'"
@@ -57,6 +58,7 @@
           <label for="dateInicio" class="text-xs font-medium text-gray-700 mb-1">Fec. Inicio</label>
           <p-calendar
             id="dateInicio"
+             appendTo="body"
             [(ngModel)]="dateInicio"
             dateFormat="dd.mm.yy"
             styleClass="text-sm border-gray-300"
@@ -68,6 +70,7 @@
           <label for="dateFin" class="text-xs font-medium text-gray-700 mb-1">Fec. Fin</label>
           <p-calendar
             id="dateFin"
+             appendTo="body"
             [(ngModel)]="dateFin"
             dateFormat="dd.mm.yy"
             styleClass="text-sm border-gray-300"

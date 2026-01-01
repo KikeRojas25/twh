@@ -1,0 +1,36 @@
+<div class="p-4">
+  <h3 class="text-lg font-semibold mb-2 text-primary">Asignar Responsable Validador</h3>
+
+  <div class="mb-4">
+    <p-dropdown 
+      [options]="usuarios" 
+      [(ngModel)]="usuarioSeleccionado" 
+      optionLabel="nombreCompleto"
+      [filter]="true"
+      filterPlaceholder="Buscar usuario..."
+      placeholder="Seleccione un usuario"
+      class="w-full"
+      dropdownIcon="pi pi-user"
+      appendTo="body"
+    >
+      <ng-template let-user pTemplate="item">
+        <div class="flex flex-col">
+          <span class="font-bold">{{ user.nombreCompleto }}</span>
+          <small class="text-gray-500">Usuario: {{ user.username }} - DNI: {{ user.dni }}</small>
+        </div>
+      </ng-template>
+    </p-dropdown>
+  </div>
+
+  <div class="flex justify-end">
+    <p-button 
+      type="button" 
+      label="Asignar" 
+      severity="success"
+      icon="pi pi-check" 
+      [disabled]="!usuarioSeleccionado"
+      (click)="asignar()">
+    </p-button>
+  </div>
+</div>
+

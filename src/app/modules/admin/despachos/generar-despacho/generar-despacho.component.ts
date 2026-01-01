@@ -350,7 +350,7 @@ export class GenerarDespachoComponent implements OnInit {
     this.mantenimientoService.getAllVehiculos('').subscribe((vehiculos) => {
       this.placas = vehiculos.map((vehiculo) => ({
         label: vehiculo.placa,
-        value: vehiculo.placa
+        value: vehiculo.id
       }));
     });
 
@@ -390,7 +390,8 @@ export class GenerarDespachoComponent implements OnInit {
   }
 
   onConductorSelect(event: any): void {
-    this.planificarForm.conductorId = event?.id;
+    // El evento contiene el objeto conductor completo
+    this.planificarForm.conductorId = event?.id || event?.conductorId || event?.Id;
   }
 
   generarPlanning() {
@@ -415,9 +416,24 @@ export class GenerarDespachoComponent implements OnInit {
     });
     this.model_pendientes.ids = this.ids.substring(1);
 
-    this.model_pendientes.placa = this.planificarForm.placa;
+    this.model_pendientes.idvehiculo = this.planificarForm.placa; // ID del vehículo
+    
+    // Obtener el texto de la placa desde el dropdown
+    const placaSeleccionada = this.placas.find(p => p.value === this.planificarForm.placa);
+    this.model_pendientes.placa = placaSeleccionada ? placaSeleccionada.label : '';
+    
     this.model_pendientes.fechaDespacho = this.planificarForm.fechaProgramada;
-    this.model_pendientes.conductorId = this.planificarForm.conductorId;
+    
+    // Obtener el ID del conductor desde selectedConductor (objeto completo del autocomplete)
+
+    console.log('selectedConductor:', this.selectedConductor);
+
+    if (this.selectedConductor) {
+      this.model_pendientes.conductorId = this.selectedConductor.id || this.selectedConductor.conductorId || this.selectedConductor.Id || this.planificarForm.conductorId;
+    // } else {
+    //   this.model_pendientes.conductorId = this.planificarForm.conductorId;
+    // }
+    
     this.model_pendientes.guiaRemision = this.planificarForm.guiaRemision;
 
     // Obtener ID del usuario desde el token
@@ -446,12 +462,13 @@ export class GenerarDespachoComponent implements OnInit {
       });
              
   
-      },
-      reject: () => {
-  
-      }
-    });
+     
   }
 
-  
+  },
+  reject: () => {
+
+  }
+    });           
+}
 }

@@ -145,6 +145,11 @@ export const appRoutes: Route[] = [
                                           .then(m => m.BatchComponent)
                   },
                   {
+                    path: 'neworder',
+                    loadComponent: () => import('./modules/admin/despachos/neworder/neworder.component')
+                                          .then(m => m.NeworderComponent)
+                  },
+                  {
                     path: 'planificarpicking',
                     loadComponent: () => import('./modules/admin/planning/pending-picking-orders/pending-picking-orders.component')
                                           .then(m => m.PendingPickingOrdersComponent)
@@ -166,8 +171,8 @@ export const appRoutes: Route[] = [
                   },
                    {
                     path: 'listado2trabajoasignado',
-                    loadComponent: () => import('./modules/admin/planning/trabajo-asignado/trabajo-asignado.component')
-                                          .then(m => m.TrabajoAsignadoComponent)
+                    loadComponent: () => import('./modules/admin/planning/trabajopendientevalidacion/trabajopendientevalidacion.component')
+                                          .then(m => m.TrabajoPendienteValidacionComponent)
                   },
 
                   
@@ -347,8 +352,31 @@ export const appRoutes: Route[] = [
                                             loadComponent: () => import('./modules/admin/transporte/tarifario/list/list.component')
                                                                   .then(m => m.ListComponent)
                                           }]
-                 }
+                 },
+                 {
+                   path: 'listordentransporte',
+                   loadComponent: () => import('./modules/admin/transporte/listordentransporte/listordentransporte.component')
+                                         .then(m => m.ListordentransporteComponent)
+                 },
+               
               
+              ]
+           },
+            {   
+              path: 'seguimiento',
+              loadComponent: () => import('./modules/admin/seguimiento/seguimiento.component')
+                                    .then(m => m.SeguimientoComponent),
+              children: [
+                {
+                  path: 'listadoordenes',
+                  loadComponent: () => import('./modules/admin/transporte/listordentransporte/listordentransporte.component')
+                                        .then(m => m.ListordentransporteComponent)
+                },
+                  {
+                   path: 'listmanifiestos',
+                   loadComponent: () => import('./modules/admin/transporte/listmanifiestos/listmanifiestos.component')
+                                         .then(m => m.ListmanifiestosComponent)
+                 }
               ]
            },
             {   

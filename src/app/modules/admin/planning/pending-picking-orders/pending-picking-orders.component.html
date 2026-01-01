@@ -1,22 +1,26 @@
-<div class="flex flex-col flex-auto min-w-0">
-  <!-- Encabezado -->
-
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
     <div class="flex-1 min-w-0">
-      <div  class="flex flex-wrap items-center font-medium">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
         <div>
-          <a  class="whitespace-nowrap text-primary-500">TWH</a>
+          <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
-              <mat-icon
-              class="fuse-horizontal-navigation-item-icon"
-              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-              <a  class="ml-1 text-primary-500">Salidas</a>
-          </div>
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Salidas</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Planificar Picking</a>
+        </div>
       </div>
-          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate"> Planificar Picking </h2>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Planificar Picking
+        </h2>
       </div>
-  </div>
+    </div>
   </div>
 
     
@@ -57,13 +61,13 @@
       </div>
       <div class="bg-yellow-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
         <div>
-          <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades }}</p>
+          <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades | number:'1.0-0':'en-US' }}</p>
           <p class="text-gray-600 font-medium">Unidades</p>
         </div>
       </div>
       <div class="bg-purple-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
         <div>
-          <p class="text-4xl font-bold text-purple-500">{{ totalPeso }}</p>
+          <p class="text-4xl font-bold text-purple-500">{{ totalPeso | number:'1.2-2':'en-US' }}</p>
           <p class="text-gray-600 font-medium">Peso Total (Kg)</p>
         </div>
       </div>
@@ -74,9 +78,7 @@
     <!-- Contenedor de tablas -->
     <div class="flex flex-col w-full gap-8">
       <!-- Tabla principal -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow w-full">
-        
-
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow w-full relative">
         <p-table 
            #dt2
           [value]="listData" 
@@ -86,20 +88,19 @@
           selectionMode="multiple" 
           dataKey="id"
           [globalFilterFields]="['numOrden', 'guiaRemision']"
-          [(selection)]="selectedRows" 
+          [(selection)]="selectedRows"
+          (onRowSelect)="actualizarContadorSeleccion()"
+          (onRowUnselect)="actualizarContadorSeleccion()"
+          (onHeaderCheckboxToggle)="actualizarContadorSeleccion()"
+          [scrollable]="true"
+          scrollHeight="600px"
           class="w-full">
 
 
           <ng-template pTemplate="caption">
-            <div class="flex">
-              <div class="flex justify-between items-center mb-4">
-                <section class="flex flex-wrap justify-center sm:justify-end gap-4">
-                  <p-button  label="Agregar" severity="success" icon="pi pi-plus" (onClick)="agregarorden()" ></p-button>
-                </section>
-                </div>
-
-                
-                <p-iconField iconPosition="left" class="ml-auto">
+            <div class="flex items-center justify-between sticky-caption py-3 border-b">
+              <div class="flex-1">
+                <p-iconField iconPosition="left">
                     <p-inputIcon>
                         <i class="pi pi-search"></i>
                     </p-inputIcon>
@@ -107,20 +108,22 @@
                         pInputText 
                         type="text" 
                         (input)="dt2.filterGlobal($event.target.value, 'contains')" 
-                        placeholder="Search keyword" />
+                        placeholder="Search keyword" 
+                        class="w-full max-w-xs" />
                 </p-iconField>
+              </div>
             </div>
         </ng-template>
 
           <ng-template pTemplate="header">
             <tr>
-              <th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
-              <th>N° Orden</th>
-              <th>Fecha Pedido</th>
-              <th>GRR</th>
-              <th>Cant. Productos</th>
-              <th>Cant. Unidades</th>
-              <th>Peso Total</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">N° Orden</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Fecha Pedido</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">GRR</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Cant. Productos</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Cant. Unidades</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Peso Total</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-rowData>
@@ -142,8 +145,8 @@
         <div class="flex justify-between items-center mb-4">
         <section class="flex flex-wrap justify-center sm:justify-end gap-4">
           <p-button severity="primary" label="Planificar" (onClick)="planificar()" icon="pi pi-folder"></p-button>
-          <p-button severity="primary" label="Planificar Masivo" icon="pi pi-folder"></p-button>
-          <p-button severity="warning" label="Comprobar Stock" icon="pi pi-check"></p-button>
+          <!-- <p-button severity="primary" label="Planificar Masivo" icon="pi pi-folder"></p-button>
+          <p-button severity="warning" label="Comprobar Stock" icon="pi pi-check"></p-button> -->
         </section>
         </div>
         <p-table 
@@ -180,6 +183,45 @@
       </div>
 </div>
 
+<!-- Contador flotante de selección con botón Agregar -->
+<div 
+  *ngIf="cantidadOTsSeleccionadas > 0"
+  class="contador-flotante fixed bottom-6 right-6 z-[9999]">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 border-blue-500 p-4 min-w-[280px]">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">Seleccionadas</h3>
+      <button 
+        pButton 
+        icon="pi pi-times" 
+        class="p-button-text p-button-rounded p-button-sm"
+        (click)="selectedRows = []; actualizarContadorSeleccion()"
+        type="button">
+      </button>
+    </div>
+    <div class="space-y-2 mb-3">
+      <div class="flex justify-between items-center">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Órdenes:</span>
+        <span class="text-lg font-bold text-blue-600">{{ cantidadOTsSeleccionadas }}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Unidades:</span>
+        <span class="text-lg font-bold text-green-600">{{ unidadesSeleccionadas | number:'1.0-0':'en-US' }}</span>
+      </div>
+      <div class="flex justify-between items-center border-t pt-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Peso Total:</span>
+        <span class="text-lg font-bold text-purple-600">{{ pesoSeleccionado | number:'1.2-2':'en-US' }} Kg</span>
+      </div>
+    </div>
+    <p-button  
+      label="Agregar" 
+      severity="success" 
+      icon="pi pi-plus" 
+      (onClick)="agregarorden()"
+      [disabled]="selectedRows.length === 0"
+      styleClass="w-full">
+    </p-button>
+  </div>
+</div>
 
 <p-confirmDialog />
 <p-toast />

@@ -14,19 +14,21 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { DespachosService } from '../../despachos/despachos.service';
+import { DespachosService } from '../despachos.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { CardModule } from 'primeng/card';
 import { ProductoService } from '../../_services/producto.service';
 import { DialogModule } from 'primeng/dialog';
-import { B2bService } from '../b2b.service';
+import { TooltipModule } from 'primeng/tooltip';
+import { B2bService } from '../../b2b/b2b.service';
 import { PropietarioService } from '../../_services/propietario.service';
 import { ClienteService } from '../../_services/cliente.service';
+import { GeneralService } from '../../_services/general.service';
 
 @Component({
-  selector: 'app-new',
-  templateUrl: './new.component.html',
-  styleUrls: ['./new.component.css'],
+  selector: 'app-neworder',
+  templateUrl: './neworder.component.html',
+  styleUrls: ['./neworder.component.css'],
   standalone: true,
   imports: [
     CommonModule,
@@ -44,7 +46,8 @@ import { ClienteService } from '../../_services/cliente.service';
     TableModule,
     AutoCompleteModule,
     CardModule,
-    DialogModule
+    DialogModule,
+    TooltipModule
   ],
   providers: [
     DialogService,
@@ -52,7 +55,7 @@ import { ClienteService } from '../../_services/cliente.service';
     ConfirmationService
   ]
 })
-export class NewComponent implements OnInit {
+export class NeworderComponent implements OnInit {
   form: FormGroup;
   model: any = {};
   detalle: any[] = []; // 👈 Aquí lo simplificamos a un array plano
@@ -66,7 +69,12 @@ export class NewComponent implements OnInit {
   dialogLotesVisible = false;  // ← NUEVA
   lotesInfo: any[] = [];        // ← NUEVA
   propietarios: SelectItem[] = [];
-
+  almacenes: SelectItem[] = [];
+  clientes: SelectItem[] = [];
+  direcciones: SelectItem[] = [];
+  tiposDescarga: SelectItem[] = [];
+  estados: SelectItem[] = [];
+  clienteAnterior: number | null = null;
 
   orden : any;
 
@@ -99,23 +107,34 @@ export class NewComponent implements OnInit {
     private productoService: ProductoService,
     private router: Router,
     private propietarioService: PropietarioService,
+    private generalService: GeneralService,
   ) {
       this.form = this.fb.group({
+    // 🟢 Campos de Ingreso
+    almacenId: [null, Validators.required],
+    propietarioId: [null, Validators.required],
+    
     // 🟢 Panel: Datos Generales
     idPedidoExterno: [''],
     ordenCompraCliente: ['', Validators.required],
     fechaRequerida: [new Date(), Validators.required],
     horaRequerida: [new Date(), Validators.required],
     observaciones: [''], 
+    guiaRemision: [''],
+    ordenEntrega: [''],
+    ordenInfor: [''],
+    tipoDescargaId: [null],
 
-    // 🟣 Panel: Datos del Comprador
-    nombre: ['', Validators.required],
-    contacto: ['', Validators.required],
-    documento: ['', Validators.required],
+    // 🟣 Panel: Datos del Comprador (campos ocultos pero necesarios para el backend)
+    clienteId: [null, Validators.required],
+    nombre: [''],
+    contacto: [''],
+    documento: [''],
     telefono: ['',[Validators.maxLength(15)]],
     correo: ['',[Validators.email]],
-    direccionEntrega: ['', Validators.required],
-    iddestino: ['', Validators.required],
+    direccionEntrega: [''],
+    direccionId: [null, Validators.required],
+    iddestino: [''],
     latitud: [null],
     longitud: [null],
 
@@ -129,29 +148,21 @@ export class NewComponent implements OnInit {
     this.decodedToken = this.jwtHelper.decodeToken(token);
 
 
-  // Guardar el id de usuario
-  const usuarioId = this.decodedToken.nameid;
+  // Cargar todos los propietarios (sin filtrar por usuario)
+
 
 
 
 
 
     
-  this.propietarioService.getPropietariosByUsuario(usuarioId).subscribe({
+  this.propietarioService.getAllPropietarios().subscribe({
     next: (resp) => {
       this.propietarios = resp.map((x) => ({
         value: x.id,
         label: x.razonSocial
       }));
 
-      // ✅ Si solo hay un propietario, seleccionarlo automáticamente
-      if (this.propietarios.length === 1) {
-        this.idPropietario = this.propietarios[0].value;
-      }
-
-        console.log('Usuario ID desde token:', this.propietarios[0]);
-
-        this.idPropietario = this.propietarios[0].value;
     },
     error: (err) => console.error('Error al cargar propietarios:', err),
 
@@ -159,8 +170,14 @@ export class NewComponent implements OnInit {
 
   });
   
+  // Cargar almacenes
+  this.generalService.getAllAlmacenes().subscribe((resp) => {
+    this.almacenes = resp.map((almacen) => ({
+      label: almacen.descripcion,
+      value: almacen.id
+    }));
+  });
 
-  
   this.b2bService.getUbigeo('').subscribe(resp => {
 
     console.log('ubigeo', resp);  
@@ -174,6 +191,86 @@ export class NewComponent implements OnInit {
 
     });
 
+  // Cargar tipos de descarga
+  this.generalService.getValorTabla(43).subscribe(resp => {
+    resp.forEach(element => {
+      this.tiposDescarga.push({ value: element.id, label: element.valorPrincipal });
+    });
+  });
+
+  // Cargar estados de productos
+  this.generalService.getAll(3).subscribe(resp => {
+    resp.forEach(element => {
+      this.estados.push({
+        value: element.id,
+        label: element.nombreEstado
+      });
+    });
+    // Establecer el primer estado como valor por defecto
+    if (this.estados.length > 0) {
+      this.model.estadoId = this.estados[0].value;
+    }
+  });
+
+  // Suscribirse a cambios en propietario para cargar clientes
+  this.form.get('propietarioId')?.valueChanges.subscribe(propietarioId => {
+    if (propietarioId) {
+      this.onChangePropietario(propietarioId);
+    } else {
+      this.clientes = [];
+      this.direcciones = [];
+      this.form.patchValue({ clienteId: null, direccionId: null });
+    }
+  });
+
+  // Suscribirse a cambios en cliente para cargar direcciones
+  this.clienteAnterior = this.form.get('clienteId')?.value || null;
+  this.form.get('clienteId')?.valueChanges.subscribe(clienteId => {
+    // Verificar si hay productos agregados y el cliente cambió
+    if (this.detalle.length > 0 && this.clienteAnterior !== null && this.clienteAnterior !== clienteId && clienteId !== null) {
+      this.confirmationService.confirm({
+        header: 'Advertencia',
+        message: `Ya tiene ${this.detalle.length} producto(s) agregado(s) al detalle. ¿Desea cambiar el cliente? Esto eliminará todos los productos agregados.`,
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Sí, cambiar cliente',
+        rejectLabel: 'Cancelar',
+        acceptIcon: 'pi pi-check',
+        rejectIcon: 'pi pi-times',
+        acceptButtonStyleClass: 'p-button-warning',
+        rejectButtonStyleClass: 'p-button-secondary',
+        accept: () => {
+          // Limpiar el detalle
+          this.detalle = [];
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Detalle limpiado',
+            detail: 'Los productos agregados han sido eliminados.'
+          });
+          // Continuar con el cambio de cliente
+          if (clienteId) {
+            this.onChangeCliente(clienteId);
+          } else {
+            this.direcciones = [];
+            this.form.patchValue({ direccionId: null });
+          }
+          this.clienteAnterior = clienteId;
+        },
+        reject: () => {
+          // Revertir el cambio de cliente
+          this.form.patchValue({ clienteId: this.clienteAnterior }, { emitEvent: false });
+        }
+      });
+    } else {
+      // Si no hay productos o es la primera vez, proceder normalmente
+      if (clienteId) {
+        this.onChangeCliente(clienteId);
+      } else {
+        this.direcciones = [];
+        this.form.patchValue({ direccionId: null });
+      }
+      this.clienteAnterior = clienteId;
+    }
+  });
   
   }
 
@@ -293,49 +390,102 @@ agregarProducto() {
   }
 
   registrar() {
+    // Marcar todos los campos como touched para mostrar errores
+    this.form.markAllAsTouched();
+    
     if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Complete los campos requeridos.' });
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atención', 
+        detail: 'Complete los campos requeridos.' 
+      });
       return;
     }
 
+    // Formatear fecha requerida como string (formato: yyyy-MM-dd)
+    const fechaRequerida: Date = this.form.value.fechaRequerida;
+    const fechaFormateada = fechaRequerida 
+      ? new Date(fechaRequerida).toISOString().split('T')[0] 
+      : '';
+
+    // Formatear hora requerida como string (formato: HH:mm)
     const horaRequerida: Date = this.form.value.horaRequerida;
-
     const horaFormateada = horaRequerida
-  ? new Date(horaRequerida).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-  : null;
+      ? new Date(horaRequerida).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      : '';
 
-      const pedido = {
-        idPedidoExterno: 12345,
-        fechaRequerida: this.form.value.fechaRequerida,
-        horaRequerida: horaFormateada,
-        proveedor: this.form.value.proveedor,
-        ordenCompraCliente: this.form.value.ordenCompraCliente,
-        observaciones: this.form.value.observaciones,
-        latitud: this.form.value.latitud,
-        longitud: this.form.value.longitud,
-        comprador: {
-          nombre: this.form.value.nombre,
-          documento: this.form.value.documento,
-          telefono: this.form.value.telefono,
-          correo: this.form.value.correo,
-          contacto: this.form.value.contacto,
-          direccionEntrega: this.form.value.direccionEntrega,
-          iddestino: this.form.value.iddestino,
-          latitud: this.form.value.latitud,
-          longitud: this.form.value.longitud,
-          codigoDepartamento: this.form.value.codigoDepartamento || '',
-          codigoProvincia: this.form.value.codigoProvincia || '',
-          codigoDistrito: this.form.value.codigoDistrito || ''
-        },
-        detalle: this.detalle.map((x) => ({
-          codigo: x.codigo,
-          cantidad: x.cantidad,
-          unidadMedidaId: x.unidadMedidaId,
-          lote: x.lote,
-          referencia: x.referencia
-        }))
-      };
+    // Obtener el nombre del propietario
+    const propietarioLabel = this.propietarios.find(x => x.value === this.form.value.propietarioId)?.label || null;
+
+    // Validar que tenemos al menos un producto en el detalle
+    if (this.detalle.length === 0) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atención', 
+        detail: 'Debe agregar al menos un producto al detalle.' 
+      });
+      return;
+    }
+
+    const pedido = {
+      Id: 0,
+      PropietarioId: this.form.value.propietarioId,
+      Propietario: propietarioLabel,
+      NumOrden: null,
+      AlmacenId: this.form.value.almacenId,
+      GuiaRemision: this.form.value.guiaRemision || '',
+      FechaRequerida: fechaFormateada,
+      HoraRequerida: horaFormateada,
+      OrdenCompraCliente: this.form.value.ordenCompraCliente || '',
+      ClienteId: this.form.value.clienteId || 0,
+      DireccionId: this.form.value.direccionId || 0,
+      EquipoTransporteId: null,
+      EstadoId: 0,
+      UsuarioRegistro: Number(this.decodedToken.nameid),
+      UbicacionId: null,
+      TipoRegistroId: 170, // Tipo de registro fijo según el ejemplo
+      codigodespacho: null,
+      distrito: null,
+      departamento: null,
+      contacto: this.form.value.contacto || null,
+      telefono: this.form.value.telefono || null,
+      usuarioid: Number(this.decodedToken.nameid),
+      sucursal: null,
+      CargaMasivaId: 0,
+      GuiaRemisionIngreso: null,
+      tipodescargaid: this.form.value.tipoDescargaId ? Number(this.form.value.tipoDescargaId) : null,
+      Items: this.detalle.length,
+      ordeninfor: this.form.value.ordenInfor || null,
+      ordenentrega: this.form.value.ordenEntrega || null,
+      Tamano: null,
+      ocingreso: null,
+      peso: null,
+      cantidad: null,
+      destino: null,
+      referencia: null,
+      Detalles: this.detalle.map((x) => {
+        const detalle: any = {
+          productoId: x.productoId,
+          cantidad: Number(x.cantidad),
+          estadoId: x.estadoId || 0,
+          huellaId: x.huellaId ? Number(x.huellaId) : 0
+        };
+        
+        // Solo agregar campos opcionales si tienen valor
+        if (x.lote) {
+          detalle.lote = x.lote;
+        }
+        if (x.referencia) {
+          detalle.referencia = x.referencia;
+        }
+        // huellaId debe ser un número (long?) o no enviarse - nunca null
+        if (x.huellaId !== null && x.huellaId !== undefined && typeof x.huellaId === 'number') {
+          detalle.huellaId = Number(x.huellaId);
+        }
+        
+        return detalle;
+      })
+    };
 
 
 
@@ -356,8 +506,8 @@ agregarProducto() {
 
 
 
-
-    this.b2bService.registrarPedido(pedido).subscribe({
+    // Enviar el objeto directamente - el API debería recibirlo como ordenSalidaForRegister
+    this.despachoService.RegistarOrdenSalida(pedido).subscribe({
       next: (resp) => {
         this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Pedido registrado correctamente.' });
         this.router.navigate(['/b2b/ordenessalida', resp]);
@@ -495,8 +645,11 @@ agregarItem(): void {
   );
 
   if (existente) {
-    // Si ya existe, sumamos la cantidad
+    // Si ya existe, sumamos la cantidad y actualizamos el estado si se cambió
     existente.cantidad += this.model.cantidad;
+    if (this.model.estadoId) {
+      existente.estadoId = this.model.estadoId;
+    }
     this.messageService.add({
       severity: 'info',
       summary: 'Actualizado',
@@ -512,7 +665,7 @@ agregarItem(): void {
       lote: this.model.lote || null,
       referencia: this.model.referencia || null,
       cantidad: this.model.cantidad,
-      estadoId: 0,
+      estadoId: this.model.estadoId || (this.estados.length > 0 ? this.estados[0].value : 0),
       huellaId: null
     };
 
@@ -531,6 +684,10 @@ agregarItem(): void {
   this.model.cantidad = null;
   this.model.lote = null;
   this.model.referencia = null;
+  // Restaurar el estado por defecto (primer estado de la lista)
+  if (this.estados.length > 0) {
+    this.model.estadoId = this.estados[0].value;
+  }
 }
 
 
@@ -610,6 +767,48 @@ obtenerProximoVencimiento(): string {
   return fechaProxima.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+getEstadoLabel(estadoId: number): string {
+  const estado = this.estados.find(e => e.value === estadoId);
+  return estado ? estado.label : '-';
+}
+
+onChangePropietario(propietarioId: number) {
+  this.idPropietario = propietarioId;
+  this.clientes = [];
+  this.direcciones = [];
+  this.form.patchValue({ clienteId: null, direccionId: null });
+
+  this.clienteService.getAllClientesxPropietarios(propietarioId).subscribe(resp => {
+    this.clientes = resp.map(element => ({
+      value: element.id,
+      label: element.razonSocial
+    }));
+
+    // Si hay solo un cliente, seleccionarlo automáticamente
+    if (this.clientes.length === 1) {
+      const clienteUnico = this.clientes[0];
+      this.form.get('clienteId')?.setValue(clienteUnico.value);
+    }
+  });
+}
+
+onChangeCliente(clienteId: number) {
+  this.direcciones = [];
+  this.form.patchValue({ direccionId: null });
+
+  this.clienteService.getAllDirecciones(clienteId).subscribe(resp => {
+    this.direcciones = resp.map(element => ({
+      value: element.iddireccion,
+      label: `${element.direccion} [ ${element.departamento} - ${element.provincia} - ${element.distrito} ]`
+    }));
+
+    // Si hay solo una dirección, seleccionarla automáticamente
+    if (this.direcciones.length === 1) {
+      this.form.get('direccionId')?.setValue(this.direcciones[0].value);
+    }
+  });
+}
+
  cancelar() {
   this.confirmationService.confirm({
     header: 'Cancelar edición',
@@ -635,3 +834,4 @@ obtenerProximoVencimiento(): string {
         }
 
 }
+

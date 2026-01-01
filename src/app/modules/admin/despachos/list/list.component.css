@@ -2,7 +2,7 @@
 
 /* Estilos para asegurar visibilidad de headers en tablas */
 ::ng-deep .p-datatable .p-datatable-thead > tr > th {
-  background-color: #1f2937 !important;
+  background-color: #3e69a7 !important;
   color: #ffffff !important;
   border-bottom: 1px solid #374151 !important;
 }
@@ -130,14 +130,57 @@
   padding: 1.5rem !important;
 }
 
-/* Estilos para botones pequeños en la tabla */
-::ng-deep .p-datatable .p-button.p-button-sm {
+/* Estilos compactos para el diálogo de detalle */
+::ng-deep .compact-dialog .p-dialog-content {
+  padding: 0.5rem !important;
+}
+
+::ng-deep .compact-dialog .p-dialog-header {
+  padding: 0.75rem 1rem !important;
+}
+
+::ng-deep .compact-dialog .p-dialog-header .p-dialog-title {
+  font-size: 0.875rem !important;
+}
+
+::ng-deep .compact-dialog .p-dialog-footer {
+  padding: 0.5rem 1rem !important;
+}
+
+/* Tabla compacta */
+::ng-deep .compact-table.p-datatable .p-datatable-thead > tr > th {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.75rem !important;
+}
+
+::ng-deep .compact-table.p-datatable .p-datatable-tbody > tr > td {
   padding: 0.375rem 0.5rem !important;
   font-size: 0.75rem !important;
 }
 
+::ng-deep .compact-table.p-datatable .p-datatable-tbody > tr {
+  height: auto !important;
+}
+
+/* Paginador compacto */
+::ng-deep .compact-table .p-paginator {
+  padding: 0.5rem 0.75rem !important;
+}
+
+::ng-deep .compact-table .p-paginator .p-paginator-pages .p-paginator-page {
+  min-width: 1.75rem !important;
+  height: 1.75rem !important;
+  font-size: 0.75rem !important;
+}
+
+/* Estilos para botones pequeños en la tabla */
+::ng-deep .p-datatable .p-button.p-button-sm {
+  padding: 0.375rem 0.5rem !important;
+  font-size: 1.75rem !important;
+}
+
 ::ng-deep .p-datatable .p-button .p-button-icon {
-  font-size: 0.875rem !important;
+  font-size: 0.975rem !important;
 }
 
 /* Estilos para split button */

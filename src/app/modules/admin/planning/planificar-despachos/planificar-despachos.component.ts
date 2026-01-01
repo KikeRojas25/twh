@@ -115,7 +115,7 @@ export class PlanificarDespachosComponent implements OnInit {
     this.cargarPropietarios();
     this.cargarAlmacenes();
 
-    this.buscar();
+    
 
 
 
@@ -175,7 +175,11 @@ export class PlanificarDespachosComponent implements OnInit {
 
 
     if (!this.model.PropietarioId || !this.model.AlmacenId) {
-      alert('Debe seleccionar un propietario y un almacén.');
+     this.messageService.add({
+      severity: 'warn',
+      summary: 'Advertencia',
+      detail: 'Debe seleccionar un propietario y un almacén.'
+    });
       return;
     }
 

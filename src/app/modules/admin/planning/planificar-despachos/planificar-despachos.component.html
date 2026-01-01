@@ -28,11 +28,11 @@
       <div class="flex flex-wrap sm:flex-nowrap gap-4">
         <div class="flex-1">
           <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
-          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
+          <p-dropdown [options]="almacenes"  filter="true" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
         </div>
         <div class="flex-1">
           <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
-          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
+          <p-dropdown [options]="propietarios" filter="true" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
         </div>
         <div>
           <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>

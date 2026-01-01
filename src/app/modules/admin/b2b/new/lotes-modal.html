@@ -1,0 +1,218 @@
+<!-- ============================================ -->
+<!-- CÓDIGO PARA: new.component.html             -->
+<!-- ============================================ -->
+<!-- Ubicación: Después del diálogo de stock (línea 384) -->
+<!-- ============================================ -->
+
+            <!-- DIÁLOGO DE LOTES DISPONIBLES -->
+            <p-dialog
+              header="Lotes Disponibles en Inventario"
+              [(visible)]="dialogLotesVisible"
+              [modal]="true"
+              [closable]="true"
+              [style]="{ width: '900px', maxWidth: '95vw' }"
+              [contentStyle]="{ overflow: 'visible' }"
+            >
+              <ng-template pTemplate="header">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-box text-amber-600 text-xl"></i>
+                  <div>
+                    <div class="font-semibold text-lg">Lotes Disponibles</div>
+                    <div class="text-xs text-gray-600" *ngIf="model.productoSeleccionado">
+                      {{ model.productoSeleccionado.codigo }} - {{ model.productoSeleccionado.nombreCompleto }}
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+
+              <!-- Contenido del modal -->
+              <div *ngIf="lotesInfo && lotesInfo.length > 0; else sinLotes">
+                <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <i class="pi pi-info-circle text-blue-600 mr-2"></i>
+                  <span class="text-sm text-blue-900">
+                    Haga clic en "Usar" para seleccionar un lote y agregarlo automáticamente
+                  </span>
+                </div>
+
+                <p-table
+                  [value]="lotesInfo"
+                  [scrollable]="true"
+                  scrollHeight="400px"
+                  styleClass="p-datatable-sm p-datatable-striped"
+                  [paginator]="lotesInfo.length > 10"
+                  [rows]="10"
+                  [rowsPerPageOptions]="[10, 20, 50]"
+                >
+                  <ng-template pTemplate="header">
+                    <tr class="bg-gray-800 text-white">
+                      <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="numeroLote">
+                        Número de Lote
+                        <p-sortIcon field="numeroLote"></p-sortIcon>
+                      </th>
+                      <th class="text-sm font-semibold text-white px-4 py-3 text-right" pSortableColumn="cantidadDisponible">
+                        Cantidad
+                        <p-sortIcon field="cantidadDisponible"></p-sortIcon>
+                      </th>
+                      <th class="text-sm font-semibold text-white px-4 py-3">Unidad</th>
+                      <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="fechaVencimiento">
+                        Fecha Venc.
+                        <p-sortIcon field="fechaVencimiento"></p-sortIcon>
+                      </th>
+                      <th class="text-sm font-semibold text-white px-4 py-3">Ubicación</th>
+                      <th class="text-sm font-semibold text-white px-4 py-3">Estado</th>
+                      <th class="text-sm font-semibold text-white px-4 py-3 text-center">Acción</th>
+                    </tr>
+                  </ng-template>
+
+                  <ng-template pTemplate="body" let-lote>
+                    <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
+                      <td class="text-sm px-4 py-3">
+                        <span class="font-medium text-gray-900">{{ lote.numeroLote }}</span>
+                      </td>
+                      <td class="text-sm text-right px-4 py-3">
+                        <span class="font-semibold px-2 py-1 rounded" [ngClass]="{
+                          'bg-green-100 text-green-800': lote.cantidadDisponible > 50,
+                          'bg-amber-100 text-amber-800': lote.cantidadDisponible > 0 && lote.cantidadDisponible <= 50,
+                          'bg-red-100 text-red-800': lote.cantidadDisponible === 0
+                        }">
+                          {{ lote.cantidadDisponible }}
+                        </span>
+                      </td>
+                      <td class="text-sm text-gray-700 px-4 py-3">{{ lote.unidad || 'UND' }}</td>
+                      <td class="text-sm text-gray-700 px-4 py-3">
+                        <span *ngIf="lote.fechaVencimiento" class="flex items-center gap-1">
+                          <i class="pi pi-calendar text-gray-400 text-xs"></i>
+                          {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}
+                        </span>
+                        <span *ngIf="!lote.fechaVencimiento" class="text-gray-400">Sin fecha</span>
+                      </td>
+                      <td class="text-sm text-gray-700 px-4 py-3">
+                        <span *ngIf="lote.ubicacion" class="flex items-center gap-1">
+                          <i class="pi pi-map-marker text-gray-400 text-xs"></i>
+                          {{ lote.ubicacion }}
+                        </span>
+                        <span *ngIf="!lote.ubicacion" class="text-gray-400">-</span>
+                      </td>
+                      <td class="text-sm px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="{
+                          'bg-green-100 text-green-800': lote.estado === 'Activo' || lote.estado === 'Disponible',
+                          'bg-amber-100 text-amber-800': lote.estado === 'Por Vencer',
+                          'bg-red-100 text-red-800': lote.estado === 'Vencido' || lote.estado === 'Bloqueado',
+                          'bg-gray-100 text-gray-800': !lote.estado
+                        }">
+                          {{ lote.estado || 'Disponible' }}
+                        </span>
+                      </td>
+                      <td class="text-center px-4 py-3">
+                        <button
+                          pButton
+                          type="button"
+                          icon="pi pi-check"
+                          class="p-button-sm p-button-success"
+                          label="Usar"
+                          (click)="seleccionarLote(lote)"
+                          [disabled]="lote.cantidadDisponible === 0 || lote.estado === 'Vencido' || lote.estado === 'Bloqueado'"
+                          [pTooltip]="lote.cantidadDisponible === 0 ? 'Sin stock disponible' : 'Seleccionar este lote'"
+                          tooltipPosition="left"
+                        ></button>
+                      </td>
+                    </tr>
+                  </ng-template>
+
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td colspan="7" class="text-center py-8">
+                        <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500">No hay lotes disponibles</p>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+
+                <!-- Información adicional -->
+                <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+                      <i class="pi pi-box text-blue-600 text-2xl"></i>
+                      <div>
+                        <div class="text-xs text-gray-600">Total de Lotes</div>
+                        <div class="text-xl font-bold text-gray-900">{{ lotesInfo.length }}</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+                      <i class="pi pi-check-circle text-green-600 text-2xl"></i>
+                      <div>
+                        <div class="text-xs text-gray-600">Stock Total</div>
+                        <div class="text-xl font-bold text-green-700">
+                          {{ calcularStockTotal() }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+                      <i class="pi pi-calendar text-amber-600 text-2xl"></i>
+                      <div>
+                        <div class="text-xs text-gray-600">Próximo Vencimiento</div>
+                        <div class="text-sm font-bold text-amber-700">
+                          {{ obtenerProximoVencimiento() }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="mt-4 p-3 bg-amber-50 border-l-4 border-amber-500 rounded">
+                  <div class="flex items-start gap-2">
+                    <i class="pi pi-lightbulb text-amber-600 text-lg mt-0.5"></i>
+                    <div class="text-sm text-amber-900">
+                      <p class="font-semibold mb-2">💡 Recomendaciones:</p>
+                      <ul class="list-disc list-inside space-y-1 text-amber-800">
+                        <li>Priorice lotes con fecha de vencimiento más próxima (FEFO)</li>
+                        <li>Los lotes marcados en ámbar tienen stock limitado</li>
+                        <li>La cantidad se ajustará automáticamente si excede el disponible</li>
+                        <li>No puede seleccionar lotes vencidos o bloqueados</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Template: Sin lotes -->
+              <ng-template #sinLotes>
+                <div class="text-center py-12">
+                  <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
+                  <p class="text-gray-600 text-lg font-medium">No hay lotes disponibles</p>
+                  <p class="text-gray-500 text-sm mt-2">
+                    Este producto no tiene lotes registrados en el inventario
+                  </p>
+                  <button
+                    pButton
+                    type="button"
+                    label="Cerrar"
+                    icon="pi pi-times"
+                    class="p-button-secondary mt-4"
+                    (click)="dialogLotesVisible = false"
+                  ></button>
+                </div>
+              </ng-template>
+
+              <!-- Footer -->
+              <ng-template pTemplate="footer">
+                <div class="flex justify-between items-center">
+                  <div class="text-xs text-gray-500">
+                    <i class="pi pi-info-circle mr-1"></i>
+                    Seleccione un lote para continuar
+                  </div>
+                  <button
+                    pButton
+                    type="button"
+                    label="Cerrar"
+                    icon="pi pi-times"
+                    class="p-button-secondary"
+                    (click)="dialogLotesVisible = false"
+                  ></button>
+                </div>
+              </ng-template>
+            </p-dialog>
