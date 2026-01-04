@@ -59,6 +59,30 @@
         <h3 class="text-base font-semibold text-gray-100">Datos Generales</h3>
       </div>
       <div class="p-4">
+        <!-- Propietario -->
+        <div class="mb-4">
+          <label class="text-xs font-medium text-gray-700 mb-1">Propietario:</label>
+          <p-dropdown
+            [options]="propietarios"
+            [(ngModel)]="idPropietario"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onChangePropietario($event)"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Seleccione un propietario"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
           <!-- Orden de Compra -->
           <div class="flex flex-col">
@@ -112,132 +136,69 @@
       </div>
     </div>
 
-    <!-- Panel 2: Datos del Comprador -->
+    <!-- Panel 2: Cliente y Dirección -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
-        <h3 class="text-base font-semibold text-gray-100">Datos del Comprador</h3>
+        <h3 class="text-base font-semibold text-gray-100">Cliente y Dirección</h3>
       </div>
       <div class="p-4">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Documento (RUC/DNI):</label>
-            <div class="flex items-center">
-              <input
-                pInputText
-                formControlName="documento"
-                placeholder="20654321876"
-                autocomplete="off"
-                (blur)="buscarClientePorDocumento()"
-                class="flex-1 text-sm border-gray-300"
-              />
-
-              <!-- Indicador -->
-              <ng-container *ngIf="estadoCliente === 'encontrado'">
-                <i
-                  class="pi pi-check-circle ml-2 cursor-pointer text-green-500"
-                  pTooltip="Cliente encontrado"
-                  tooltipPosition="top"
-                ></i>
-              </ng-container>
-
-              <ng-container *ngIf="estadoCliente === 'no_encontrado'">
-                <i
-                  class="pi pi-exclamation-circle ml-2 cursor-pointer text-yellow-500"
-                  pTooltip="Cliente no encontrado"
-                  tooltipPosition="top"
-                ></i>
-              </ng-container>
-            </div>
-          </div>
-
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Nombre / Razón Social:</label>
-            <input
-              pInputText
-              formControlName="nombre"
-              placeholder="Ej: Comercial ABC S.A.C."
-              [readonly]="estadoCliente === 'encontrado'"
-              class="w-full text-sm border-gray-300"
-            />
-
-            <!-- Botón para registrar nuevo cliente -->
-            <button
-              *ngIf="estadoCliente === 'no_encontrado'"
-              pButton
-              type="button"
-              label="Registrar cliente"
-              icon="pi pi-user-plus"
-              class="p-button-sm p-button-text mt-1 self-end text-blue-600"
-              (click)="abrirDialogNuevoCliente()"
-            ></button>
-          </div>
-
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Contacto (*):</label>
-            <input
-              pInputText
-              formControlName="contacto"
-              placeholder="Nombre del contacto"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
-
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Teléfono (*):</label>
-            <input
-              pInputText
-              formControlName="telefono"
-              placeholder="999888777"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
-        </div>
-
-        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Correo:</label>
-            <input
-              pInputText
-              formControlName="correo"
-              placeholder="compras@abc.com.pe"
-              class="w-full text-sm border-gray-300"
-            />
-          </div>
-
-          <div class="relative flex flex-col">
-            <label class="text-xs font-medium text-gray-700 mb-1">Destino: (*)</label>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <!-- Cliente -->
+          <div class="flex flex-col">
+            <label class="text-xs font-medium text-gray-700 mb-1">Cliente: <span class="text-red-500">*</span></label>
             <p-dropdown
-              [options]="ubigeo"
-              formControlName="iddestino"
-              virtualScroll="true"
-              [itemSize]="30"
-              optionLabel="label"
-              optionValue="value"
-              filter="true"
-              placeholder="Seleccione un destino"
-              class="w-full"
+              formControlName="clienteId"
+              [options]="clientes"
+              [filter]="true"
+              filterBy="label"
+              [showClear]="true"
+              [style]="{ 'width': '100%' }"
               appendTo="body"
-              styleClass="text-sm border-gray-300"
+              [resetFilterOnHide]="false"
+              [hideTransitionOptions]="'0ms'"
+              [showTransitionOptions]="'0ms'"
+              placeholder="seleccione un cliente"
+              [disabled]="!idPropietario"
               [ngClass]="{
-                'ng-invalid ng-dirty':
-                  form.get('iddestino')?.touched &&
-                  form.get('iddestino')?.invalid,
+                'p-invalid': (form.get('clienteId')?.touched || form.get('clienteId')?.dirty) && form.get('clienteId')?.invalid
               }"
-            >
+              styleClass="text-sm">
               <ng-template let-item pTemplate="selectedItem">
-                <span>{{ item.label }}</span>
+                <span style="vertical-align: left">{{ item.label }}</span>
               </ng-template>
             </p-dropdown>
+            <small *ngIf="(form.get('clienteId')?.touched || form.get('clienteId')?.dirty) && form.get('clienteId')?.invalid" class="p-error text-xs mt-1">
+              El cliente es obligatorio.
+            </small>
           </div>
 
-          <div class="flex flex-col md:col-span-2">
-            <label class="text-xs font-medium text-gray-700 mb-1">Dirección de Entrega: (*)</label>
-            <input
-              pInputText
-              formControlName="direccionEntrega"
-              placeholder="Av. El Derby 123, Santiago de Surco"
-              class="w-full text-sm border-gray-300"
-            />
+          <!-- Dirección Entrega -->
+          <div class="flex flex-col">
+            <label class="text-xs font-medium text-gray-700 mb-1">Dirección Entrega: <span class="text-red-500">*</span></label>
+            <p-dropdown
+              formControlName="direccionId"
+              [options]="direcciones"
+              [filter]="true"
+              filterBy="label"
+              [showClear]="true"
+              [style]="{ 'width': '100%' }"
+              appendTo="body"
+              [resetFilterOnHide]="false"
+              [hideTransitionOptions]="'0ms'"
+              [showTransitionOptions]="'0ms'"
+              placeholder="seleccione una dirección de entrega"
+              [disabled]="!form.get('clienteId')?.value"
+              [ngClass]="{
+                'p-invalid': (form.get('direccionId')?.touched || form.get('direccionId')?.dirty) && form.get('direccionId')?.invalid
+              }"
+              styleClass="text-sm">
+              <ng-template let-item pTemplate="selectedItem">
+                <span style="vertical-align: left">{{ item.label }}</span>
+              </ng-template>
+            </p-dropdown>
+            <small *ngIf="(form.get('direccionId')?.touched || form.get('direccionId')?.dirty) && form.get('direccionId')?.invalid" class="p-error text-xs mt-1">
+              La dirección de entrega es obligatoria.
+            </small>
           </div>
         </div>
       </div>

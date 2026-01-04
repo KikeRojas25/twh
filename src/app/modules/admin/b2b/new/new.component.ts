@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService, ConfirmationService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -66,6 +66,9 @@ export class NewComponent implements OnInit {
   dialogLotesVisible = false;  // ← NUEVA
   lotesInfo: any[] = [];        // ← NUEVA
   propietarios: SelectItem[] = [];
+  clientes: SelectItem[] = [];
+  direcciones: SelectItem[] = [];
+  direccionesData: any[] = []; // Para guardar los datos completos de direcciones
 
 
   orden : any;
@@ -99,6 +102,7 @@ export class NewComponent implements OnInit {
     private productoService: ProductoService,
     private router: Router,
     private propietarioService: PropietarioService,
+    private route: ActivatedRoute,
   ) {
       this.form = this.fb.group({
     // 🟢 Panel: Datos Generales
@@ -108,14 +112,18 @@ export class NewComponent implements OnInit {
     horaRequerida: [new Date(), Validators.required],
     observaciones: [''], 
 
-    // 🟣 Panel: Datos del Comprador
-    nombre: ['', Validators.required],
-    contacto: ['', Validators.required],
-    documento: ['', Validators.required],
-    telefono: ['',[Validators.maxLength(15)]],
-    correo: ['',[Validators.email]],
-    direccionEntrega: ['', Validators.required],
-    iddestino: ['', Validators.required],
+    // 🟣 Panel: Cliente y Dirección
+    clienteId: [null, Validators.required],
+    direccionId: [null, Validators.required],
+    
+    // Campos ocultos pero necesarios para el backend (se pueden poblar desde cliente/dirección)
+    nombre: [''],
+    contacto: [''],
+    documento: [''],
+    telefono: [''],
+    correo: [''],
+    direccionEntrega: [''],
+    iddestino: [''],
     latitud: [null],
     longitud: [null],
 
@@ -128,36 +136,62 @@ export class NewComponent implements OnInit {
     const token = localStorage.getItem('token');
     this.decodedToken = this.jwtHelper.decodeToken(token);
 
+    // Guardar el id de usuario
+    const usuarioId = this.decodedToken.nameid;
 
-  // Guardar el id de usuario
-  const usuarioId = this.decodedToken.nameid;
-
-
-
-
-
+    // ✅ Leer propietarioId desde query parameter (usar snapshot para leer una vez)
+    const propietarioIdParam = this.route.snapshot.queryParams['propietarioId'] 
+      ? Number(this.route.snapshot.queryParams['propietarioId']) 
+      : null;
     
-  this.propietarioService.getPropietariosByUsuario(usuarioId).subscribe({
-    next: (resp) => {
-      this.propietarios = resp.map((x) => ({
-        value: x.id,
-        label: x.razonSocial
-      }));
+    this.propietarioService.getPropietariosByUsuario(usuarioId).subscribe({
+      next: (resp) => {
+        this.propietarios = resp.map((x) => ({
+          value: x.id,
+          label: x.razonSocial
+        }));
 
-      // ✅ Si solo hay un propietario, seleccionarlo automáticamente
-      if (this.propietarios.length === 1) {
-        this.idPropietario = this.propietarios[0].value;
-      }
+        // ✅ Si viene propietarioId en query params, usarlo
+        let propietarioSeleccionado: number | null = null;
+        if (propietarioIdParam) {
+          const existe = this.propietarios.find(p => p.value === propietarioIdParam);
+          if (existe) {
+            propietarioSeleccionado = propietarioIdParam;
+          } else {
+            // Si no existe, usar la lógica por defecto
+            if (this.propietarios.length === 1) {
+              propietarioSeleccionado = this.propietarios[0].value;
+            } else if (this.propietarios.length > 0) {
+              propietarioSeleccionado = this.propietarios[0].value;
+            }
+          }
+        } else {
+          // ✅ Si no viene en query params, usar lógica por defecto
+          if (this.propietarios.length === 1) {
+            propietarioSeleccionado = this.propietarios[0].value;
+          } else if (this.propietarios.length > 0) {
+            propietarioSeleccionado = this.propietarios[0].value;
+          }
+        }
 
-        console.log('Usuario ID desde token:', this.propietarios[0]);
+        // Sincronizar idPropietario y cargar clientes si hay propietario seleccionado
+        if (propietarioSeleccionado) {
+          this.idPropietario = propietarioSeleccionado;
+          this.onChangePropietario(propietarioSeleccionado);
+        }
 
-        this.idPropietario = this.propietarios[0].value;
-    },
-    error: (err) => console.error('Error al cargar propietarios:', err),
-
-
-
-  });
+        // Suscribirse a cambios en cliente para cargar direcciones
+        this.form.get('clienteId')?.valueChanges.subscribe(clienteId => {
+          if (clienteId) {
+            this.onChangeCliente(clienteId);
+          } else {
+            this.direcciones = [];
+            this.form.patchValue({ direccionId: null });
+          }
+        });
+      },
+      error: (err) => console.error('Error al cargar propietarios:', err),
+    });
   
 
   
@@ -299,50 +333,112 @@ agregarProducto() {
       return;
     }
 
+    // Validar que tenemos al menos un producto en el detalle
+    if (this.detalle.length === 0) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atención', 
+        detail: 'Debe agregar al menos un producto al detalle.' 
+      });
+      return;
+    }
+
+    // Validar que tenemos propietario
+    if (!this.idPropietario) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atención', 
+        detail: 'Debe seleccionar un propietario.' 
+      });
+      return;
+    }
+
+    // Formatear fecha requerida como string (formato: yyyy-MM-dd)
+    const fechaRequerida: Date = this.form.value.fechaRequerida;
+    const fechaFormateada = fechaRequerida 
+      ? new Date(fechaRequerida).toISOString().split('T')[0] 
+      : '';
+
+    // Formatear hora requerida como string (formato: HH:mm)
     const horaRequerida: Date = this.form.value.horaRequerida;
-
     const horaFormateada = horaRequerida
-  ? new Date(horaRequerida).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-  : null;
+      ? new Date(horaRequerida).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      : '';
 
-      const pedido = {
-        idPedidoExterno: 12345,
-        fechaRequerida: this.form.value.fechaRequerida,
-        horaRequerida: horaFormateada,
-        proveedor: this.form.value.proveedor,
-        ordenCompraCliente: this.form.value.ordenCompraCliente,
-        observaciones: this.form.value.observaciones,
-        latitud: this.form.value.latitud,
-        longitud: this.form.value.longitud,
-        comprador: {
-          nombre: this.form.value.nombre,
-          documento: this.form.value.documento,
-          telefono: this.form.value.telefono,
-          correo: this.form.value.correo,
-          contacto: this.form.value.contacto,
-          direccionEntrega: this.form.value.direccionEntrega,
-          iddestino: this.form.value.iddestino,
-          latitud: this.form.value.latitud,
-          longitud: this.form.value.longitud,
-          codigoDepartamento: this.form.value.codigoDepartamento || '',
-          codigoProvincia: this.form.value.codigoProvincia || '',
-          codigoDistrito: this.form.value.codigoDistrito || ''
-        },
-        detalle: this.detalle.map((x) => ({
-          codigo: x.codigo,
-          cantidad: x.cantidad,
-          unidadMedidaId: x.unidadMedidaId,
-          lote: x.lote,
-          referencia: x.referencia
-        }))
-      };
+    // Obtener el nombre del propietario
+    const propietarioLabel = this.propietarios.find(x => x.value === this.idPropietario)?.label || null;
+
+    // Obtener datos de la dirección seleccionada
+    const direccionIdSeleccionada = this.form.value.direccionId;
+    const direccionSeleccionada = this.direccionesData.find(d => d.iddireccion === direccionIdSeleccionada);
+
+    // Construir el objeto OrdenSalidaForRegister
+    const ordenSalida = {
+      Id: 0,
+      PropietarioId: this.idPropietario,
+      Propietario: propietarioLabel,
+      NumOrden: null,
+      AlmacenId: 0, // TODO: Agregar campo almacenId al formulario si es necesario
+      GuiaRemision: '',
+      FechaRequerida: fechaFormateada,
+      HoraRequerida: horaFormateada,
+      OrdenCompraCliente: this.form.value.ordenCompraCliente || '',
+      ClienteId: this.form.value.clienteId || 0,
+      DireccionId: direccionIdSeleccionada || 0,
+      EquipoTransporteId: null,
+      EstadoId: 0,
+      UsuarioRegistro: Number(this.decodedToken.nameid),
+      UbicacionId: null,
+      TipoRegistroId: 170, // Tipo de registro para B2B
+      codigodespacho: null,
+      distrito: direccionSeleccionada?.distrito || null,
+      departamento: direccionSeleccionada?.departamento || null,
+      contacto: this.form.value.contacto || null,
+      telefono: this.form.value.telefono || null,
+      usuarioid: Number(this.decodedToken.nameid),
+      sucursal: null,
+      CargaMasivaId: 0,
+      GuiaRemisionIngreso: null,
+      tipodescargaid: null,
+      Items: this.detalle.length,
+      ordeninfor: null,
+      ordenentrega: null,
+      Tamano: null,
+      ocingreso: null,
+      peso: null,
+      cantidad: null,
+      destino: null,
+      referencia: null,
+      Detalles: this.detalle.map((x) => {
+        const detalle: any = {
+          productoId: x.productoId,
+          cantidad: Number(x.cantidad),
+          estadoId: x.estadoId || 0,
+          huellaId: x.huellaId ? Number(x.huellaId) : 0
+        };
+        
+        // Solo agregar campos opcionales si tienen valor
+        if (x.lote) {
+          detalle.lote = x.lote;
+        }
+        if (x.referencia) {
+          detalle.referencia = x.referencia;
+        }
+        // huellaId debe ser un número o no enviarse - nunca null
+        if (x.huellaId !== null && x.huellaId !== undefined && typeof x.huellaId === 'number') {
+          detalle.huellaId = Number(x.huellaId);
+        }
+        
+        return detalle;
+      })
+    };
 
 
 
 
   this.confirmationService.confirm({
     header: 'Confirmar registro',
-    message: '¿Está seguro de registrar este pedido?',
+    message: '¿Está seguro de registrar esta orden de salida?',
     icon: 'pi pi-exclamation-triangle',
     acceptLabel: 'Sí, registrar',
     rejectLabel: 'Cancelar',
@@ -357,14 +453,44 @@ agregarProducto() {
 
 
 
-    this.b2bService.registrarPedido(pedido).subscribe({
+    this.b2bService.registerOrdenSalida(ordenSalida).subscribe({
       next: (resp) => {
-        this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Pedido registrado correctamente.' });
+        this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Orden de salida registrada correctamente.' });
         this.router.navigate(['/b2b/ordenessalida', resp]);
       },
       error: (err) => {
         console.error(err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo registrar el pedido.' });
+        
+        // Manejar error estructurado del backend (validación de stock)
+        if (err?.error?.errors && Array.isArray(err.error.errors) && err.error.errors.length > 0) {
+          // Mostrar el mensaje principal si existe
+          const mensajePrincipal = err.error.message || 'Error de validación de stock';
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Error de validación', 
+            detail: mensajePrincipal 
+          });
+          
+          // Mostrar cada error específico de stock
+          err.error.errors.forEach((errorMsg: string) => {
+            if (errorMsg && errorMsg.trim()) {
+              this.messageService.add({ 
+                severity: 'warn', 
+                summary: 'Stock insuficiente', 
+                detail: errorMsg.trim(),
+                life: 8000 // Mostrar por más tiempo para que el usuario pueda leerlo
+              });
+            }
+          });
+        } else {
+          // Error genérico o sin estructura específica
+          const mensajeError = err?.error?.message || 'No se pudo registrar la orden de salida.';
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Error', 
+            detail: mensajeError 
+          });
+        }
       }
     });
 
@@ -375,7 +501,7 @@ agregarProducto() {
       this.messageService.add({
         severity: 'info',
         summary: 'Cancelado',
-        detail: 'El registro del pedido fue cancelado.'
+        detail: 'El registro de la orden de salida fue cancelado.'
       });
     }
   });
@@ -489,18 +615,23 @@ agregarItem(): void {
     return;
   }
 
-  // 🔹 Verificar si el producto ya está en el detalle
+  // 🔹 Verificar si el producto con el mismo lote ya está en el detalle
+  const loteActual = this.model.lote || null;
   const existente = this.detalle.find(
-    (d) => d.productoId === this.model.productoSeleccionado.id
+    (d) => {
+      const mismoProducto = d.productoId === this.model.productoSeleccionado.id;
+      const mismoLote = (d.lote || null) === loteActual;
+      return mismoProducto && mismoLote;
+    }
   );
 
   if (existente) {
-    // Si ya existe, sumamos la cantidad
+    // Si ya existe el producto con el mismo lote, sumamos la cantidad
     existente.cantidad += this.model.cantidad;
     this.messageService.add({
       severity: 'info',
       summary: 'Actualizado',
-      detail: `La cantidad del producto ${this.model.productoSeleccionado.nombreCompleto} fue actualizada.`
+      detail: `La cantidad del producto ${this.model.productoSeleccionado.nombreCompleto}${loteActual ? ' (Lote: ' + loteActual + ')' : ''} fue actualizada.`
     });
   } else {
     // 🔹 Crear el objeto de detalle
@@ -534,48 +665,41 @@ agregarItem(): void {
 }
 
 
-buscarClientePorDocumento() {
-  const doc = this.form.get('documento')?.value;
-  if (!doc) return;
+onChangePropietario(propietarioId: number) {
+  this.idPropietario = propietarioId;
+  this.clientes = [];
+  this.direcciones = [];
+  this.form.patchValue({ clienteId: null, direccionId: null });
 
-  this.estadoCliente = 'pendiente';
+  this.clienteService.getAllClientesxPropietarios(propietarioId).subscribe(resp => {
+    this.clientes = resp.map(element => ({
+      value: element.id,
+      label: element.razonSocial
+    }));
 
-  this.clienteService.getClientePorDocumento(doc).subscribe({
-    next: (cliente) => {
-      if (cliente) {
+    // Si hay solo un cliente, seleccionarlo automáticamente
+    if (this.clientes.length === 1) {
+      const clienteUnico = this.clientes[0];
+      this.form.get('clienteId')?.setValue(clienteUnico.value);
+    }
+  });
+}
 
-        console.log('Cliente encontrado:', cliente);
+onChangeCliente(clienteId: number) {
+  this.direcciones = [];
+  this.direccionesData = [];
+  this.form.patchValue({ direccionId: null });
 
+  this.clienteService.getAllDirecciones(clienteId).subscribe(resp => {
+    this.direccionesData = resp; // Guardar datos completos
+    this.direcciones = resp.map(element => ({
+      value: element.iddireccion,
+      label: `${element.direccion} [ ${element.departamento} - ${element.provincia} - ${element.distrito} ]`
+    }));
 
-        this.form.patchValue({
-          nombre: cliente.data.razonSocial,
-          telefono: cliente.data.telefono,
-          correo: cliente.data.correo,
-          direccionEntrega: cliente.data.direccionEntrega
-
-        });
-        this.estadoCliente = 'encontrado';
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Cliente encontrado',
-          detail: `Se cargaron los datos de ${cliente.nombre}`
-        });
-      } else {
-        this.estadoCliente = 'no_encontrado';
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'No encontrado',
-          detail: 'El cliente no está registrado.'
-        });
-      }
-    },
-    error: () => {
-      this.estadoCliente = 'no_encontrado';
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudo consultar el cliente.'
-      });
+    // Si hay solo una dirección, seleccionarla automáticamente
+    if (this.direcciones.length === 1) {
+      this.form.get('direccionId')?.setValue(this.direcciones[0].value);
     }
   });
 }

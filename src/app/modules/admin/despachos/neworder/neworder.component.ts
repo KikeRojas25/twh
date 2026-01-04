@@ -514,7 +514,37 @@ agregarProducto() {
       },
       error: (err) => {
         console.error(err);
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo registrar el pedido.' });
+        
+        // Manejar error estructurado del backend (validación de stock)
+        if (err?.error?.errors && Array.isArray(err.error.errors) && err.error.errors.length > 0) {
+          // Mostrar el mensaje principal si existe
+          const mensajePrincipal = err.error.message || 'Error de validación de stock';
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Error de validación', 
+            detail: mensajePrincipal 
+          });
+          
+          // Mostrar cada error específico de stock
+          err.error.errors.forEach((errorMsg: string) => {
+            if (errorMsg && errorMsg.trim()) {
+              this.messageService.add({ 
+                severity: 'warn', 
+                summary: 'Stock insuficiente', 
+                detail: errorMsg.trim(),
+                life: 8000 // Mostrar por más tiempo para que el usuario pueda leerlo
+              });
+            }
+          });
+        } else {
+          // Error genérico o sin estructura específica
+          const mensajeError = err?.error?.message || 'No se pudo registrar el pedido.';
+          this.messageService.add({ 
+            severity: 'error', 
+            summary: 'Error', 
+            detail: mensajeError 
+          });
+        }
       }
     });
 
@@ -639,13 +669,18 @@ agregarItem(): void {
     return;
   }
 
-  // 🔹 Verificar si el producto ya está en el detalle
+  // 🔹 Verificar si el producto con el mismo lote ya está en el detalle
+  const loteActual = this.model.lote || null;
   const existente = this.detalle.find(
-    (d) => d.productoId === this.model.productoSeleccionado.id
+    (d) => {
+      const mismoProducto = d.productoId === this.model.productoSeleccionado.id;
+      const mismoLote = (d.lote || null) === loteActual;
+      return mismoProducto && mismoLote;
+    }
   );
 
   if (existente) {
-    // Si ya existe, sumamos la cantidad y actualizamos el estado si se cambió
+    // Si ya existe el producto con el mismo lote, sumamos la cantidad y actualizamos el estado si se cambió
     existente.cantidad += this.model.cantidad;
     if (this.model.estadoId) {
       existente.estadoId = this.model.estadoId;
@@ -653,7 +688,7 @@ agregarItem(): void {
     this.messageService.add({
       severity: 'info',
       summary: 'Actualizado',
-      detail: `La cantidad del producto ${this.model.productoSeleccionado.nombreCompleto} fue actualizada.`
+      detail: `La cantidad del producto ${this.model.productoSeleccionado.nombreCompleto}${loteActual ? ' (Lote: ' + loteActual + ')' : ''} fue actualizada.`
     });
   } else {
     // 🔹 Crear el objeto de detalle

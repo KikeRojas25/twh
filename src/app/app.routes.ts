@@ -9,15 +9,16 @@ import { LayoutComponent } from 'app/layout/layout.component';
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 export const appRoutes: Route[] = [
 
-    // Redirect empty path to '/example'
-    {path: '', pathMatch : 'full', redirectTo: 'example'},
+    // Redirect empty path to '/inicio' (Pantalla inicial)
+    // Note: The route is protected by AuthGuard in Admin routes section
+    {path: '', pathMatch : 'full', redirectTo: 'inicio'},
 
-    // Redirect signed-in user to the '/example'
+    // Redirect signed-in user to the inicio page
     //
     // After the user signs in, the sign-in page will redirect the user to the 'signed-in-redirect'
     // path. Below is another redirection for that path to redirect the user to the desired
     // location. This is a small convenience to keep all main routes together here on this file.
-    {path: 'signed-in-redirect', pathMatch : 'full', redirectTo: 'example'},
+    {path: 'signed-in-redirect', pathMatch : 'full', redirectTo: 'inicio'},
 
     // Auth routes for guests
     {
@@ -74,6 +75,11 @@ export const appRoutes: Route[] = [
             initialData: initialDataResolver
         },
         children: [
+            {
+                path: 'inicio',
+                loadComponent: () => import('app/modules/admin/inicio/inicio.component')
+                  .then(m => m.InicioComponent)
+            },
             {
                 path: 'example',
                 loadComponent: () => import('app/modules/admin/example/example.component')

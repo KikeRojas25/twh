@@ -86,6 +86,8 @@ export class ListComponent implements OnInit, OnDestroy {
 
     model: any = { guiaremision: '' };
     ordenes: OrdenSalida[] = [];
+    ordenesFiltradas: OrdenSalida[] = [];
+    textoBusqueda: string = '';
 
     dateInicio: Date = new Date(new Date().setMonth(new Date().getMonth() - 1));
     dateFin: Date = new Date();
@@ -143,6 +145,9 @@ export class ListComponent implements OnInit, OnDestroy {
       this._initializeWebSocketListeners(); // ✅ Inicializar listeners de WebSocket
     }
   });
+  
+  // Inicializar ordenesFiltradas como array vacío
+  this.ordenesFiltradas = [];
 }
 
   /**
@@ -169,9 +174,11 @@ export class ListComponent implements OnInit, OnDestroy {
         // El backend envía 'ordenes' (minúscula) no 'Ordenes'
         if (data && data.ordenes && Array.isArray(data.ordenes)) {
           this.ordenes = data.ordenes;
+          this.aplicarFiltroBusqueda();
         } else if (data && data.Ordenes && Array.isArray(data.Ordenes)) {
           // Compatibilidad con formato anterior (mayúscula)
           this.ordenes = data.Ordenes;
+          this.aplicarFiltroBusqueda();
         } else {
           // Si no vienen las órdenes en el formato esperado, refrescar manualmente
           this.buscar();
@@ -255,9 +262,39 @@ export class ListComponent implements OnInit, OnDestroy {
             .getAllOrdenSalida(this.model)
             .subscribe((list) => {
                 this.ordenes = list;
-
+                this.aplicarFiltroBusqueda();
                 console.log('ordenes', this.ordenes);
             });
+    }
+
+    aplicarFiltroBusqueda(): void {
+        // Validar que ordenes exista y tenga datos
+        if (!this.ordenes || this.ordenes.length === 0) {
+            this.ordenesFiltradas = [];
+            return;
+        }
+        
+        if (!this.textoBusqueda || this.textoBusqueda.trim() === '') {
+            this.ordenesFiltradas = [...this.ordenes];
+        } else {
+            const busqueda = this.textoBusqueda.toLowerCase().trim();
+            this.ordenesFiltradas = this.ordenes.filter(orden => {
+                const ors = (orden.numOrden || '').toLowerCase();
+                const grSalida = (orden.guiaRemision || '').toLowerCase();
+                const ordenCompra = (orden.ordenCompraCliente || '').toLowerCase();
+                // Buscar en usuarioregistro que es el campo que se muestra en la tabla
+                const registradoPor = (orden.usuarioregistro || '').toLowerCase();
+                
+                return ors.includes(busqueda) ||
+                       grSalida.includes(busqueda) ||
+                       ordenCompra.includes(busqueda) ||
+                       registradoPor.includes(busqueda);
+            });
+        }
+    }
+
+    onBusquedaChange(): void {
+        this.aplicarFiltroBusqueda();
     }
 
     
@@ -380,7 +417,12 @@ export class ListComponent implements OnInit, OnDestroy {
     }
 
     nuevaorden() {
-        this.router.navigate(['/b2b/new']);
+        const propietarioId = this.model.PropietarioId;
+        if (propietarioId) {
+            this.router.navigate(['/b2b/new'], { queryParams: { propietarioId: propietarioId } });
+        } else {
+            this.router.navigate(['/b2b/new']);
+        }
     }
     nuevaordenmasiva() {
         this.router.navigate(['/picking/nuevasalidamasiva']);

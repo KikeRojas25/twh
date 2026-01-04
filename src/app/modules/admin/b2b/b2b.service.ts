@@ -42,6 +42,10 @@ getUbigeo(criterio): Observable<Ubigeo[]> {
     return this._httpClient.post(`${this.baseUrlPedidos}RegistrarPedido`, request, httpOptions);
   }
 
+  registerOrdenSalida(request: any): Observable<any> {
+    return this._httpClient.post(`${this.baseUrlPedidos}RegisterOrdenSalida`, request, httpOptions);
+  }
+
 
 obtenerDetallePedido(pedidoId: number): Observable<{ success: boolean; message: string; data: PedidoDetalle[] }> {
   return this._httpClient.get<{ success: boolean; message: string; data: PedidoDetalle[] }>(

@@ -25,9 +25,7 @@
 
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
-    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
-      <h3 class="text-base font-semibold text-gray-100">Filtros de Búsqueda</h3>
-    </div>
+ 
     <div class="p-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Propietario -->
@@ -119,9 +117,27 @@
 
   <!-- Tabla de Órdenes -->
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
-    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
-      <h3 class="text-base font-semibold text-gray-100">Listado de Órdenes de Salida</h3>
-      <p class="text-xs text-amber-300 mt-1">Total de órdenes: {{ ordenes.length }}</p>
+    <div class="px-4 py-3 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex-1">
+          <h3 class="text-sm font-medium text-gray-700 mb-2 sm:mb-0">Listado de Órdenes de Salida</h3>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Buscador -->
+          <div class="flex-1 sm:flex-initial min-w-[250px]">
+            <input
+              pInputText
+              type="text"
+              [(ngModel)]="textoBusqueda"
+              (ngModelChange)="onBusquedaChange()"
+              placeholder="Buscar por ORS, GR salida, orden de compra, registrado por..."
+              class="w-full text-sm border-gray-300"
+              autocomplete="off"
+            />
+          </div>
+          <p class="text-xs text-gray-500 whitespace-nowrap">Total: {{ ordenesFiltradas?.length || 0 }}</p>
+        </div>
+      </div>
     </div>
     <div class="p-4">
       <p-table
@@ -129,7 +145,7 @@
         [scrollable]="true"
         scrollHeight="600px"
         [columns]="cols"
-        [value]="ordenes"
+        [value]="ordenesFiltradas"
         [(selection)]="selectedRow"
         #dt
         [paginator]="true"

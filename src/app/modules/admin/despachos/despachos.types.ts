@@ -24,6 +24,12 @@ export interface OrdenSalida {
     direccion?: string;
     productos?: number;
     unidades?: number;
+    ordenCompraCliente?: string;
+    TipoRegistro?: string;
+    tipoRegistro?: string;
+    usuarioregistro?: string;
+    nombreEstado?: string;
+    fechaEsperada?: Date;
 }
 
 export interface OrdenSalidaDetalle {
