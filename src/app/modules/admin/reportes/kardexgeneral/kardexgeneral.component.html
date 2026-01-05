@@ -1,224 +1,250 @@
 
-<div class="flex flex-col flex-auto min-w-0">
-
-
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
     <div class="flex-1 min-w-0">
-      <div  class="flex flex-wrap items-center font-medium">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
         <div>
-          <a  class="whitespace-nowrap text-primary-500">Warehouse </a>
+          <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">Warehouse</a>
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
-              <mat-icon
-              class="fuse-horizontal-navigation-item-icon"
-              [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-              <a  class="ml-1 text-primary-500">Reportes</a>
-          </div>
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Reportes</a>
+        </div>
       </div>
-          <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Reporte Kardex General </h2>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Reporte Kardex General
+        </h2>
       </div>
-  </div>
-  </div>
-
-
- 
-
-<div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-
-  <div class="flex flex-col">
-    <label for="rubro" class="font-bold">Almacén:</label>
-
-      <p-dropdown name="almacenes" 
-      [options]="almacenes" 
-      [(ngModel)]="model.IdAlmacen" 
-      [filter]="true"
-      filterBy="label" 
-      [showClear]="true" 
-      [style]="{'width': '100%'}" [resetFilterOnHide]="false"
-      [hideTransitionOptions]="'0ms'"
-      [showTransitionOptions]="'0ms'"
-      
-         placeholder="Seleccione un propietario" 
-        >
-        <ng-template let-item pTemplate="selectedItem">
-          <span style="vertical-align:left;">{{item.label}}</span>
-      </ng-template>
-
-      
-      </p-dropdown>
+    </div>
   </div>
 
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Filtros de Búsqueda</h3>
+    </div>
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <!-- Almacén -->
+        <div class="flex flex-col">
+          <label for="almacen" class="text-xs font-medium text-gray-700 mb-1">Almacén:</label>
+          <p-dropdown
+            name="almacenes"
+            [options]="almacenes"
+            [(ngModel)]="model.IdAlmacen"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Seleccione un almacén"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
 
-<!--   
-  <div class="flex flex-col">
-    <label for="rubro" class="font-bold">Grupo :</label>
+        <!-- Grupo -->
+        <div class="flex flex-col">
+          <label for="grupo" class="text-xs font-medium text-gray-700 mb-1">Grupo:</label>
+          <p-dropdown
+            name="grupos"
+            [options]="grupos"
+            [(ngModel)]="model.IdGrupo"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Seleccione un grupo"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
 
-      <p-dropdown name="grupos" 
-      [options]="grupos" 
-      [(ngModel)]="model.IdGrupo" 
-      [filter]="true"
-      filterBy="label" 
-      [showClear]="true" 
-      (onChange)="cargarClientes()"
-      [style]="{'min-width': '200px', 'width': '100%'}" 
-      [resetFilterOnHide]="false"
-      [hideTransitionOptions]="'0ms'"
-      [showTransitionOptions]="'0ms'"
-         placeholder="Seleccione un grupo" 
-        >
-        <ng-template let-item pTemplate="selectedItem">
-          <span style="vertical-align:left;">{{item.label}}</span>
-      </ng-template>
+        <!-- Propietario -->
+        <div class="flex flex-col">
+          <label for="propietario" class="text-xs font-medium text-gray-700 mb-1">Propietario:</label>
+          <p-dropdown
+            name="clientes"
+            [options]="propietarios"
+            [(ngModel)]="model.IdPropietario"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Seleccione un propietario"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
 
-      
-      </p-dropdown>
-  </div> -->
+        <!-- Fecha Inicio -->
+        <div class="flex flex-col">
+          <label for="dateInicio" class="text-xs font-medium text-gray-700 mb-1">Fecha Inicio:</label>
+          <p-calendar
+            id="dateInicio"
+            appendTo="body"
+            [(ngModel)]="dateInicio"
+            dateFormat="dd.mm.yy"
+            [style]="{ width: '100%' }"
+            styleClass="text-sm border-gray-300"
+          />
+        </div>
 
+        <!-- Fecha Fin -->
+        <div class="flex flex-col">
+          <label for="dateFin" class="text-xs font-medium text-gray-700 mb-1">Fecha Fin:</label>
+          <p-calendar
+            id="dateFin"
+            appendTo="body"
+            [(ngModel)]="dateFin"
+            dateFormat="dd.mm.yy"
+            [style]="{ width: '100%' }"
+            styleClass="text-sm border-gray-300"
+          />
+        </div>
 
-
-  <div class="flex flex-col">
-    <label for="rubro" class="font-bold">Propietario:</label>
-
-      <p-dropdown name="clientes" 
-      [options]="propietarios" 
-      [(ngModel)]="model.IdPropietario" 
-      [filter]="true"
-      filterBy="label" 
-      [showClear]="true" 
-      [style]="{'min-width': '200px', 'width': '100%'}" 
-      [resetFilterOnHide]="false"
-      [hideTransitionOptions]="'0ms'"
-      [showTransitionOptions]="'0ms'"
-         placeholder="Seleccione un propietario" 
-        >
-        <ng-template let-item pTemplate="selectedItem">
-          <span style="vertical-align:left;">{{item.label}}</span>
-      </ng-template>
-
-      
-      </p-dropdown>
+        <!-- Botones de Acción -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150"
+            pButton
+            icon="fa fa-search"
+            label="Ver"
+            iconPos="left"
+            (click)="ver()">
+          </button>
+          <button
+            class="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-md shadow-sm transition-all duration-150"
+            pButton
+            icon="fa fa-paper-plane"
+            label="Exportar"
+            iconPos="left"
+            (click)="exportar()">
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="flex flex-col">
-    <label for="dateInicio" class="font-semibold mb-1">Inicio </label>
-    <p-calendar 
-      id="dateInicio"
-      appendTo="body" 
-      [(ngModel)]="dateInicio" 
-      dateFormat="dd.mm.yy" 
-      />
+  <!-- Tabla de Kardex -->
+  <div #resultadosBlock class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2 border-b border-gray-700">
+      <h3 class="text-sm font-semibold text-gray-100">Listado de Kardex General</h3>
+      <p class="text-xs text-amber-300 mt-0.5">Total de registros: {{ inventariosFiltrados.length }} <span *ngIf="filtroGeneral">(filtrados de {{ inventarios.length }})</span></p>
+    </div>
+
+    <!-- Filtro General - Cerca de la grilla -->
+    <div class="px-4 pt-4 pb-2 border-b border-gray-200 bg-gray-50">
+      <div class="flex flex-col">
+        <label for="filtroGeneral" class="text-xs font-medium text-gray-700 mb-1">Buscar (Movimiento, LPN, Código):</label>
+        <input
+          pInputText
+          id="filtroGeneral"
+          name="filtroGeneral"
+          [(ngModel)]="filtroGeneral"
+          (ngModelChange)="onFiltroChange()"
+          autocomplete="off"
+          type="text"
+          placeholder="Buscar..."
+          class="w-full text-sm border-gray-300"
+        />
+      </div>
+    </div>
+
+    <div class="p-4">
+      <p-table
+        [style]="{ width: '100%' }"
+        [scrollable]="true"
+        scrollHeight="1000px"
+        [columns]="cols"
+        [value]="inventariosFiltrados"
+        #dt
+        [paginator]="true"
+        [rows]="40"
+        [rowsPerPageOptions]="[40, 80, 120, 240]"
+        selectionMode="multiple"
+        [responsive]="true"
+        [tableStyle]="{ 'table-layout': 'fixed', width: '100%' }"
+        styleClass="p-datatable-sm"
+      >
+
+        <!-- Encabezados -->
+        <ng-template pTemplate="colgroup" let-columns>
+          <colgroup>
+            <col
+              *ngFor="let col of columns"
+              [ngStyle]="{ width: col.width }"
+            />
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr class="bg-gray-800 text-white">
+            <th
+              *ngFor="let col of columns"
+              [ngStyle]="{ width: col.width }"
+              pResizableColumn
+              pReorderableColumn
+              [pSortableColumn]="col.field"
+              class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700"
+            >
+              {{ col.header }}
+              <p-sortIcon [field]="col.field"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+
+        <!-- Cuerpo -->
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+          <tr [pSelectableRow]="rowData" class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.almacen }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ getMovimiento(rowData) }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.fechaRegistro | date: 'dd/MM/yyyy' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.lodNum }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.propietario }}</td>
+            <td class="text-center px-4 py-2 text-sm text-orange-900 font-medium">{{ rowData.codigo }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.descripcionLarga }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.lotNum }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.untQty }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.peso }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.referencia }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.ubicacion }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.fechaExpire | date: 'dd/MM/yyyy' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.fechaProduccion | date: 'dd/MM/yyyy' }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="cols.length" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No hay registros disponibles</span>
+                <span class="text-gray-400 text-xs mt-1">Use los filtros para buscar kardex</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
   </div>
-
-  <!-- Fin Recojo -->
-  <div class="flex flex-col">
-    <label for="dateFin" class="font-semibold mb-1">Fin </label>
-    <p-calendar 
-      id="dateFin"
-      [(ngModel)]="dateFin" 
-      appendTo="body" 
-      dateFormat="dd.mm.yy" 
-      />
-  </div>
-
-  <div class="flex flex-col">
-  <p-button severity="danger" label="Ver" icon="fa fa-search" (click)="ver()">  </p-button>
-
-  </div>
-
-  <div class="flex flex-col"></div>
-  <p-button severity="danger" label="Exportar" icon="fa fa-paper-plane" (click)="exportar()">  </p-button>
-</div>
-
-<div class="flex flex-col p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-
-  
-  <p-table [style]="{width:'100%'}" 
-  [scrollable]="true" [columns]="cols" [value]="inventarios"
-   #dt [paginator]="true"  [scrollHeight]="'600px'"
-  [tableStyle]="{ 'table-layout': 'fixed', 'width': '100%' }"
-  [rows]="40" selectionMode="multiple" [responsive]="true"  >
-
-    <ng-template pTemplate="colgroup" let-columns>
-      <colgroup>
-          <col *ngFor="let col of columns"   [ngStyle]="{'width': col.width}" >
-      </colgroup>
-  </ng-template>
-    <ng-template pTemplate="header" let-columns>
-      <tr>
-          <th  [ngStyle]="{'width': col.width}" *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
-              {{col.header}}
-              <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
-          </th>
-      </tr>
-      <tr>
-        <th></th>
-        <th>
-            <p-columnFilter 
-                type="text" 
-                field="codigo" 
-                placeholder="Por código" 
-                ariaLabel="Filter Name" />
-        </th>
-        <th>
-            <p-columnFilter 
-                type="text" 
-                field="descripcionLarga" 
-                placeholder="Por descripción" 
-                ariaLabel="Filter Country" />
-        </th>
-        <th>
-          <p-columnFilter 
-              type="text" 
-              field="lotNum" 
-              placeholder="Por Lote" 
-              ariaLabel="Filter Country" />
-          </th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-
-<!-- 
-        <th>
-            <p-columnFilter type="boolean" field="verified"></p-columnFilter>
-        </th> -->
-    </tr>
-  </ng-template>
-
-  <ng-template pTemplate="body" let-rowData let-columns="columns">
-    <tr [pSelectableRow]="rowData">
-      <!-- Botones de acción -->
-      <td class="ui-resizable-column  align-left"> {{ rowData.almacen }}</td>
-      <td class="ui-resizable-column  align-left"> {{ rowData.movimiento }}</td>
-      <td class="ui-resizable-column"> {{ rowData.fechaEsperada  }}</td>
-      <td class="ui-resizable-column"> {{ rowData.lodNum }}</td>
-      <td class="ui-resizable-column  align-left"> {{ rowData.codigo }}</td>
-      <td class="ui-resizable-column  align-left"> {{ rowData.descripcionLarga }} </td>
-
-      <td class="ui-resizable-column align-center"> {{ rowData.lotNum }}</td>
-      <td class="ui-resizable-column align-center"> {{ rowData.untQty }}</td>
-   
-      <td class="ui-resizable-column"> {{ rowData.peso }}</td>
-      <td class="ui-resizable-column"> {{ rowData.referencia }}</td>
-      <td class="ui-resizable-column"> {{ rowData.fechaExpire | date: 'dd/MM/yyyy' }}</td>
-      <td class="ui-resizable-column"> {{ rowData.fechaProduccion | date: 'dd/MM/yyyy' }}</td>
-
-    </tr>
-    
-  </ng-template>
-</p-table>
-
-
-</div>
-
-
-
 
 </div>

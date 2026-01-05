@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { SelectItem } from 'primeng/api';
@@ -33,16 +33,20 @@ import { PropietarioService } from '../../_services/propietario.service';
 })
 export class KardexgeneralComponent implements OnInit {
 
+  @ViewChild('resultadosBlock') resultadosBlock!: ElementRef;
+
   propietarios: SelectItem[] = [];
   grupos: SelectItem[] = [];
   almacenes:  SelectItem[] = [];
   model: any =  {};
   cols: any[];
   inventarios: InventarioGeneral[] = [] ;
+  inventariosFiltrados: InventarioGeneral[] = [] ;
 
   dateInicio: Date = new Date(Date.now()) ;
   dateFin: Date = new Date(Date.now()) ;
 
+  filtroGeneral: string = '';
 
     jwtHelper = new JwtHelperService();
     decodedToken: any = {};
@@ -56,6 +60,7 @@ export class KardexgeneralComponent implements OnInit {
 
   ngOnInit() {
 
+  this.inventariosFiltrados = [];
 
   const user = localStorage.getItem('token');
   this.decodedToken = this.jwtHelper.decodeToken(user);
@@ -65,8 +70,9 @@ export class KardexgeneralComponent implements OnInit {
       { header: 'ALMACÉN', field: 'almacen', width: '140px' },
       { header: 'MOVIMIENTO', field: 'movimiento', width: '120px' },
       { header: 'F. MOVIMIENTO', field: 'fechaRegistro', width: '120px' },
-      { header: 'LPN', field: 'lotNum', width: '120px' },
-      { header: 'CÓDIGO', field: 'estado', width: '220px' },
+      { header: 'LPN', field: 'lodNum', width: '120px' },
+      { header: 'PROPIETARIO', field: 'cliente', width: '200px' },
+      { header: 'CÓDIGO', field: 'codigo', width: '220px' },
       { header: 'DESCRIPCIÓN', field: 'descripcionLarga', width: '450px' },
 
       { header: 'LOTE', field: 'lotNum', width: '220px' },
@@ -134,18 +140,6 @@ export class KardexgeneralComponent implements OnInit {
 
   }
   ver() {
-    // Validar que un almacén haya sido seleccionado
-    if (!this.model.IdAlmacen) {
-        alert('Debe seleccionar un almacén.');
-        return;
-    }
-
-    // Validar que al menos un grupo o propietario haya sido seleccionado
-    if (!this.model.IdGrupo && !this.model.IdPropietario) {
-        alert('Debe seleccionar al menos un Grupo o un Propietario.');
-        return;
-    }
-
     // Validar que se haya seleccionado un rango de fechas
     if (!this.dateInicio || !this.dateFin) {
         alert('Debe seleccionar un rango de fechas.');
@@ -160,9 +154,9 @@ export class KardexgeneralComponent implements OnInit {
     const diferenciaEnMilisegundos = fechaFin.getTime() - fechaInicio.getTime();
     const diferenciaEnDias = diferenciaEnMilisegundos / (1000 * 60 * 60 * 24);
 
-    // Validar que el rango de fechas no supere 7 días
-    if (diferenciaEnDias > 31) {
-        alert('El rango de fechas no puede ser mayor a una semana.');
+    // Validar que el rango de fechas no supere 30 días (1 mes)
+    if (diferenciaEnDias > 30) {
+        alert('El rango de fechas no puede ser mayor a un mes.');
         return;
     }
 
@@ -175,38 +169,71 @@ export class KardexgeneralComponent implements OnInit {
         this.dateFin
     ).subscribe(resp => {
         this.inventarios = resp;
+        this.aplicarFiltro();
         console.log('Inventarios:', this.inventarios);
+        
+        // Scroll hasta el bloque de resultados después de un pequeño delay
+        setTimeout(() => {
+          this.scrollToResultados();
+        }, 100);
     });
+}
+
+scrollToResultados(): void {
+  if (this.resultadosBlock) {
+    this.resultadosBlock.nativeElement.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    });
+  }
+}
+
+aplicarFiltro(): void {
+  if (!this.filtroGeneral || this.filtroGeneral.trim() === '') {
+    this.inventariosFiltrados = [...this.inventarios];
+  } else {
+    const filtro = this.filtroGeneral.toLowerCase().trim();
+    this.inventariosFiltrados = this.inventarios.filter(item => {
+      const itemAny = item as any;
+      const movimiento = (itemAny.movimiento || '').toString().toLowerCase();
+      const lodNum = (item.lodNum || '').toLowerCase();
+      const codigo = (item.codigo || '').toLowerCase();
+      return movimiento.includes(filtro) || lodNum.includes(filtro) || codigo.includes(filtro);
+    });
+  }
+}
+
+onFiltroChange(): void {
+  this.aplicarFiltro();
 }
 
  exportar(){
 
-
-  if (!this.model.IdAlmacen) {
-    alert('Debe seleccionar un almacén.');
-    return;
-}
-
-if (!this.model.IdGrupo && !this.model.IdPropietario) {
-    alert('Debe seleccionar al menos un Grupo o un Propietario.');
-    return;
-}
-
-if (!this.dateInicio || !this.dateFin) {
+  // Validar que se haya seleccionado un rango de fechas
+  if (!this.dateInicio || !this.dateFin) {
     alert('Debe seleccionar un rango de fechas.');
     return;
-}
+  }
 
-const fechaInicio = new Date(this.dateInicio);
-const fechaFin = new Date(this.dateFin);
+  const fechaInicio = new Date(this.dateInicio);
+  const fechaFin = new Date(this.dateFin);
 
-const fecInicioStr = `${fechaInicio.getDate()}/${fechaInicio.getMonth() + 1}/${fechaInicio.getFullYear()}`;
-const fecFinStr = `${fechaFin.getDate()}/${fechaFin.getMonth() + 1}/${fechaFin.getFullYear()}`;
+  // Calcular la diferencia en días
+  const diferenciaEnMilisegundos = fechaFin.getTime() - fechaInicio.getTime();
+  const diferenciaEnDias = diferenciaEnMilisegundos / (1000 * 60 * 60 * 24);
 
-let url = `http://104.36.166.65/reptwh/reportegeneralKARDEX.aspx?Grupoid=${this.model.IdGrupo || ''}&PropietarioId=${this.model.IdPropietario || ''}&fecinicio=${fecInicioStr}&fecfin=${fecFinStr}`;
+  // Validar que el rango de fechas no supere 30 días (1 mes)
+  if (diferenciaEnDias > 30) {
+    alert('El rango de fechas no puede ser mayor a un mes.');
+    return;
+  }
 
-window.open(url, '_blank');
+  const fecInicioStr = `${fechaInicio.getDate()}/${fechaInicio.getMonth() + 1}/${fechaInicio.getFullYear()}`;
+  const fecFinStr = `${fechaFin.getDate()}/${fechaFin.getMonth() + 1}/${fechaFin.getFullYear()}`;
 
+  let url = `http://104.36.166.65/reptwh/reportegeneralKARDEX.aspx?Grupoid=${this.model.IdGrupo || ''}&PropietarioId=${this.model.IdPropietario || ''}&fecinicio=${fecInicioStr}&fecfin=${fecFinStr}`;
+
+  window.open(url, '_blank');
 
  }
 
@@ -222,6 +249,10 @@ window.open(url, '_blank');
       });
     }
   });
+}
+
+getMovimiento(item: InventarioGeneral): string {
+  return (item as any).movimiento || '';
 }
 
 }
