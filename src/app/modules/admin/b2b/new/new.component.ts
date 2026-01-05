@@ -108,6 +108,8 @@ export class NewComponent implements OnInit {
     // 🟢 Panel: Datos Generales
     idPedidoExterno: [''],
     ordenCompraCliente: ['', Validators.required],
+    guiaRemision: [''],
+    ordenEntrega: [''],
     fechaRequerida: [new Date(), Validators.required],
     horaRequerida: [new Date(), Validators.required],
     observaciones: [''], 
@@ -379,7 +381,7 @@ agregarProducto() {
       Propietario: propietarioLabel,
       NumOrden: null,
       AlmacenId: 0, // TODO: Agregar campo almacenId al formulario si es necesario
-      GuiaRemision: '',
+      GuiaRemision: this.form.value.guiaRemision || '',
       FechaRequerida: fechaFormateada,
       HoraRequerida: horaFormateada,
       OrdenCompraCliente: this.form.value.ordenCompraCliente || '',
@@ -402,7 +404,7 @@ agregarProducto() {
       tipodescargaid: null,
       Items: this.detalle.length,
       ordeninfor: null,
-      ordenentrega: null,
+      ordenentrega: this.form.value.ordenEntrega || null,
       Tamano: null,
       ocingreso: null,
       peso: null,
