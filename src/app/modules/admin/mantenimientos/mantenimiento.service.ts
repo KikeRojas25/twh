@@ -83,7 +83,43 @@ eliminarVehiculo(id: number): Observable<any> {
 
 
 getAllConductores(): Observable<any[]> {
-  return this.http.get<any[]>(`${this.baseUrlConductor}GetAll` , httpOptions);
+  return this.http.get<any[]>(`${this.baseUrlConductor}GetAll`, httpOptions);
+}
+
+getConductorById(id: number): Observable<any> {
+  return this.http.get<any>(`${this.baseUrlConductor}GetChofer/${id}`, httpOptions).pipe(
+    catchError(err => {
+      console.error('Error desde el servicio:', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+guardarConductor(conductor: any): Observable<any> {
+  return this.http.post<any>(`${this.baseUrlConductor}RegistrarConductor`, conductor, httpOptions).pipe(
+    catchError(err => {
+      console.error('Error desde el servicio:', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+actualizarConductor(id: number, conductor: any): Observable<any> {
+  return this.http.put<any>(`${this.baseUrlConductor}ActualizarChofer/${id}`, conductor, httpOptions).pipe(
+    catchError(err => {
+      console.error('Error desde el servicio:', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+eliminarConductor(id: number): Observable<any> {
+  return this.http.delete<any>(`${this.baseUrlConductor}EliminarChofer/${id}`, httpOptions).pipe(
+    catchError(err => {
+      console.error('Error desde el servicio:', err);
+      return throwError(() => err);
+    })
+  );
 }
 
 

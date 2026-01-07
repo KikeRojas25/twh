@@ -1,0 +1,68 @@
+<div class="p-fluid">
+  <div class="p-field">
+    <label for="nombreCompleto">Nombre Completo *</label>
+    <input 
+      type="text" 
+      pInputText 
+      id="nombreCompleto"
+      [(ngModel)]="model.nombreCompleto"
+      placeholder="Ingrese el nombre completo"
+      class="w-full"
+      required />
+  </div>
+
+  <div class="p-field">
+    <label for="dni">DNI *</label>
+    <input 
+      type="text" 
+      pInputText 
+      id="dni"
+      [(ngModel)]="model.dni"
+      placeholder="Ingrese el DNI"
+      class="w-full"
+      maxlength="8"
+      required />
+  </div>
+
+  <div class="p-field">
+    <label for="brevete">Brevete *</label>
+    <input 
+      type="text" 
+      pInputText 
+      id="brevete"
+      [(ngModel)]="model.brevete"
+      placeholder="Ingrese el número de brevete"
+      class="w-full"
+      maxlength="15"
+      required />
+  </div>
+
+  <div class="p-field">
+    <label for="telefono">Teléfono</label>
+    <input 
+      type="text" 
+      pInputText 
+      id="telefono"
+      [(ngModel)]="model.telefono"
+      placeholder="Ingrese el teléfono"
+      class="w-full"
+      maxlength="15" />
+  </div>
+</div>
+
+<div class="flex gap-2 mt-4">
+  <p-button 
+    label="Guardar" 
+    icon="pi pi-check" 
+    (onClick)="guardarConductor()"
+    severity="success"></p-button>
+  <p-button 
+    label="Cancelar" 
+    icon="pi pi-times" 
+    (onClick)="cerrarModal()" 
+    class="p-button-secondary"></p-button>
+</div>
+
+<p-confirmDialog />
+<p-toast />
+

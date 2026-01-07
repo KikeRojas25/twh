@@ -1,0 +1,12 @@
+/* Estilos para el componente de editar conductor */
+
+.p-fluid .p-field {
+  margin-bottom: 1.5rem;
+}
+
+.p-fluid .p-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
