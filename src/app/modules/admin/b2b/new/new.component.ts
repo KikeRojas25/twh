@@ -528,20 +528,20 @@ verLotes() {
 
   this.b2bService.getStockProductoAgrupadoPorLote(productoId).subscribe({
     next: (resp: any) => {
-      console.log('✅ Respuesta de lotes:', resp);
+      console.log('✅ Respuesta de lotesasasasassaa:', resp);
 
       if (resp && Array.isArray(resp) && resp.length > 0) {
-        // Mapear la respuesta del backend al formato esperado por el modal
         this.lotesInfo = resp.map(lote => ({
           numeroLote: lote.lotNum,
           cantidadDisponible: lote.untQty,
-          unidad: lote.codigo ? 'UND' : 'UND', // Ajustar según necesites
+          unidad: lote.codigo ? 'UND' : 'UND',
           codigo: lote.codigo,
           descripcionLarga: lote.descripcionLarga,
-          fechaVencimiento: null, // No viene en el modelo
-          ubicacion: null, // No viene en el modelo
+          fechaExpire: lote.fechaExpire,
+          ubicacion: null,
           estado: lote.untQty > 0 ? 'Disponible' : 'Sin stock'
         }));
+
 
         this.messageService.add({
           severity: 'success',

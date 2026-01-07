@@ -456,11 +456,11 @@
                       </td>
                       <td class="text-sm text-gray-700 px-4 py-3">{{ lote.unidad || 'UND' }}</td>
                       <td class="text-sm text-gray-700 px-4 py-3">
-                        <span *ngIf="lote.fechaVencimiento" class="flex items-center gap-1">
+                        <span *ngIf="lote.fechaExpire" class="flex items-center gap-1">
                           <i class="pi pi-calendar text-gray-400 text-xs"></i>
-                          {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}
+                          {{ lote.fechaExpire | date:'dd/MM/yyyy' }}
                         </span>
-                        <span *ngIf="!lote.fechaVencimiento" class="text-gray-400">Sin fecha</span>
+                        <span *ngIf="!lote.fechaExpire" class="text-gray-400">Sin fecha</span>
                       </td>
                       <td class="text-sm text-gray-700 px-4 py-3">
                         <span *ngIf="lote.ubicacion" class="flex items-center gap-1">

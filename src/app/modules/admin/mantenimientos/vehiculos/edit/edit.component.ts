@@ -150,63 +150,79 @@ export class EditComponent implements OnInit {
         console.log('Vehículo:', data);
 
         this.model = {
-          ...data,
-          // Asegúrate de que los siguientes campos sean los `value` (ids) del dropdown
-          marcaid: data.marcaId, // si usas ID para marcas
-          tipoid: data.tipoId,
-          proveedorId: data.proveedorId
+          id: data.id,
+          placa: data.placa,
+          marcaid: data.marcaId || data.marcaid,
+          tipoid: data.tipoId || data.tipoid,
+          cargaUtil: data.cargaUtil,
+          pesoBruto: data.pesoBruto,
+          proveedorId: data.proveedorId || data.proveedorid
         };
       },
       error: (err) => {
         console.error('Error al obtener el vehículo', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo obtener la información del vehículo'
+        });
       }
     });
   }
 
   actualizarVehiculo(): void {
-
-
+    // Validar que los campos requeridos estén presentes
+    if (!this.model.placa || !this.model.marcaid || !this.model.tipoid) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validación',
+        detail: 'Por favor complete todos los campos requeridos'
+      });
+      return;
+    }
     
     this.confirmationService.confirm({
       message: '¿Está seguro que desea actualizar el vehículo?',
       header: 'Actualizar',
       icon: 'pi pi-exclamation-triangle',
       accept: () => {
+        // Preparar el objeto con todos los campos necesarios
+        const vehiculoActualizar = {
+          id: this.model.id,
+          placa: this.model.placa?.toUpperCase() || this.model.placa,
+          marcaId: this.model.marcaid,
+          tipoId: this.model.tipoid,
+          cargaUtil: this.model.cargaUtil || 0,
+          pesoBruto: this.model.pesoBruto || 0,
+          proveedorId: this.model.proveedorId || null
+        };
 
+        console.log('Actualizando vehículo:', vehiculoActualizar);
 
-
-    this.mantenimientoService.actualizarVehiculo(this.model.id, this.model).subscribe({
-      next: (res) => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Actualización exitosa',
-          detail: res.message
+        this.mantenimientoService.actualizarVehiculo(this.model.id, vehiculoActualizar).subscribe({
+          next: (res) => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Actualización exitosa',
+              detail: res.message || 'El vehículo se ha actualizado correctamente'
+            });
+            this.ref?.close(true); // Cierra modal y notifica que se actualizó
+          },
+          error: (err) => {
+            console.error('Error al actualizar vehículo:', err);
+            const mensaje = err.error?.message || err.error?.error || 'Error al actualizar vehículo';
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: mensaje
+            });
+          }
         });
-        this.ref?.close(true); // Cierra modal y notifica que se actualizó
-
-
-        
       },
-      error: (err) => {
-        const mensaje = err.error?.message || 'Error al actualizar vehículo';
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: mensaje
-        });
+      reject: () => {
+        // Usuario canceló la operación
       }
     });
-
-
-
-  },
-  reject: () => {
-
-  }
-});
-
-
-
   }
   
   

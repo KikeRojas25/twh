@@ -51,22 +51,24 @@ GetAllProveedor(): Observable<any[]> {
 }
 
 guardarVehiculo(vehiculo: any): Observable<any> {
-  return this.http.post<any>(`${this.baseUrl}RegistrarVehiculo`, vehiculo).pipe(
+  return this.http.post<any>(`${this.baseUrl}RegistrarVehiculo`, vehiculo, httpOptions).pipe(
     catchError(err => {
       console.error('Error desde el servicio:', err);
       return throwError(() => err);
     })
   );
-  
-
-
 }
 actualizarVehiculo(id: number, vehiculo: any): Observable<any> {
-  return this.http.put<any>(`${this.baseUrl}ActualizarVehiculo/${id}`, vehiculo);
+  return this.http.put<any>(`${this.baseUrl}ActualizarVehiculo/${id}`, vehiculo, httpOptions).pipe(
+    catchError(err => {
+      console.error('Error desde el servicio:', err);
+      return throwError(() => err);
+    })
+  );
 }
 
 getVehiculoById(id: number): Observable<any> {
-  return this.http.get<any>(`${this.baseUrl}GetVehiculoById/${id}`);
+  return this.http.get<any>(`${this.baseUrl}GetVehiculoById/${id}`, httpOptions);
 }
 
 verificarPlaca(placa: string): Observable<boolean> {

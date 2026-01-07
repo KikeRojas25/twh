@@ -775,7 +775,7 @@ verLotes() {
           unidad: lote.codigo ? 'UND' : 'UND', // Ajustar según necesites
           codigo: lote.codigo,
           descripcionLarga: lote.descripcionLarga,
-          fechaVencimiento: null, // No viene en el modelo
+          fechaExpire: lote.fechaExpire, // No viene en el modelo
           ubicacion: null, // No viene en el modelo
           estado: lote.untQty > 0 ? 'Disponible' : 'Sin stock'
         }));
