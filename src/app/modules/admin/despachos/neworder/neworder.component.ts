@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MessageService, ConfirmationService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -77,8 +77,8 @@ export class NeworderComponent implements OnInit {
   clienteAnterior: number | null = null;
 
   orden : any;
-
-  
+  ordenId: number | null = null; // ID de la orden si está en modo edición
+  esModoEdicion: boolean = false; // Flag para saber si estamos editando
 
   productos: any[] = [];
   productoSeleccionado: any = null;
@@ -108,6 +108,7 @@ export class NeworderComponent implements OnInit {
     private router: Router,
     private propietarioService: PropietarioService,
     private generalService: GeneralService,
+    private route: ActivatedRoute,
   ) {
       this.form = this.fb.group({
     // 🟢 Campos de Ingreso
@@ -147,6 +148,14 @@ export class NeworderComponent implements OnInit {
     const token = localStorage.getItem('token');
     this.decodedToken = this.jwtHelper.decodeToken(token);
 
+    // Verificar si hay un ID en los queryParams (modo edición)
+    this.route.queryParams.subscribe(params => {
+      if (params['id']) {
+        this.ordenId = Number(params['id']);
+        this.esModoEdicion = true;
+        // La orden se cargará después de que se carguen los propietarios
+      }
+    });
 
   // Cargar todos los propietarios (sin filtrar por usuario)
 
@@ -163,11 +172,12 @@ export class NeworderComponent implements OnInit {
         label: x.razonSocial
       }));
 
+      // Si estamos en modo edición y ya tenemos el ID, cargar la orden después de cargar propietarios
+      if (this.esModoEdicion && this.ordenId) {
+        this.cargarOrdenExistente(this.ordenId);
+      }
     },
     error: (err) => console.error('Error al cargar propietarios:', err),
-
-
-
   });
   
   // Cargar almacenes
@@ -389,6 +399,137 @@ agregarProducto() {
     });
   }
 
+  // Método para cargar una orden existente en modo edición
+  cargarOrdenExistente(id: number) {
+    // Cargar la orden principal
+    this.despachoService.obtenerOrdenSalidaPorId(id).subscribe({
+      next: (orden) => {
+        this.orden = orden;
+        console.log('Orden cargada:', orden);
+
+        // Convertir hora requerida si existe (formato: "HH:mm" o "HH:mm:ss")
+        let horaRequeridaDate: Date | null = null;
+        if (orden.horaRequerida) {
+          const partes = orden.horaRequerida.split(':');
+          if (partes.length >= 2) {
+            const fecha = new Date();
+            fecha.setHours(parseInt(partes[0]), parseInt(partes[1]), 0);
+            horaRequeridaDate = fecha;
+          }
+        }
+
+        // Llenar el formulario con los datos de la orden usando las propiedades del backend
+        const ordenData: any = orden;
+        
+        // Helper para obtener valor con ambos casos (camelCase y PascalCase)
+        const getValue = (camelKey: string, pascalKey: string, defaultValue: any = null) => {
+          return ordenData[camelKey] !== undefined ? ordenData[camelKey] : 
+                 (ordenData[pascalKey] !== undefined ? ordenData[pascalKey] : defaultValue);
+        };
+
+        // Obtener valores con ambos formatos
+        const propietarioId = getValue('propietarioId', 'PropietarioId');
+        const almacenId = getValue('almacenId', 'AlmacenId');
+        const clienteId = getValue('clienteId', 'ClienteId');
+        const direccionId = getValue('direccionId', 'DireccionId');
+        const ordenCompraCliente = getValue('ordenCompraCliente', 'OrdenCompraCliente', '');
+        const guiaRemision = getValue('guiaRemision', 'GuiaRemision', '');
+        const ordenEntrega = getValue('ordenentrega', 'Ordenentrega', '');
+        const ordenInfor = getValue('ordeninfor', 'Ordeninfor', '');
+        const tipoDescargaId = getValue('tipodescargaid', 'Tipodescargaid');
+        const contacto = getValue('contacto', 'Contacto', '');
+        const telefono = getValue('telefono', 'Telefono', '');
+        
+        const fechaRequeridaValue = getValue('fechaRequerida', 'FechaRequerida');
+        const horaRequeridaValue = getValue('horaRequerida', 'HoraRequerida');
+        
+        console.log('Datos mapeados:', {
+          propietarioId,
+          almacenId,
+          clienteId,
+          direccionId,
+          ordenCompraCliente,
+          guiaRemision,
+          ordenEntrega,
+          ordenInfor,
+          tipoDescargaId
+        });
+
+        this.form.patchValue({
+          almacenId: almacenId || null,
+          propietarioId: propietarioId || null,
+          ordenCompraCliente: ordenCompraCliente || '',
+          fechaRequerida: fechaRequeridaValue ? new Date(fechaRequeridaValue) : new Date(),
+          horaRequerida: horaRequeridaDate || new Date(),
+          guiaRemision: guiaRemision || '',
+          ordenEntrega: ordenEntrega || '',
+          ordenInfor: ordenInfor || '',
+          tipoDescargaId: tipoDescargaId || null,
+          clienteId: clienteId || null,
+          direccionId: direccionId || null,
+          contacto: contacto || '',
+          telefono: telefono || ''
+        });
+
+        // Establecer el propietario para cargar clientes y direcciones
+        if (propietarioId) {
+          this.idPropietario = propietarioId;
+          // Esperar un momento para que se carguen los propietarios antes de llamar onChangePropietario
+          setTimeout(() => {
+            this.onChangePropietario(propietarioId);
+          }, 500);
+        }
+        
+        // Después de cargar clientes, establecer el cliente y dirección
+        if (propietarioId && clienteId) {
+          setTimeout(() => {
+            this.form.patchValue({ clienteId: clienteId });
+            if (direccionId) {
+              setTimeout(() => {
+                this.form.patchValue({ direccionId: direccionId });
+              }, 500);
+            }
+          }, 600);
+        }
+
+        // Cargar el detalle de la orden usando el endpoint específico
+        this.despachoService.obtenerDetalleOrdenSalida(id).subscribe({
+          next: (detalleResp) => {
+            // Mapear el detalle al formato esperado
+            this.detalle = (detalleResp || []).map((item: any) => ({
+              productoId: item.productoId || item.ProductoId,
+              codigo: item.codigo || item.productoId || item.ProductoId,
+              descripcion: item.descripcion || item.producto || item.Producto || '',
+              unidadMedida: item.unidadMedida || item.unidad || 'UND',
+              lote: item.lote || item.Lote || null,
+              referencia: item.referencia || null,
+              cantidad: item.cantidad || item.Cantidad || 0,
+              estadoId: item.estadoId || item.EstadoId || (this.estados.length > 0 ? this.estados[0].value : 0),
+              huellaId: item.huellaId || item.HuellaId || null
+            }));
+            console.log('Detalle cargado desde endpoint:', this.detalle);
+          },
+          error: (err) => {
+            console.error('Error al cargar detalle:', err);
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Aviso',
+              detail: 'No se pudo cargar el detalle de la orden.'
+            });
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error al cargar orden:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo cargar la orden de salida.'
+        });
+      }
+    });
+  }
+
   registrar() {
     // Marcar todos los campos como touched para mostrar errores
     this.form.markAllAsTouched();
@@ -427,8 +568,9 @@ agregarProducto() {
       return;
     }
 
+    // Construir el objeto OrdenSalidaForRegister (mismo formato para registro y actualización)
     const pedido = {
-      Id: 0,
+      Id: this.esModoEdicion && this.ordenId ? this.ordenId : 0,
       PropietarioId: this.form.value.propietarioId,
       Propietario: propietarioLabel,
       NumOrden: null,
@@ -463,6 +605,7 @@ agregarProducto() {
       cantidad: null,
       destino: null,
       referencia: null,
+      // Detalles de la orden - mismo formato para registro y actualización
       Detalles: this.detalle.map((x) => {
         const detalle: any = {
           productoId: x.productoId,
@@ -478,7 +621,7 @@ agregarProducto() {
         if (x.referencia) {
           detalle.referencia = x.referencia;
         }
-        // huellaId debe ser un número (long?) o no enviarse - nunca null
+        // huellaId debe ser un número o no enviarse - nunca null
         if (x.huellaId !== null && x.huellaId !== undefined && typeof x.huellaId === 'number') {
           detalle.huellaId = Number(x.huellaId);
         }
@@ -487,14 +630,18 @@ agregarProducto() {
       })
     };
 
+    console.log('Objeto a enviar:', pedido);
+    console.log('Modo edición:', this.esModoEdicion);
+    console.log('ID de orden:', this.ordenId);
+
 
 
 
   this.confirmationService.confirm({
-    header: 'Confirmar registro',
-    message: '¿Está seguro de registrar este pedido?',
+    header: this.esModoEdicion ? 'Confirmar actualización' : 'Confirmar registro',
+    message: this.esModoEdicion ? '¿Está seguro de actualizar este pedido?' : '¿Está seguro de registrar este pedido?',
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Sí, registrar',
+    acceptLabel: this.esModoEdicion ? 'Sí, actualizar' : 'Sí, registrar',
     rejectLabel: 'Cancelar',
     acceptIcon: 'pi pi-check',
     rejectIcon: 'pi pi-times',
@@ -502,16 +649,54 @@ agregarProducto() {
     rejectButtonStyleClass: 'p-button-secondary',
 
     accept: () => {
-
-
-
-
-    // Enviar el objeto directamente - el API debería recibirlo como ordenSalidaForRegister
-    this.despachoService.RegistarOrdenSalida(pedido).subscribe({
-      next: (resp) => {
-        this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Pedido registrado correctamente.' });
-        this.router.navigate(['/b2b/ordenessalida', resp]);
-      },
+      if (this.esModoEdicion && this.ordenId) {
+        // Modo actualización - usar el endpoint UpdateOrdenSalida
+        // Recibe OrdenSalidaForRegister con los mismos parámetros que el registro
+        console.log('Actualizando orden con ID:', this.ordenId);
+        this.despachoService.actualizarOrdenSalida(pedido).subscribe({
+          next: (resp) => {
+            this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Orden de salida actualizada correctamente.' });
+            this.router.navigate(['/picking/listaordensalida']); // Redirigir a la lista de órdenes
+          },
+          error: (err) => {
+            console.error('Error al actualizar orden:', err);
+            
+            // Manejar error estructurado del backend (validación de stock u otros)
+            if (err?.error?.errors && Array.isArray(err.error.errors) && err.error.errors.length > 0) {
+              const mensajePrincipal = err.error.message || 'Error de validación';
+              this.messageService.add({ 
+                severity: 'error', 
+                summary: 'Error de validación', 
+                detail: mensajePrincipal 
+              });
+              
+              err.error.errors.forEach((errorMsg: string) => {
+                if (errorMsg && errorMsg.trim()) {
+                  this.messageService.add({ 
+                    severity: 'warn', 
+                    summary: 'Validación', 
+                    detail: errorMsg.trim(),
+                    life: 8000
+                  });
+                }
+              });
+            } else {
+              const mensajeError = err?.error?.message || 'No se pudo actualizar la orden de salida.';
+              this.messageService.add({ 
+                severity: 'error', 
+                summary: 'Error', 
+                detail: mensajeError 
+              });
+            }
+          }
+        });
+      } else {
+        // Modo creación
+        this.despachoService.RegistarOrdenSalida(pedido).subscribe({
+          next: (resp) => {
+            this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Pedido registrado correctamente.' });
+            this.router.navigate(['/b2b/ordenessalida', resp]);
+          },
       error: (err) => {
         console.error(err);
         
@@ -547,8 +732,8 @@ agregarProducto() {
         }
       }
     });
-
- },
+      }
+    },
 
     reject: () => {
       // 🔹 Si el usuario cancela

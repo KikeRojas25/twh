@@ -12,15 +12,15 @@
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
           <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-gray-700 hover:text-gray-900">Nueva Orden de Salida</a>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">{{ esModoEdicion ? 'Editar Orden de Salida' : 'Nueva Orden de Salida' }}</a>
         </div>
       </div>
       <div class="mt-1">
         <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
-          Nueva Orden de Salida
+          {{ esModoEdicion ? 'Editar Orden de Salida' : 'Nueva Orden de Salida' }}
         </h2>
         <p class="mt-1 text-sm text-gray-500">
-          Datos de cabecera de la orden de salida
+          {{ esModoEdicion ? 'Modifique los datos de la orden de salida' : 'Datos de cabecera de la orden de salida' }}
         </p>
       </div>
     </div>
@@ -39,8 +39,8 @@
         pButton
         type="submit"
         form="formSalida"
-        label="Guardar"
-        icon="pi pi-save"
+        [label]="esModoEdicion ? 'Actualizar' : 'Guardar'"
+        [icon]="esModoEdicion ? 'pi pi-check' : 'pi pi-save'"
         iconPos="left">
       </button>
     </div>

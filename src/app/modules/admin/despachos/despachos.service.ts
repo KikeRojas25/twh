@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, throwError, map } from 'rxjs';
 import { BultoSalida, BultoSalidaDetalle, carga, OrdenSalida, OrdenSalidaDetalle } from './despachos.types';
 
 
@@ -155,6 +155,43 @@ actualizarFechaSalida(ordenSalidaId: number, fechaSalida: Date): Observable<any>
     fechaSalida: fechaSalida
   };
   return this._httpClient.post(`${this.baseUrl}ActualizarFechaSalida`, dto, httpOptions);
+}
+
+obtenerOrdenSalidaPorId(id: number): Observable<OrdenSalida> {
+  // Endpoint: GET /api/OrdenSalida/{ordenSalidaId}
+  return this._httpClient.get<OrdenSalida>(`${this.baseUrl}${id}`, httpOptions).pipe(
+    catchError((error) => {
+      console.error('Error al obtener orden de salida:', error);
+      // Si el endpoint falla, intentar obtener desde la lista como fallback
+      console.warn('Endpoint directo no disponible, buscando en la lista');
+      const model = {
+        PropietarioId: '',
+        AlmacenId: '',
+        estadoIdfiltro: '',
+        fec_ini: new Date(new Date().getFullYear(), 0, 1), // Desde inicio del año
+        fec_fin: new Date(), // Hasta hoy
+        guiaremision: ''
+      };
+      return this.getAllOrdenSalida(model).pipe(
+        map((ordenes: OrdenSalida[]) => {
+          const orden = ordenes.find((o: any) => 
+            (o.ordenSalidaId === id || o.id === id)
+          );
+          if (!orden) {
+            throw new Error(`Orden con ID ${id} no encontrada`);
+          }
+          return orden;
+        }),
+        catchError((err) => throwError(() => err))
+      );
+    })
+  );
+}
+
+actualizarOrdenSalida(model: any): Observable<any> {
+  // Endpoint: PUT /api/OrdenSalida/UpdateOrdenSalida
+  // Recibe OrdenSalidaForRegister con los mismos parámetros que el registro
+  return this._httpClient.put(`${this.baseUrl}UpdateOrdenSalida`, model, httpOptions);
 }
 }
 

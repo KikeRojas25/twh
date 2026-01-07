@@ -101,6 +101,7 @@ tipoingreso: SelectItem[] = [];
   decodedToken: any = {};
   supervisor = false;
   esAdministrador = false;
+  tieneRol1 = false;
 
   constructor(private ordenreciboService: RecepcionService,
               private router: Router,
@@ -142,6 +143,31 @@ tipoingreso: SelectItem[] = [];
     } else if (typeof roles === 'string') {
       this.esAdministrador = roles.toLowerCase().includes('admin') || 
                              roles.toLowerCase().includes('administrador');
+    }
+    
+    // Verificar si el usuario tiene rol 1
+    // Primero intentar desde el objeto user en localStorage
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        if (user.roles && Array.isArray(user.roles)) {
+          this.tieneRol1 = user.roles.includes(1);
+        } else if (user.roles === 1 || user.role === 1) {
+          this.tieneRol1 = true;
+        }
+      } catch (e) {
+        console.error('Error al parsear user desde localStorage:', e);
+      }
+    }
+    
+    // Si no se encontró en localStorage, verificar en el token decodificado
+    if (!this.tieneRol1) {
+      if (Array.isArray(roles)) {
+        this.tieneRol1 = roles.includes(1) || roles.some((r: any) => r === 1 || r === '1');
+      } else if (roles === 1 || roles === '1') {
+        this.tieneRol1 = true;
+      }
     }
     
     // Si no se encuentra en el token, verificar por IDs específicos (similar a supervisor)
@@ -565,19 +591,27 @@ update() {
 
   /**
    * Verifica si se puede editar una orden
-   * Solo se puede editar si el estado es "Planificado" (4) o si el usuario es administrador
+   * Solo se puede editar si el estado es "Planificado" (4), si el usuario es administrador, o si tiene rol 1
    */
   puedeEditar(orden: OrdenRecibo): boolean {
     const estadoPlanificado = 4;
+    // Si tiene rol 1, siempre puede editar
+    if (this.tieneRol1) {
+      return true;
+    }
     return orden.estadoID === estadoPlanificado || this.esAdministrador;
   }
 
   /**
    * Verifica si se puede eliminar una orden
-   * Solo se puede eliminar si el estado es "Planificado" (4) o si el usuario es administrador
+   * Solo se puede eliminar si el estado es "Planificado" (4), si el usuario es administrador, o si tiene rol 1
    */
   puedeEliminar(orden: OrdenRecibo): boolean {
     const estadoPlanificado = 4;
+    // Si tiene rol 1, siempre puede eliminar
+    if (this.tieneRol1) {
+      return true;
+    }
     return orden.estadoID === estadoPlanificado || this.esAdministrador;
   }
 

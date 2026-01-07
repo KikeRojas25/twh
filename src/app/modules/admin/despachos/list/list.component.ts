@@ -348,8 +348,8 @@ export class ListComponent implements OnInit {
   }
 
   edit(rowData: any) {
-    // Navegar a editar o abrir diálogo de edición
-    this.router.navigate(['/picking/nuevaordensalida'], {
+    // Navegar a editar en el componente neworder que soporta edición
+    this.router.navigate(['/picking/neworder'], {
       queryParams: { id: rowData.ordenSalidaId }
     });
   }
