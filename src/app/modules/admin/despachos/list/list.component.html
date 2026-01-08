@@ -212,7 +212,7 @@
                   severity="primary"
                   icon="fa fa-edit"
                   (click)="edit(rowData)"
-                  [disabled]="rowData.nombreEstado != 'Creado'"
+                  [disabled]="!puedeEditar(rowData)"
                   [size]="small"
                   [raised]="true"
                 ></p-button>

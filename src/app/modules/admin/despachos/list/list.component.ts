@@ -21,6 +21,7 @@ import { OrdenSalida } from '../despachos.types';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PropietarioService } from '../../_services/propietario.service';
 import { GeneralService } from '../../_services/general.service';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
 @Component({
   selector: 'app-list',
@@ -82,7 +83,9 @@ export class ListComponent implements OnInit {
   dateFin: Date = new Date(Date.now()) ;
   
   es: any;
-
+  tieneRol1: boolean = false;
+  jwtHelper = new JwtHelperService();
+  decodedToken: any = {};
 
   constructor(
     public dialogService: DialogService,
@@ -97,6 +100,9 @@ export class ListComponent implements OnInit {
 
   
   ngOnInit(): void {
+    // Verificar rol del usuario
+    this.verificarRolUsuario();
+
     // Configurar calendario en español
     this.es = {
       firstDayOfWeek: 1,
@@ -442,6 +448,53 @@ export class ListComponent implements OnInit {
     this.mostrarDialogFechaSalida = false;
     this.ordenSalidaSeleccionada = null;
     this.fechaSalidaEditada = new Date();
+  }
+
+  verificarRolUsuario(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.decodedToken = this.jwtHelper.decodeToken(token);
+      
+      // Buscar el rol en diferentes propiedades comunes del token JWT
+      const roles = this.decodedToken.role || 
+                    this.decodedToken.roles || 
+                    this.decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+                    this.decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'];
+      
+      // Verificar si el usuario tiene rol 1
+      // Primero intentar desde el objeto user en localStorage
+      const userString = localStorage.getItem('user');
+      if (userString) {
+        try {
+          const user = JSON.parse(userString);
+          if (user.roles && Array.isArray(user.roles)) {
+            this.tieneRol1 = user.roles.includes(1);
+          } else if (user.roles === 1 || user.role === 1) {
+            this.tieneRol1 = true;
+          }
+        } catch (e) {
+          console.error('Error al parsear user desde localStorage:', e);
+        }
+      }
+      
+      // Si no se encontró en localStorage, verificar en el token decodificado
+      if (!this.tieneRol1) {
+        if (Array.isArray(roles)) {
+          this.tieneRol1 = roles.includes(1) || roles.some((r: any) => r === 1 || r === '1');
+        } else if (roles === 1 || roles === '1') {
+          this.tieneRol1 = true;
+        }
+      }
+    }
+  }
+
+  puedeEditar(rowData: any): boolean {
+    // Si tiene rol 1, puede editar en todo momento
+    if (this.tieneRol1) {
+      return true;
+    }
+    // Si no tiene rol 1, solo puede editar si el estado es 'Creado'
+    return rowData.nombreEstado === 'Creado';
   }
 
 
