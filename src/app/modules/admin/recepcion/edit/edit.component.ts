@@ -183,7 +183,7 @@ export class EditComponent implements OnInit {
         peso: this.model.peso ?? null,
         volumen: this.model.volumen ?? null,
         proveedor: this.model.proveedor,
-        entrega: this.model.chofer
+        entrega: this.model.numeroEntrega
       });
     });
   }
