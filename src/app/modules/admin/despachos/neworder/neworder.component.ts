@@ -495,19 +495,79 @@ agregarProducto() {
         // Cargar el detalle de la orden usando el endpoint específico
         this.despachoService.obtenerDetalleOrdenSalida(id).subscribe({
           next: (detalleResp) => {
-            // Mapear el detalle al formato esperado
-            this.detalle = (detalleResp || []).map((item: any) => ({
-              productoId: item.productoId || item.ProductoId,
-              codigo: item.codigo || item.productoId || item.ProductoId,
-              descripcion: item.descripcion || item.producto || item.Producto || '',
-              unidadMedida: item.unidadMedida || item.unidad || 'UND',
-              lote: item.lote || item.Lote || null,
-              referencia: item.referencia || null,
-              cantidad: item.cantidad || item.Cantidad || 0,
-              estadoId: item.estadoId || item.EstadoId || (this.estados.length > 0 ? this.estados[0].value : 0),
-              huellaId: item.huellaId || item.HuellaId || null
-            }));
-            console.log('Detalle cargado desde endpoint:', this.detalle);
+            // Asegurar que los estados estén cargados antes de mapear
+            // Si no están cargados aún, esperar un poco
+            const mapearDetalle = () => {
+              // Mapear el detalle al formato esperado
+              this.detalle = (detalleResp || []).map((item: any) => {
+                // Asegurar que siempre haya descripción - usar múltiples campos como fallback
+                const descripcion = item.descripcion || item.producto || item.Producto || 
+                                   item.descripcionLarga || item.nombreCompleto || 
+                                   item.codigo || 'Sin descripción';
+                
+                // Asegurar que siempre haya código
+                const codigo = item.codigo || item.productoId || item.ProductoId || '';
+                
+                // Normalizar el estadoId - puede venir como número, string, o null
+                let estadoIdNormalizado = item.estadoId || item.EstadoId;
+                
+                if (estadoIdNormalizado !== null && estadoIdNormalizado !== undefined) {
+                  // Convertir a número para comparación
+                  const estadoIdNum = Number(estadoIdNormalizado);
+                  
+                  // Verificar que el estado existe en la lista de estados disponibles
+                  const estadoExiste = this.estados.some(e => {
+                    const valorEstado = Number(e.value);
+                    return valorEstado === estadoIdNum || e.value === estadoIdNum || e.value === estadoIdNormalizado;
+                  });
+                  
+                  if (estadoExiste) {
+                    // Buscar el estado para usar su valor exacto (puede ser number o string)
+                    const estadoEncontrado = this.estados.find(e => {
+                      const valorEstado = Number(e.value);
+                      return valorEstado === estadoIdNum || e.value === estadoIdNum || e.value === estadoIdNormalizado;
+                    });
+                    estadoIdNormalizado = estadoEncontrado ? estadoEncontrado.value : estadoIdNum;
+                  } else {
+                    // Si no se encuentra, usar el estado por defecto
+                    console.warn('⚠️ EstadoId del item no encontrado en lista de estados:', estadoIdNormalizado);
+                    estadoIdNormalizado = this.estados.length > 0 ? this.estados[0].value : null;
+                  }
+                } else {
+                  // Si no hay estadoId, usar el estado por defecto
+                  estadoIdNormalizado = this.estados.length > 0 ? this.estados[0].value : null;
+                }
+                
+                return {
+                  productoId: item.productoId || item.ProductoId,
+                  codigo: codigo,
+                  descripcion: descripcion,
+                  unidadMedida: item.unidadMedida || item.unidad || 'UND',
+                  lote: item.lote || item.Lote || null,
+                  referencia: item.referencia || null,
+                  cantidad: item.cantidad || item.Cantidad || 0,
+                  estadoId: estadoIdNormalizado,
+                  huellaId: item.huellaId || item.HuellaId || null
+                };
+              });
+              console.log('✅ Detalle cargado desde endpoint:', this.detalle);
+            };
+            
+            // Si los estados ya están cargados, mapear inmediatamente
+            // Si no, esperar un momento para que se carguen
+            if (this.estados.length > 0) {
+              mapearDetalle();
+            } else {
+              // Esperar a que se carguen los estados (máximo 2 segundos)
+              const maxEspera = 2000;
+              const inicioEspera = Date.now();
+              const verificarEstados = setInterval(() => {
+                if (this.estados.length > 0 || (Date.now() - inicioEspera) > maxEspera) {
+                  clearInterval(verificarEstados);
+                  mapearDetalle();
+                }
+              }, 100);
+            }
           },
           error: (err) => {
             console.error('Error al cargar detalle:', err);
@@ -769,16 +829,34 @@ verLotes() {
 
       if (resp && Array.isArray(resp) && resp.length > 0) {
         // Mapear la respuesta del backend al formato esperado por el modal
-        this.lotesInfo = resp.map(lote => ({
-          numeroLote: lote.lotNum,
-          cantidadDisponible: lote.untQty,
-          unidad: lote.codigo ? 'UND' : 'UND', // Ajustar según necesites
-          codigo: lote.codigo,
-          descripcionLarga: lote.descripcionLarga,
-          fechaExpire: lote.fechaExpire, // No viene en el modelo
-          ubicacion: null, // No viene en el modelo
-          estado: lote.untQty > 0 ? 'Disponible' : 'Sin stock'
-        }));
+        this.lotesInfo = resp.map(lote => {
+          // Obtener el estado real del lote (puede venir como estado o estadoId)
+          let estadoTexto = lote.estado || null;
+          let estadoId = lote.estadoId || null;
+          
+          // Si no viene el estado como texto pero sí el estadoId, buscar el label
+          if (!estadoTexto && estadoId && this.estados.length > 0) {
+            const estadoEncontrado = this.estados.find(e => e.value === estadoId);
+            estadoTexto = estadoEncontrado ? estadoEncontrado.label : 'Sin estado';
+          }
+          
+          // Si aún no hay estado, determinar por cantidad como fallback
+          if (!estadoTexto) {
+            estadoTexto = lote.untQty > 0 ? 'Disponible' : 'Sin stock';
+          }
+          
+          return {
+            numeroLote: lote.lotNum,
+            cantidadDisponible: lote.untQty || 0,
+            unidad: lote.unidadAlmacenamiento || lote.unidad || 'UND',
+            codigo: lote.codigo,
+            descripcionLarga: lote.descripcionLarga || lote.descripcion || '',
+            fechaExpire: lote.fechaExpire || null,
+            ubicacion: lote.ubicacion || null,
+            estado: estadoTexto,
+            estadoId: estadoId || null
+          };
+        });
 
         this.messageService.add({
           severity: 'success',
@@ -815,6 +893,70 @@ seleccionarLote(lote: any) {
   // Asignar el número de lote
   this.model.lote = lote.numeroLote;
 
+  // Asignar el estadoId del lote si está disponible
+  if (lote.estadoId !== null && lote.estadoId !== undefined) {
+    // Convertir a número para asegurar comparación correcta
+    const estadoIdNum = Number(lote.estadoId);
+    
+    // Buscar el estado en la lista de estados disponibles (comparación por valor numérico)
+    const estadoEncontrado = this.estados.find(e => {
+      const valorEstado = Number(e.value);
+      return valorEstado === estadoIdNum || e.value === estadoIdNum || e.value === lote.estadoId;
+    });
+    
+    if (estadoEncontrado) {
+      // Asignar el valor del estado encontrado (puede ser number o string según el tipo del SelectItem)
+      this.model.estadoId = estadoEncontrado.value;
+      console.log('✅ Estado asignado al modelo:', this.model.estadoId, 'Label:', estadoEncontrado.label);
+    } else {
+      // Si no se encuentra el estado, intentar buscar por nombre del estado
+      if (lote.estado) {
+        const estadoPorNombre = this.estados.find(e => {
+          if (!e.label) return false;
+          const labelLower = e.label.toLowerCase();
+          const estadoLower = lote.estado.toLowerCase();
+          return labelLower === estadoLower || 
+                 labelLower.includes(estadoLower) || 
+                 estadoLower.includes(labelLower);
+        });
+        if (estadoPorNombre) {
+          this.model.estadoId = estadoPorNombre.value;
+          console.log('✅ Estado asignado por nombre:', this.model.estadoId, 'Label:', estadoPorNombre.label);
+        } else {
+          console.warn('⚠️ No se encontró el estado en la lista. EstadoId del lote:', lote.estadoId, 'Estado:', lote.estado);
+          console.warn('⚠️ Estados disponibles:', this.estados.map(e => ({ value: e.value, label: e.label })));
+          // Si no hay estados cargados aún o no se encuentra, usar el primero disponible
+          if (this.estados.length > 0) {
+            this.model.estadoId = this.estados[0].value;
+            console.log('⚠️ Usando estado por defecto:', this.model.estadoId);
+          }
+        }
+      } else if (this.estados.length > 0) {
+        // Si no hay estado pero hay estados disponibles, usar el primero
+        this.model.estadoId = this.estados[0].value;
+      }
+    }
+  } else {
+    // Si no hay estadoId en el lote, intentar buscar por nombre del estado
+    if (lote.estado && this.estados.length > 0) {
+      const estadoPorNombre = this.estados.find(e => {
+        if (!e.label) return false;
+        const labelLower = e.label.toLowerCase();
+        const estadoLower = lote.estado.toLowerCase();
+        return labelLower === estadoLower || 
+               labelLower.includes(estadoLower) || 
+               estadoLower.includes(labelLower);
+      });
+      if (estadoPorNombre) {
+        this.model.estadoId = estadoPorNombre.value;
+        console.log('✅ Estado asignado por nombre (sin estadoId):', this.model.estadoId, 'Label:', estadoPorNombre.label);
+      } else {
+        console.warn('⚠️ No se pudo encontrar estado por nombre:', lote.estado);
+        console.warn('⚠️ Estados disponibles:', this.estados.map(e => ({ value: e.value, label: e.label })));
+      }
+    }
+  }
+
   // Ajustar cantidad si es mayor al disponible
   if (this.model.cantidad > lote.cantidadDisponible) {
     this.model.cantidad = lote.cantidadDisponible;
@@ -826,10 +968,14 @@ seleccionarLote(lote: any) {
   this.dialogLotesVisible = false;
 
   // Mostrar mensaje de éxito
+  const estadoEncontrado = this.estados.find(e => e.value === this.model.estadoId);
+  const estadoLabel = estadoEncontrado ? estadoEncontrado.label : (lote.estado || 'Sin estado');
+  const estadoInfo = ` - Estado: ${estadoLabel}`;
+  
   this.messageService.add({
     severity: 'success',
     summary: 'Lote seleccionado',
-    detail: `Lote ${lote.numeroLote} - Disponible: ${lote.cantidadDisponible} ${lote.unidad}`
+    detail: `Lote ${lote.numeroLote} - Disponible: ${lote.cantidadDisponible} ${lote.unidad}${estadoInfo}`
   });
 }
 
@@ -877,11 +1023,18 @@ agregarItem(): void {
     });
   } else {
     // 🔹 Crear el objeto de detalle
+    // Asegurar que siempre haya descripción
+    const descripcion = this.model.productoSeleccionado.nombreCompleto || 
+                       this.model.productoSeleccionado.descripcion || 
+                       this.model.productoSeleccionado.descripcionLarga ||
+                       this.model.productoSeleccionado.codigo || 
+                       'Sin descripción';
+    
     const nuevoDetalle = {
       productoId: this.model.productoSeleccionado.id,
-      codigo: this.model.productoSeleccionado.codigo,
-      descripcion: this.model.productoSeleccionado.nombreCompleto,
-      unidadMedida: this.model.productoSeleccionado.unidad,
+      codigo: this.model.productoSeleccionado.codigo || '',
+      descripcion: descripcion,
+      unidadMedida: this.model.productoSeleccionado.unidad || 'UND',
       lote: this.model.lote || null,
       referencia: this.model.referencia || null,
       cantidad: this.model.cantidad,

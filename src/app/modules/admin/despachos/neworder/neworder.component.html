@@ -404,6 +404,8 @@
                     [options]="estados"
                     [(ngModel)]="model.estadoId"
                     [ngModelOptions]="{ standalone: true }"
+                    optionValue="value"
+                    optionLabel="label"
                     [filter]="true"
                     filterBy="label"
                     [showClear]="false"
@@ -562,12 +564,12 @@
                       </td>
                       <td class="text-sm px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="{
-                          'bg-green-100 text-green-800': lote.estado === 'Activo' || lote.estado === 'Disponible',
-                          'bg-amber-100 text-amber-800': lote.estado === 'Por Vencer',
-                          'bg-red-100 text-red-800': lote.estado === 'Vencido' || lote.estado === 'Bloqueado',
-                          'bg-gray-100 text-gray-800': !lote.estado
+                          'bg-green-100 text-green-800': lote.estado && (lote.estado.toLowerCase().includes('disponible') || lote.estado.toLowerCase() === 'disponible'),
+                          'bg-amber-100 text-amber-800': lote.estado && lote.estado.toLowerCase().includes('merma'),
+                          'bg-red-100 text-red-800': lote.estado && (lote.estado.toLowerCase().includes('vencido') || lote.estado.toLowerCase().includes('bloqueado') || lote.estado.toLowerCase().includes('sin stock')),
+                          'bg-gray-100 text-gray-800': !lote.estado || (!lote.estado.toLowerCase().includes('disponible') && !lote.estado.toLowerCase().includes('merma'))
                         }">
-                          {{ lote.estado || 'Disponible' }}
+                          {{ lote.estado || 'Sin estado' }}
                         </span>
                       </td>
                       <td class="text-center px-4 py-3">
@@ -710,8 +712,8 @@
 
               <ng-template pTemplate="body" let-row let-i="rowIndex">
                 <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
-                  <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.codigo }}</td>
-                  <td class="px-4 py-2 text-gray-700 text-sm">{{ row.descripcion }}</td>
+                  <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.codigo || '-' }}</td>
+                  <td class="px-4 py-2 text-gray-700 text-sm">{{ row.descripcion || 'Sin descripción' }}</td>
                   <td class="text-center px-4 py-2 text-gray-700 text-sm">
                     <span *ngIf="row.lote" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">{{ row.lote }}</span>
                     <span *ngIf="!row.lote" class="text-gray-400 text-xs">-</span>
@@ -721,9 +723,14 @@
                     <span *ngIf="!row.referencia" class="text-gray-400 text-xs">-</span>
                   </td>
                   <td class="text-center px-4 py-2 text-amber-700 text-sm font-medium">{{ row.cantidad }}</td>
-                  <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.unidadMedida }}</td>
+                  <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.unidadMedida || 'UND' }}</td>
                   <td class="text-center px-4 py-2 text-gray-700 text-sm">
-                    <span *ngIf="row.estadoId" class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
+                    <span *ngIf="row.estadoId" class="px-2 py-1 rounded text-xs font-medium" [ngClass]="{
+                      'bg-green-100 text-green-800': getEstadoLabel(row.estadoId).toLowerCase().includes('disponible'),
+                      'bg-amber-100 text-amber-800': getEstadoLabel(row.estadoId).toLowerCase().includes('merma'),
+                      'bg-red-100 text-red-800': getEstadoLabel(row.estadoId).toLowerCase().includes('vencido') || getEstadoLabel(row.estadoId).toLowerCase().includes('bloqueado'),
+                      'bg-gray-100 text-gray-800': !getEstadoLabel(row.estadoId).toLowerCase().includes('disponible') && !getEstadoLabel(row.estadoId).toLowerCase().includes('merma')
+                    }">
                       {{ getEstadoLabel(row.estadoId) }}
                     </span>
                     <span *ngIf="!row.estadoId" class="text-gray-400 text-xs">-</span>
