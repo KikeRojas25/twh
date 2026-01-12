@@ -259,6 +259,20 @@
                             </a>
                         </div>
 
+                        <!-- Lote -->
+                        <div class="mt-3">
+                            <label class="mb-1 block text-sm font-medium"
+                                >Lote</label
+                            >
+                            <input
+                                pInputText
+                                type="text"
+                                [ngModelOptions]="{ standalone: true }"
+                                [(ngModel)]="model.lote"
+                                class="w-full"
+                            />
+                        </div>
+
                         <!-- Cantidad -->
                         <div class="mt-3">
                             <label class="mb-1 block text-sm font-medium"
@@ -274,24 +288,10 @@
                             />
                         </div>
 
-                        <!-- Lote -->
-                        <div class="mt-3">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Lote (opcional)</label
-                            >
-                            <input
-                                pInputText
-                                type="text"
-                                [ngModelOptions]="{ standalone: true }"
-                                [(ngModel)]="model.lote"
-                                class="w-full"
-                            />
-                        </div>
-
                         <!-- Referencia -->
                         <div class="mt-3">
                             <label class="mb-1 block text-sm font-medium"
-                                >Referencia (opcional)</label
+                                >Referencia (DUA / OC)</label
                             >
                             <input
                                 pInputText

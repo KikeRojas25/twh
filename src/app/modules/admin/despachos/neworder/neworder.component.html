@@ -360,6 +360,18 @@
                   </a>
                 </div>
 
+                <!-- Lote -->
+                <div class="mt-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Lote</label>
+                  <input
+                    pInputText
+                    type="text"
+                    [ngModelOptions]="{ standalone: true }"
+                    [(ngModel)]="model.lote"
+                    class="w-full text-sm border-gray-300"
+                  />
+                </div>
+
                 <!-- Cantidad -->
                 <div class="mt-3">
                   <label class="block text-xs font-medium text-gray-700 mb-1">Cantidad</label>
@@ -369,18 +381,6 @@
                     [ngModelOptions]="{ standalone: true }"
                     min="1"
                     [(ngModel)]="model.cantidad"
-                    class="w-full text-sm border-gray-300"
-                  />
-                </div>
-
-                <!-- Lote -->
-                <div class="mt-3">
-                  <label class="block text-xs font-medium text-gray-700 mb-1">Lote </label>
-                  <input
-                    pInputText
-                    type="text"
-                    [ngModelOptions]="{ standalone: true }"
-                    [(ngModel)]="model.lote"
                     class="w-full text-sm border-gray-300"
                   />
                 </div>
