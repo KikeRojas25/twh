@@ -1,0 +1,360 @@
+<div class="p-2 space-y-2">
+  <div class="flex items-center justify-between gap-2 border-b border-gray-200 pb-2">
+    <div class="min-w-0">
+      <div class="text-sm font-medium text-gray-800 truncate">Agregar detalle (ORS {{ ordenSalidaId }})</div>
+      <div class="text-xs text-gray-500 truncate">Busque productos, seleccione lote si aplica y agregue cantidades.</div>
+    </div>
+    <div class="flex gap-2 shrink-0">
+      <p-button label="Cancelar" icon="pi pi-times" size="small" severity="secondary" (onClick)="cancelar()" [disabled]="loading"></p-button>
+      <p-button label="Finalizar" icon="pi pi-check" size="small" (onClick)="finalizar()" [loading]="loading"></p-button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+    <!-- Form agregar item -->
+    <div>
+      <div class="bg-white rounded-md border border-gray-200 overflow-hidden">
+        <div class="px-3 py-2 border-b border-gray-200 bg-gray-50">
+          <h4 class="text-sm font-semibold text-gray-800">Nuevo ítem</h4>
+        </div>
+        <div class="p-3 space-y-3">
+          <label class="block text-xs font-medium text-gray-700 mb-1">Producto</label>
+          <p-autoComplete
+            [(ngModel)]="model.productoSeleccionado"
+            [suggestions]="productosFiltrados"
+            [ngModelOptions]="{ standalone: true }"
+            (completeMethod)="buscarProductos($event)"
+            (onSelect)="onProductoSeleccionado()"
+            [minLength]="2"
+            appendTo="body"
+            [delay]="300"
+            [field]="'nombreCompleto'"
+            [dropdown]="true"
+            [forceSelection]="true"
+            [style]="{ width: '100%' }"
+            styleClass="text-sm border-gray-300"
+          >
+            <ng-template let-item pTemplate="item">
+              <div class="flex items-center justify-between">
+                <span>{{ item.nombreCompleto }}</span>
+                <small class="text-gray-500">({{ item.unidad }})</small>
+              </div>
+            </ng-template>
+            <ng-template let-item pTemplate="selectedItem">
+              <div>{{ item.nombreCompleto }}</div>
+            </ng-template>
+          </p-autoComplete>
+
+          <div class="flex justify-between items-center gap-2 text-xs">
+            <a class="cursor-pointer text-gray-600 hover:text-gray-900 hover:underline flex items-center gap-1" (click)="verStock()" *ngIf="model.productoSeleccionado">
+              <i class="pi pi-chart-bar"></i>
+              <span>Stock</span>
+            </a>
+            <a class="cursor-pointer text-gray-600 hover:text-gray-900 hover:underline flex items-center gap-1" (click)="verLotes()" *ngIf="model.productoSeleccionado">
+              <i class="pi pi-box"></i>
+              <span>Lotes</span>
+            </a>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Lote</label>
+            <input pInputText type="text" readonly [ngModelOptions]="{ standalone: true }" [(ngModel)]="model.lote" class="w-full text-sm border-gray-300" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Cantidad</label>
+            <input pInputText type="number" [ngModelOptions]="{ standalone: true }" min="1" [(ngModel)]="model.cantidad" class="w-full text-sm border-gray-300" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="col-span-2">
+              <label class="block text-xs font-medium text-gray-700 mb-1">Stock disponible</label>
+              <div
+                class="w-full rounded border px-3 py-2 text-sm"
+                [ngClass]="{
+                  'border-gray-300 text-gray-700 bg-white': stockTieneDisponible === true,
+                  'border-red-300 text-red-700 bg-red-50': stockTieneDisponible === false,
+                  'border-gray-200 text-gray-500 bg-gray-50': stockTieneDisponible === null
+                }"
+              >
+                <span *ngIf="stockValidando">Validando...</span>
+                <span *ngIf="!stockValidando">{{ stockDisponible !== null ? stockDisponible : '-' }}</span>
+                <span class="ml-2 text-xs text-gray-500" *ngIf="stockMensaje">({{ stockMensaje }})</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Referencia (DUA / OC)</label>
+            <input pInputText type="text" [ngModelOptions]="{ standalone: true }" [(ngModel)]="model.referencia" class="w-full text-sm border-gray-300" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">Estado</label>
+            <p-dropdown
+              [options]="estados"
+              [(ngModel)]="model.estadoId"
+              [ngModelOptions]="{ standalone: true }"
+              optionValue="value"
+              optionLabel="label"
+              [filter]="true"
+              filterBy="label"
+              [showClear]="false"
+              [style]="{ 'width': '100%' }"
+              appendTo="body"
+              placeholder="Seleccione un estado"
+              styleClass="text-sm border-gray-300"
+            ></p-dropdown>
+          </div>
+
+          <div class="pt-1">
+            <p-button
+              label="Agregar"
+              icon="pi pi-plus"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              styleClass="w-full"
+              (onClick)="agregarItem()"
+            ></p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla detalle -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-md border border-gray-200 overflow-hidden">
+        <div class="px-3 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-gray-800">Detalle</h3>
+          <span class="text-xs text-gray-500">Items: {{ detalle.length }}</span>
+        </div>
+        <div class="p-3">
+          <p-table [value]="detalle" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 80px" class="text-center">Acción</th>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th style="width: 110px" class="text-center">Lote</th>
+                <th style="width: 110px" class="text-center">Cantidad</th>
+                <th style="width: 120px" class="text-center">Stock</th>
+                <th style="width: 130px" class="text-center">Estado</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
+              <tr>
+                <td class="text-center">
+                  <p-button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [text]="true"
+                    (onClick)="eliminarFila(rowIndex)"
+                    [pTooltip]="rowData.isNew === false ? 'Eliminar (registrado)' : 'Eliminar (no registrado)'"
+                    tooltipPosition="top"
+                  ></p-button>
+                </td>
+                <td>{{ rowData.codigo }}</td>
+                <td>{{ rowData.descripcion }}</td>
+                <td class="text-center">{{ rowData.lote || '-' }}</td>
+                <td class="text-center">{{ rowData.cantidad }}</td>
+                <td class="text-center">
+                  <span class="inline-block min-w-[3.5rem] rounded border px-2 py-1 text-xs"
+                    [ngClass]="getStockCellClass(rowData)"
+                    [pTooltip]="rowData.stockMensaje || ''"
+                    tooltipPosition="top"
+                  >
+                    {{ rowData.stockDisponible !== null && rowData.stockDisponible !== undefined ? rowData.stockDisponible : '-' }}
+                  </span>
+                </td>
+                <td class="text-center">{{ getEstadoLabel(rowData.estadoId) }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="7" class="text-center p-6 text-sm text-gray-500">Aún no hay productos en el detalle.</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Stock -->
+  <p-dialog header="Stock" styleClass="gcp-dialog" [(visible)]="dialogStockVisible" [modal]="true" [style]="{ width: '40rem', maxWidth: '95vw' }">
+    <ng-template pTemplate="content">
+      <div *ngIf="!stockInfo" class="text-sm text-gray-500">Cargando...</div>
+      <div *ngIf="stockInfo" class="space-y-2 text-sm">
+        <div><span class="font-medium">Código:</span> {{ stockInfo.codigo }}</div>
+        <div><span class="font-medium">Descripción:</span> {{ stockInfo.descripcionLarga }}</div>
+        <div><span class="font-medium">Stock:</span> {{ stockInfo.stockDisponibleTotal }}</div>
+        <div><span class="font-medium">Unidad:</span> {{ stockInfo.unidadAlmacenamiento }}</div>
+        <div><span class="font-medium">Estado:</span> {{ stockInfo.estado }}</div>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modal Lotes -->
+  <!-- DIÁLOGO DE LOTES DISPONIBLES (copiado de B2B) -->
+  <p-dialog
+    header="Lotes Disponibles en Inventario"
+    styleClass="gcp-dialog gcp-lotes-dialog"
+    [(visible)]="dialogLotesVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '900px', maxWidth: '95vw' }"
+    [contentStyle]="{ overflow: 'visible' }"
+  >
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-2">
+        <i class="pi pi-box text-amber-600 text-xl"></i>
+        <div>
+          <div class="font-semibold text-lg">Lotes Disponibles</div>
+          <div class="text-xs text-gray-600" *ngIf="model.productoSeleccionado">
+            {{ model.productoSeleccionado.codigo }} - {{ model.productoSeleccionado.nombreCompleto }}
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Contenido del modal -->
+    <div *ngIf="lotesInfo && lotesInfo.length > 0; else sinLotes">
+      <div class="mb-2 text-xs text-gray-600">
+        Seleccione un lote y se completará automáticamente el campo Lote (y la cantidad se ajusta si excede el disponible).
+      </div>
+
+      <p-table
+        [value]="lotesInfo"
+        [scrollable]="true"
+        scrollHeight="400px"
+        styleClass="p-datatable-sm p-datatable-striped"
+        [paginator]="lotesInfo.length > 10"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="numeroLote">
+              Número de Lote
+              <p-sortIcon field="numeroLote"></p-sortIcon>
+            </th>
+            <th class="text-sm font-semibold text-white px-4 py-3 text-right" pSortableColumn="cantidadDisponible">
+              Cantidad
+              <p-sortIcon field="cantidadDisponible"></p-sortIcon>
+            </th>
+            <th class="text-sm font-semibold text-white px-4 py-3">Unidad</th>
+            <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="fechaVencimiento">
+              Fecha Venc.
+              <p-sortIcon field="fechaVencimiento"></p-sortIcon>
+            </th>
+            <th class="text-sm font-semibold text-white px-4 py-3">Ubicación</th>
+            <th class="text-sm font-semibold text-white px-4 py-3">Estado</th>
+            <th class="text-sm font-semibold text-white px-4 py-3 text-center">Acción</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-lote>
+          <tr>
+            <td class="text-sm px-4 py-3">
+              <span *ngIf="lote.numeroLote; else sinLote" class="font-medium text-gray-900">{{ lote.numeroLote }}</span>
+              <ng-template #sinLote>
+                <span class="text-gray-400 italic opacity-70 select-none">Sin lote</span>
+              </ng-template>
+            </td>
+            <td class="text-sm text-right px-4 py-3">
+              <span class="font-semibold">{{ lote.cantidadDisponible }}</span>
+            </td>
+            <td class="text-sm text-gray-700 px-4 py-3">{{ lote.unidad || 'UND' }}</td>
+            <td class="text-sm text-gray-700 px-4 py-3">
+              <span *ngIf="lote.fechaVencimiento" class="flex items-center gap-1">
+                <i class="pi pi-calendar text-gray-400 text-xs"></i>
+                {{ lote.fechaVencimiento | date:'dd/MM/yyyy' }}
+              </span>
+              <span *ngIf="!lote.fechaVencimiento" class="text-gray-400">Sin fecha</span>
+            </td>
+            <td class="text-sm text-gray-700 px-4 py-3">
+              <span *ngIf="lote.ubicacion" class="flex items-center gap-1">
+                <i class="pi pi-map-marker text-gray-400 text-xs"></i>
+                {{ lote.ubicacion }}
+              </span>
+              <span *ngIf="!lote.ubicacion" class="text-gray-400">-</span>
+            </td>
+            <td class="text-sm px-4 py-3">
+              <span class="text-xs text-gray-700">{{ lote.estado || 'Disponible' }}</span>
+            </td>
+            <td class="text-center px-4 py-3">
+              <p-button
+                label="Usar"
+                icon="pi pi-check"
+                size="small"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="seleccionarLote(lote)"
+                [disabled]="lote.cantidadDisponible === 0 || lote.estado === 'Vencido' || lote.estado === 'Bloqueado'"
+                [pTooltip]="lote.cantidadDisponible === 0 ? 'Sin stock disponible' : 'Seleccionar este lote'"
+                tooltipPosition="left"
+              ></p-button>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center py-8">
+              <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
+              <p class="text-gray-500">No hay lotes disponibles</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="mt-2 text-xs text-gray-500">
+        Total lotes: {{ lotesInfo.length }} · Stock total: {{ calcularStockTotal() }} · Próximo vencimiento: {{ obtenerProximoVencimiento() }}
+      </div>
+    </div>
+
+    <!-- Template: Sin lotes -->
+    <ng-template #sinLotes>
+      <div class="text-center py-12">
+        <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600 text-lg font-medium">No hay lotes disponibles</p>
+        <p class="text-gray-500 text-sm mt-2">
+          Este producto no tiene lotes registrados en el inventario
+        </p>
+        <button
+          pButton
+          type="button"
+          label="Cerrar"
+          icon="pi pi-times"
+          class="p-button-secondary mt-4"
+          (click)="dialogLotesVisible = false"
+        ></button>
+      </div>
+    </ng-template>
+
+    <!-- Footer -->
+    <ng-template pTemplate="footer">
+      <div class="flex justify-between items-center">
+        <div class="text-xs text-gray-500">
+          <i class="pi pi-info-circle mr-1"></i>
+          Seleccione un lote para continuar
+        </div>
+        <button
+          pButton
+          type="button"
+          label="Cerrar"
+          icon="pi pi-times"
+          class="p-button-secondary"
+          (click)="dialogLotesVisible = false"
+        ></button>
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog></p-confirmDialog>
+  <p-toast></p-toast>
+</div>
+

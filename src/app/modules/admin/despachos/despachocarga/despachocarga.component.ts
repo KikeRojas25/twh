@@ -23,6 +23,7 @@ import { AsignarPlacaComponent } from './asignar-placa/asignar-placa.component';
 import { ModalUpdateGuiaComponent } from './modal-update-guia/modal-update-guia.component';
 import { GenerarbultosComponent } from './generarbultos/generarbultos.component';
 import { PropietarioService } from '../../_services/propietario.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-despachocarga',
@@ -67,6 +68,10 @@ export class DespachocargaComponent implements OnInit {
   pendientes: any[] = [];
   bultosCompletos: boolean = false;
 
+  // Diálogo: fecha real de salida (previo a Dar Salida)
+  mostrarDialogFechaSalidaReal = false;
+  fechaSalidaReal: Date = new Date();
+  es: any;
 
   cols: any[];
 
@@ -75,13 +80,28 @@ export class DespachocargaComponent implements OnInit {
               public dialog: DialogService,
               public dialogService: DialogService,
               private messageService: MessageService,
-              private confirmationService: ConfirmationService,
               private propietarioService: PropietarioService,
               private router: Router) { }
 
   ngOnInit() {
 
     this.selectedRow = [];
+
+    // Configurar calendario en español (PrimeNG)
+    this.es = {
+      firstDayOfWeek: 1,
+      dayNames: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+      dayNamesShort: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+      dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+      monthNames: [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ],
+      monthNamesShort: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+      today: 'Hoy',
+      clear: 'Borrar'
+    };
+
     this.cols =
     [
         // {header: 'ACC', field: 'workNum'  ,  width: '30px' },
@@ -150,7 +170,9 @@ export class DespachocargaComponent implements OnInit {
                   summary: 'Éxito',
                   detail: 'Programación guardada correctamente'
                 });
-        
+                // Refrescar listado al cerrar el modal con éxito
+                this.selectedRow = [];
+                this.buscar();
         
         
                 
@@ -260,56 +282,118 @@ generarBulto(){
 
 
  darsalida() {
+    if (!this.selectedRow || this.selectedRow.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Seleccione al menos una carga'
+      });
+      return;
+    }
 
-    this.confirmationService.confirm({
-      acceptLabel: 'Guardar',                   // Texto del botón "Aceptar"
-      rejectLabel: 'Cancelar',                  // Texto del botón "Rechazar"
-      acceptIcon: 'pi pi-check',                // Icono del botón "Aceptar"
-      rejectIcon: 'pi pi-times',                // Icono del botón "Rechazar"
-      message: '¿Está seguro que desea dar salida de este vehículo?',
-      header: 'Confirmar Salida',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-  
+    // Abrir diálogo para capturar la fecha real (reemplaza confirmación)
+    this.fechaSalidaReal = new Date();
+    this.mostrarDialogFechaSalidaReal = true;
+ }
 
+ cancelarSalidaConFecha(): void {
+  this.mostrarDialogFechaSalidaReal = false;
+  this.fechaSalidaReal = new Date();
+ }
 
+ confirmarSalidaConFecha(): void {
+  if (!this.selectedRow || this.selectedRow.length === 0) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Advertencia',
+      detail: 'Seleccione al menos una carga'
+    });
+    return;
+  }
 
-        let ids = '';
-        this.selectedRow.forEach(el => {
-              ids = ids + ',' + el.id;
+  if (!this.fechaSalidaReal) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Debe seleccionar una fecha válida.'
+    });
+    return;
+  }
 
-          });
-        this.model.ids = ids.substring(1, ids.length + 1);
+  let ids = '';
+  this.selectedRow.forEach(el => {
+    ids = ids + ',' + el.id;
+  });
+  this.model.ids = ids.substring(1, ids.length + 1);
 
-        console.log('darsalida', this.model.ids);
+  if (this.model.ids === '') {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Advertencia',
+      detail: 'Seleccione al menos una carga'
+    });
+    return;
+  }
 
+  // Actualizar fecha real antes de registrar salida masiva
+  const ordenSalidaIds = Array.from(
+    new Set(
+      this.selectedRow
+        .map((x) => x.ordenSalidaId)
+        .filter((id) => id !== undefined && id !== null)
+    )
+  );
 
-        if (this.model.ids === '') {
+  if (ordenSalidaIds.length === 0) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo obtener el/los ID(s) de orden de salida.'
+    });
+    return;
+  }
+
+  this.loading = true;
+
+  forkJoin(
+    ordenSalidaIds.map((ordenSalidaId) =>
+      this.despachoService.actualizarFechaSalida(Number(ordenSalidaId), this.fechaSalidaReal)
+    )
+  ).subscribe({
+    next: () => {
+      this.despachoService.registrar_salidacarga(this.model).subscribe({
+        next: () => {
+          this.mostrarDialogFechaSalidaReal = false;
+          this.buscar();
           this.messageService.add({
-            severity: 'warn',
-            summary: 'Advertencia',
-            detail: 'Seleccione al menos una carga'
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Salida registrada correctamente.'
           });
-          return;
+        },
+        error: (err) => {
+          console.error('Error al registrar salida:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: err?.error?.message || err?.message || 'Error al registrar la salida.'
+          });
+        },
+        complete: () => {
+          this.loading = false;
         }
-
-        this.despachoService.registrar_salidacarga(this.model).subscribe(x =>
-            {
-                this.buscar();
-                //success('Se ha registrado la salida con éxito');
-          }, ()=> {
-
-          }, () => {
-              //error('Error, vuelva a intentarlo');
-              this.loading = false;
-            });
-
-            
-
-            } ,
-            reject: () => {
-            }
-            });
+      });
+    },
+    error: (err) => {
+      console.error('Error al actualizar fecha de salida:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: err?.error?.message || err?.message || 'Error al actualizar la fecha de salida.'
+      });
+      this.loading = false;
+    }
+  });
  }
  bultos(ordenSalidaId: number) {
 

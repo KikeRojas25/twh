@@ -1,0 +1,50 @@
+<div class="dialog-wrap">
+  <div class="dialog-header">
+    <div class="min-w-0">
+      <div class="title">Detalle de pedido</div>
+      <div class="subtitle">
+        ORS {{ ordenSalidaId }} · Almacén {{ almacenId }}<span *ngIf="propietarioId"> · Propietario {{ propietarioId }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dialog-body">
+    <div *ngIf="loading" class="loading">Cargando detalle y validando stock...</div>
+
+    <p-table [value]="detalle" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 140px">Código</th>
+          <th>Descripción</th>
+          <th style="width: 140px" class="text-center">Lote</th>
+          <th style="width: 120px" class="text-center">Cantidad</th>
+          <th style="width: 140px" class="text-center">Stock disp.</th>
+          <th style="width: 150px" class="text-center">Abastecido</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td>{{ rowData.codigo }}</td>
+          <td class="desc">{{ rowData.descripcion }}</td>
+          <td class="text-center">{{ rowData.lote || '-' }}</td>
+          <td class="text-center">{{ rowData.cantidad }}</td>
+          <td class="text-center">
+            <span class="stock" [title]="rowData.stockMensaje || ''">{{ rowData.stockDisponible !== null ? rowData.stockDisponible : '-' }}</span>
+          </td>
+          <td class="text-center">
+            <span class="abastecido" [ngClass]="getAbastecidoClass(rowData.abastecido)">
+              {{ getAbastecidoLabel(rowData.abastecido) }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="empty">Sin detalle para mostrar.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+

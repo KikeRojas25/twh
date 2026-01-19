@@ -1,0 +1,55 @@
+/* Estilo tipo Google Cloud Console: compacto, gris, bordes sutiles */
+
+:host {
+  display: block;
+}
+
+/* Normaliza tamaño de botones small (en este componente) */
+:host ::ng-deep .p-button.p-button-sm {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
+:host ::ng-deep .p-button .p-button-icon {
+  font-size: 0.875rem !important;
+}
+
+/* Dialogs internos (Stock / Lotes) */
+:host ::ng-deep .gcp-dialog.p-dialog .p-dialog-header {
+  background: #f8f9fa !important;
+  color: #202124 !important;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+:host ::ng-deep .gcp-dialog.p-dialog .p-dialog-title {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #202124 !important;
+}
+
+:host ::ng-deep .gcp-dialog.p-dialog .p-dialog-content {
+  padding: 1rem !important;
+}
+
+/* Tablas PrimeNG dentro del dialog de lotes */
+:host ::ng-deep .gcp-lotes-dialog .p-datatable .p-datatable-thead > tr > th {
+  background: #f1f3f4 !important;
+  color: #5f6368 !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+:host ::ng-deep .gcp-lotes-dialog .p-datatable .p-datatable-tbody > tr > td {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.8125rem !important;
+  color: #3c4043 !important;
+}
+
+:host ::ng-deep .gcp-lotes-dialog .p-datatable .p-datatable-tbody > tr:hover {
+  background: #f8f9fa !important;
+}
+

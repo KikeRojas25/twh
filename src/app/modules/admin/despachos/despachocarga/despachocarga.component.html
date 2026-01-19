@@ -167,3 +167,50 @@
 
 <p-confirmDialog></p-confirmDialog>
 <p-toast></p-toast>
+
+<!-- Dialog para seleccionar fecha real de salida (previo a Dar Salida) -->
+<p-dialog
+    header="Fecha real de salida"
+    [(visible)]="mostrarDialogFechaSalidaReal"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    styleClass="p-fluid"
+>
+    <ng-template pTemplate="content">
+        <div class="flex flex-col gap-4 py-4">
+            <div class="flex flex-col">
+                <label for="fechaSalidaReal" class="block text-sm font-medium text-gray-700 mb-2">
+                    Fecha de Salida <span class="text-red-500">*</span>
+                </label>
+                <p-calendar
+                    id="fechaSalidaReal"
+                    [(ngModel)]="fechaSalidaReal"
+                    [locale]="es"
+                    dateFormat="dd/mm/yy"
+                    [showIcon]="true"
+                    appendTo="body"
+                    styleClass="w-full"
+                    [styleClass]="'text-sm border-gray-300'"
+                ></p-calendar>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <p-button
+                label="Cancelar"
+                icon="pi pi-times"
+                severity="secondary"
+                (onClick)="cancelarSalidaConFecha()"
+                [disabled]="loading"
+            ></p-button>
+            <p-button
+                label="Confirmar"
+                icon="pi pi-check"
+                (onClick)="confirmarSalidaConFecha()"
+                [loading]="loading"
+            ></p-button>
+        </div>
+    </ng-template>
+</p-dialog>

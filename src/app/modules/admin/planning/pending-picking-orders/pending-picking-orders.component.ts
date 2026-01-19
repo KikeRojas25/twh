@@ -23,6 +23,10 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
+import { OrdenSalidaDetalleStockDialogComponent } from '../dialogs/orden-salida-detalle-stock-dialog/orden-salida-detalle-stock-dialog.component';
+import { DespachosService } from '../../despachos/despachos.service';
+import { forkJoin, from, of } from 'rxjs';
+import { catchError, finalize, map, mergeMap, reduce, toArray } from 'rxjs/operators';
 
 @Component({
   selector: 'app-pending-picking-orders',
@@ -89,6 +93,30 @@ export class PendingPickingOrdersComponent implements OnInit {
   propietariosCargados = false;
   almacenesCargados = false;
 
+  // Modal: errores de stock al planificar
+  stockErrorVisible = false;
+  stockErrorRows: Array<{
+    producto: string;
+    lote: string | null;
+    lodNum: string | null;
+    observacion: string;
+  }> = [];
+
+  // Modal: abastecimiento (órdenes seleccionadas)
+  abastecimientoVisible = false;
+  abastecimientoLoading = false;
+  abastecimientoRows: Array<{
+    ordenId: number;
+    numOrden: string | null;
+    producto: string;
+    lote: string | null;
+    cantidad: number;
+    stockDisponible: number | null;
+    saldoDespues: number | null;
+    abastecido: boolean | null;
+    observacion: string;
+  }> = [];
+
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
   
@@ -97,10 +125,12 @@ export class PendingPickingOrdersComponent implements OnInit {
     private planningService: PlanningService,
     private propietarioService: PropietarioService,
     private generalService: GeneralService,
+    private despachosService: DespachosService,
     private router: Router,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialogService: DialogService
   ) {}
 
   ngOnInit(): void {
@@ -363,7 +393,8 @@ export class PendingPickingOrdersComponent implements OnInit {
           (resp: any) => {
             console.log('Planificación de picking:', resp);
 
-            if (resp.resultado) {
+            const ok = resp?.resultado === true || resp?.success === true;
+            if (ok) {
               // ✅ Caso éxito
               this.model = resp;
               this.messageService.add({
@@ -373,12 +404,8 @@ export class PendingPickingOrdersComponent implements OnInit {
               });
               this.router.navigate(['/picking/listadotrabajopendiente']);
             } else {
-              // ⚠️ Caso error de negocio (ej. no hay stock)
-              this.messageService.add({
-                severity: 'warn',
-                summary: 'Planificación fallida',
-                detail: resp.observacion || 'No se pudo planificar el picking'
-              });
+              // ⚠️ Caso error de negocio (ej. no hay stock): mostrar modal persistente
+              this.abrirModalErrorStock(resp);
             }
           },
           (error) => {
@@ -417,5 +444,337 @@ export class PendingPickingOrdersComponent implements OnInit {
     console.log('Planificando masivamente las órdenes seleccionadas:', this.ordeneseleccionadas);
   }
 
+  private abrirModalErrorStock(resp: any): void {
+    const rawItems =
+      (Array.isArray(resp) ? resp : null) ??
+      (Array.isArray(resp?.data) ? resp.data : null) ??
+      (Array.isArray(resp?.items) ? resp.items : null) ??
+      (Array.isArray(resp?.detalle) ? resp.detalle : null) ??
+      (Array.isArray(resp?.errores) ? resp.errores : null) ??
+      (Array.isArray(resp?.resultados) ? resp.resultados : null) ??
+      null;
+
+    const items: any[] =
+      rawItems ??
+      (resp && (resp?.producto || resp?.Producto || resp?.Observacion || resp?.observacion) ? [resp] : []);
+
+    const rows = (items ?? []).map((x: any) => ({
+      producto: String(x?.producto ?? x?.Producto ?? '-'),
+      lote: x?.lote ?? x?.Lote ?? null,
+      lodNum: x?.LodNum ?? x?.lodNum ?? x?.LPN ?? x?.lpn ?? null,
+      observacion: String(
+        x?.Observacion ??
+          x?.observacion ??
+          x?.message ??
+          resp?.observacion ??
+          resp?.message ??
+          'No se pudo planificar por falta de stock.'
+      )
+    }));
+
+    // Fallback si el backend solo manda texto
+    this.stockErrorRows =
+      rows.length > 0
+        ? rows
+        : [
+            {
+              producto: '-',
+              lote: null,
+              lodNum: null,
+              observacion: String(resp?.observacion ?? resp?.message ?? 'No se pudo planificar por falta de stock.')
+            }
+          ];
+
+    this.stockErrorVisible = true;
+  }
+
+  cerrarModalErrorStock(): void {
+    this.stockErrorVisible = false;
+  }
+
+  cerrarModalAbastecimiento(): void {
+    this.abastecimientoVisible = false;
+  }
+  
+  verAbastecimiento(): void {
+    const almacenId = Number(this.model?.AlmacenId ?? 0);
+    if (!almacenId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Aviso',
+        detail: 'Seleccione un almacén para consultar el stock.'
+      });
+      return;
+    }
+
+    if (!this.ordeneseleccionadas || this.ordeneseleccionadas.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Aviso',
+        detail: 'Seleccione al menos una orden para analizar el abastecimiento.'
+      });
+      return;
+    }
+
+    this.abastecimientoVisible = true;
+    this.abastecimientoLoading = true;
+    this.abastecimientoRows = [];
+
+    // 1) Por cada orden: traer detalle
+    // 2) Agrupar por producto+lote para consultar stock UNA vez por grupo
+    // 3) Asignar stock de manera secuencial (acumulando consumo) para detectar quiebres reales
+    from(this.ordeneseleccionadas)
+      .pipe(
+        mergeMap(
+          (orden: any) => {
+            const ordenId = Number(orden?.id ?? orden?.ordenSalidaId ?? orden?.Id ?? 0);
+            const numOrden = orden?.numOrden ? String(orden.numOrden) : null;
+
+            if (!ordenId) {
+              return of([
+                {
+                  ordenId: 0,
+                  numOrden,
+                  producto: '-',
+                  lote: null,
+                  cantidad: 0,
+                  stockDisponible: null,
+                  abastecido: null,
+                  observacion: 'No se pudo identificar la orden.'
+                }
+              ]);
+            }
+
+            return this.despachosService.obtenerDetalleOrdenSalida(ordenId).pipe(
+              map((detalles: any[]) => {
+                const det = detalles ?? [];
+                if (det.length === 0) {
+                  return [
+                    {
+                      ordenId,
+                      numOrden,
+                      productoId: null as string | null,
+                      producto: '-',
+                      lote: null as string | null,
+                      cantidad: 0,
+                      observacion: 'La orden no tiene detalle.'
+                    }
+                  ];
+                }
+
+                return det.map((item: any) => {
+                  const productoIdRaw =
+                    item?.productoId ??
+                    item?.ProductoId ??
+                    item?.productoID ??
+                    item?.ProductoID ??
+                    item?.idProducto ??
+                    item?.IdProducto ??
+                    null;
+
+                  const producto = String(
+                    item?.descripcion ??
+                      item?.Descripcion ??
+                      item?.producto ??
+                      item?.Producto ??
+                      item?.codigo ??
+                      item?.Codigo ??
+                      '-'
+                  );
+
+                  const lote = item?.lote ?? item?.Lote ?? null;
+                  const cantidad = Number(item?.cantidad ?? item?.Cantidad ?? 0) || 0;
+                  const productoId = productoIdRaw ? String(productoIdRaw) : null;
+
+                  return {
+                    ordenId,
+                    numOrden,
+                    productoId,
+                    producto,
+                    lote: lote ? String(lote) : null,
+                    cantidad,
+                    observacion: ''
+                  };
+                });
+              }),
+              catchError(() =>
+                of([
+                  {
+                    ordenId,
+                    numOrden,
+                    productoId: null,
+                    producto: '-',
+                    lote: null,
+                    cantidad: 0,
+                    observacion: 'No se pudo obtener el detalle de la orden.'
+                  }
+                ])
+              )
+            );
+          },
+          2 // concurrencia de obtenerDetalleOrdenSalida
+        ),
+        reduce((acc: any[], rows: any[]) => acc.concat(rows), []),
+        mergeMap((baseRows: any[]) => {
+          // Armar grupos únicos por productoId+lote
+          const keyOf = (productoId: string, lote: string | null) => `${productoId}__${lote ?? ''}`;
+          const grupos = new Map<
+            string,
+            { productoId: string; lote: string | null }
+          >();
+
+          (baseRows ?? []).forEach((r: any) => {
+            if (!r?.productoId) return;
+            const key = keyOf(String(r.productoId), r.lote ?? null);
+            if (!grupos.has(key)) {
+              grupos.set(key, { productoId: String(r.productoId), lote: r.lote ?? null });
+            }
+          });
+
+          const requests = Array.from(grupos.entries()).map(([key, g]) =>
+            this.despachosService.validarStock(g.productoId, almacenId, g.lote).pipe(
+              map((resp: any) => {
+                const ok = !!resp?.success;
+                const data = resp?.data ?? null;
+                const stockDisponible = ok && data ? Number(data.stockDisponible ?? 0) : 0;
+                const mensaje = resp?.message || (ok ? 'Stock disponible' : 'Sin stock');
+                return { key, stockDisponible, mensaje };
+              }),
+              catchError(() => of({ key, stockDisponible: 0, mensaje: 'No se pudo validar stock.' }))
+            )
+          );
+
+          if (requests.length === 0) {
+            return of({ baseRows, stockByKey: new Map<string, { stockDisponible: number; mensaje: string }>() });
+          }
+
+          return forkJoin(requests).pipe(
+            map((results) => {
+              const stockByKey = new Map<string, { stockDisponible: number; mensaje: string }>();
+              (results ?? []).forEach((r: any) => {
+                stockByKey.set(String(r.key), { stockDisponible: Number(r.stockDisponible ?? 0), mensaje: String(r.mensaje ?? '') });
+              });
+              return { baseRows, stockByKey };
+            })
+          );
+        }),
+        map(({ baseRows, stockByKey }: any) => {
+          const remaining = new Map<string, number>();
+          const keyOf = (productoId: string, lote: string | null) => `${productoId}__${lote ?? ''}`;
+
+          return (baseRows ?? []).map((r: any) => {
+            const ordenId = Number(r?.ordenId ?? 0);
+            const numOrden = r?.numOrden ? String(r.numOrden) : null;
+            const producto = String(r?.producto ?? '-');
+            const lote = r?.lote ?? null;
+            const cantidad = Number(r?.cantidad ?? 0) || 0;
+            const productoId = r?.productoId ? String(r.productoId) : null;
+
+            if (!productoId) {
+              return {
+                ordenId,
+                numOrden,
+                producto,
+                lote,
+                cantidad,
+                stockDisponible: null,
+                saldoDespues: null,
+                abastecido: null,
+                observacion: r?.observacion || 'Sin productoId para validar stock.'
+              };
+            }
+
+            const key = keyOf(productoId, lote);
+            const info = stockByKey.get(key);
+            const stockDisponible = Number(info?.stockDisponible ?? 0);
+            if (!remaining.has(key)) remaining.set(key, stockDisponible);
+
+            const saldoAntes = Number(remaining.get(key) ?? 0);
+            const ok = saldoAntes >= cantidad;
+            const saldoDespues = ok ? saldoAntes - cantidad : saldoAntes;
+            if (ok) remaining.set(key, saldoDespues);
+
+            const observacion = ok
+              ? (info?.mensaje || 'Stock disponible')
+              : `Quiebre de stock: requerido=${cantidad}, saldo=${saldoAntes}, disponibleTotal=${stockDisponible}. ${info?.mensaje || ''}`.trim();
+
+            return {
+              ordenId,
+              numOrden,
+              producto,
+              lote,
+              cantidad,
+              stockDisponible,
+              saldoDespues,
+              abastecido: ok,
+              observacion
+            };
+          });
+        }),
+        finalize(() => {
+          this.abastecimientoLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (rows: any[]) => {
+          this.abastecimientoRows = rows ?? [];
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error verAbastecimiento:', err);
+          this.abastecimientoRows = [
+            {
+              ordenId: 0,
+              numOrden: null,
+              producto: '-',
+              lote: null,
+              cantidad: 0,
+              stockDisponible: null,
+              saldoDespues: null,
+              abastecido: null,
+              observacion: 'Ocurrió un error al analizar el abastecimiento.'
+            }
+          ];
+          this.abastecimientoLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+  
+  verDetalleOrden(orden: OrdenSalida): void {
+    const ordenSalidaId = Number((orden as any)?.id ?? (orden as any)?.Id ?? 0);
+    const almacenId = Number(this.model?.AlmacenId ?? 0);
+
+    if (!ordenSalidaId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Aviso',
+        detail: 'No se pudo identificar la orden seleccionada.'
+      });
+      return;
+    }
+
+    if (!almacenId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Aviso',
+        detail: 'Seleccione un almacén para consultar el stock.'
+      });
+      return;
+    }
+
+    this.dialogService.open(OrdenSalidaDetalleStockDialogComponent, {
+      header: `Detalle pedido (ORS ${ordenSalidaId})`,
+      width: '1100px',
+      style: { maxWidth: '95vw' },
+      data: {
+        ordenSalidaId,
+        almacenId,
+        propietarioId: this.model?.PropietarioId ?? null
+      }
+    });
+  }
+  
   
 }

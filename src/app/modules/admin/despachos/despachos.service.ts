@@ -24,6 +24,7 @@ export class DespachosService {
   private baseUrl = environment.baseUrl + '/api/OrdenSalida/';
   private baseUrlDespacho = environment.baseUrl + '/api/Despacho/';
   private baseUrlConductor = environment.baseUrl + '/api/Conductor/';
+  private baseUrlInventario = environment.baseUrl + '/api/inventario/';
   private _httpClient = inject(HttpClient);
 
 
@@ -61,10 +62,27 @@ getAllOrdenSalida(model: any): Observable<OrdenSalida[]> {
 RegistarOrdenSalida(model: any){
       return this._httpClient.post(this.baseUrl + 'RegisterOrdenSalida', model, httpOptions);
 }
+
+registerOrdenSalidaDetalle(model: any): Observable<any> {
+  return this._httpClient.post(`${this.baseUrl}RegisterOrdenSalidaDetalle`, model, httpOptions);
+}
+
+validarStock(productoId: string, almacenId: number, lote?: string | null): Observable<any> {
+  const params = new URLSearchParams({
+    productoId: productoId,
+    almacenId: String(almacenId),
+    ...(lote ? { lote } : {})
+  }).toString();
+  return this._httpClient.get<any>(`${this.baseUrlInventario}ValidarStock?${params}`, httpOptions);
+}
 deleteOrder(id: any){
   const url = `${this.baseUrl}DeleteOrder/${id}`;
   return this._httpClient.delete(url, httpOptions);
 
+}
+
+deleteOrdenSalidaDetalle(ordenSalidaDetalleId: number): Observable<any> {
+  return this._httpClient.delete<any>(`${this.baseUrl}DeleteOrdenSalidaDetalle/${ordenSalidaDetalleId}`, httpOptions);
 }
 
 getAllCargas_pendientes(model: any): Observable<carga[]> {

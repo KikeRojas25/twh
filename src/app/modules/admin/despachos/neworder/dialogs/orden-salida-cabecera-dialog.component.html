@@ -1,0 +1,166 @@
+<div class="p-3">
+  <form [formGroup]="form" class="space-y-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="space-y-4">
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Almacén: <span class="text-red-500">*</span></label>
+          <p-dropdown
+            formControlName="almacenId"
+            [options]="almacenes"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ 'width': '100%' }"
+            appendTo="body"
+            placeholder="Seleccione un almacén"
+            styleClass="text-sm"
+          ></p-dropdown>
+          <small *ngIf="(form.get('almacenId')?.touched || form.get('almacenId')?.dirty) && form.get('almacenId')?.invalid" class="p-error text-xs mt-1">
+            El almacén es obligatorio.
+          </small>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Propietario: <span class="text-red-500">*</span></label>
+          <p-dropdown
+            formControlName="propietarioId"
+            [options]="propietarios"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ 'width': '100%' }"
+            appendTo="body"
+            placeholder="Seleccione un propietario"
+            styleClass="text-sm"
+          ></p-dropdown>
+          <small *ngIf="(form.get('propietarioId')?.touched || form.get('propietarioId')?.dirty) && form.get('propietarioId')?.invalid" class="p-error text-xs mt-1">
+            El propietario es obligatorio.
+          </small>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Fecha requerida: <span class="text-red-500">*</span></label>
+          <p-calendar
+            formControlName="fechaRequerida"
+            [showIcon]="true"
+            appendTo="body"
+            dateFormat="yy-mm-dd"
+            [style]="{ width: '100%' }"
+            styleClass="text-sm"
+          ></p-calendar>
+          <small *ngIf="(form.get('fechaRequerida')?.touched || form.get('fechaRequerida')?.dirty) && form.get('fechaRequerida')?.invalid" class="p-error text-xs mt-1">
+            La fecha requerida es obligatoria.
+          </small>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Hora requerida: <span class="text-red-500">*</span></label>
+          <p-calendar
+            formControlName="horaRequerida"
+            [timeOnly]="true"
+            appendTo="body"
+            [style]="{ width: '100%' }"
+            styleClass="text-sm"
+          ></p-calendar>
+          <small *ngIf="(form.get('horaRequerida')?.touched || form.get('horaRequerida')?.dirty) && form.get('horaRequerida')?.invalid" class="p-error text-xs mt-1">
+            La hora requerida es obligatoria.
+          </small>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Cliente: <span class="text-red-500">*</span></label>
+          <p-dropdown
+            formControlName="clienteId"
+            [options]="clientes"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ 'width': '100%' }"
+            appendTo="body"
+            placeholder="Seleccione un cliente"
+            [disabled]="!form.get('propietarioId')?.value"
+            styleClass="text-sm"
+          ></p-dropdown>
+          <small *ngIf="(form.get('clienteId')?.touched || form.get('clienteId')?.dirty) && form.get('clienteId')?.invalid" class="p-error text-xs mt-1">
+            El cliente es obligatorio.
+          </small>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Dirección entrega: <span class="text-red-500">*</span></label>
+          <p-dropdown
+            formControlName="direccionId"
+            [options]="direcciones"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ 'width': '100%' }"
+            appendTo="body"
+            placeholder="Seleccione una dirección"
+            [disabled]="!form.get('clienteId')?.value"
+            styleClass="text-sm"
+          ></p-dropdown>
+          <small *ngIf="(form.get('direccionId')?.touched || form.get('direccionId')?.dirty) && form.get('direccionId')?.invalid" class="p-error text-xs mt-1">
+            La dirección de entrega es obligatoria.
+          </small>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">OC del Cliente: <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="ordenCompraCliente" class="w-full text-sm" placeholder="Ej: OC-102233" autocomplete="off" />
+          <small *ngIf="(form.get('ordenCompraCliente')?.touched || form.get('ordenCompraCliente')?.dirty) && form.get('ordenCompraCliente')?.invalid" class="p-error text-xs mt-1">
+            La orden de compra del cliente es obligatoria.
+          </small>
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Guía de Remisión</label>
+          <input pInputText formControlName="guiaRemision" class="w-full text-sm border-gray-300" placeholder="Ingrese la guía de remisión" autocomplete="off" />
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Orden Entrega</label>
+          <input pInputText formControlName="ordenEntrega" class="w-full text-sm border-gray-300" placeholder="Ingrese la orden de entrega" autocomplete="off" />
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Orden Infor</label>
+          <input pInputText formControlName="ordenInfor" class="w-full text-sm border-gray-300" placeholder="Ingrese la orden Infor" autocomplete="off" />
+        </div>
+
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Tipo Descarga</label>
+          <p-dropdown
+            formControlName="tipoDescargaId"
+            [options]="tiposDescarga"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ 'width': '100%' }"
+            appendTo="body"
+            placeholder="Seleccione un tipo de descarga"
+            styleClass="text-sm border-gray-300"
+          ></p-dropdown>
+        </div>
+
+        <!-- Contacto / Teléfono / Correo removidos por requerimiento -->
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2 border-t border-gray-200">
+      <p-button label="Cancelar" icon="pi pi-times" severity="secondary" (onClick)="cancelar()" [disabled]="loading"></p-button>
+      <p-button
+        [label]="mode === 'edit' ? 'Guardar cambios' : 'Guardar y continuar'"
+        icon="pi pi-check"
+        (onClick)="guardarYContinuar()"
+        [loading]="loading"
+      ></p-button>
+    </div>
+  </form>
+
+  <p-confirmDialog></p-confirmDialog>
+  <p-toast></p-toast>
+</div>
+

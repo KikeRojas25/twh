@@ -30,11 +30,38 @@
       <div class="flex flex-wrap sm:flex-nowrap gap-4">
         <div class="flex-1">
           <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
-          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
+          <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" 
+          [filter]="true"
+          filterBy="label"
+          [showClear]="true"
+          [style]="{ width: '100%' }"
+          appendTo="body"
+          [resetFilterOnHide]="false"
+          [hideTransitionOptions]="'0ms'"
+          [showTransitionOptions]="'0ms'"
+          placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2">
+          <ng-template let-item pTemplate="selectedItem">
+            <span style="vertical-align: left">{{ item.label }}</span>
+          </ng-template>
+        </p-dropdown>
         </div>
         <div class="flex-1">
           <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
-          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
+          <p-dropdown [options]="propietarios"
+           [(ngModel)]="model.PropietarioId"
+           [filter]="true"
+           filterBy="label"
+           [showClear]="true"
+           [style]="{ width: '100%' }"
+           appendTo="body"
+           [resetFilterOnHide]="false"
+           [hideTransitionOptions]="'0ms'"
+           [showTransitionOptions]="'0ms'" placeholder="SELECCIONE UN PROPIETARIO"
+            class="w-180 mt-2">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
         </div>
         <div>
           <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>
@@ -46,30 +73,22 @@
 
   
   
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-      <div class="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
-        <div>
-          <p class="text-4xl font-bold text-blue-500">{{ totalOrdenes }}</p>
-          <p class="text-gray-600 font-medium">Órdenes Pendientes</p>
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 sm:py-4 sm:px-6 border-b bg-card dark:bg-transparent">
+      <div class="bg-blue-50 rounded-lg shadow flex flex-col items-center justify-center text-center h-14 px-2 py-1 gap-0.5">
+        <div class="text-2xl font-bold text-blue-600 leading-none">{{ totalOrdenes }}</div>
+        <div class="text-gray-600 font-medium text-xs leading-none">Órdenes Pendientes</div>
       </div>
-      <div class="bg-green-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
-        <div>
-          <p class="text-4xl font-bold text-green-500">{{ totalProductos }}</p>
-          <p class="text-gray-600 font-medium">Productos</p>
-        </div>
+      <div class="bg-green-50 rounded-lg shadow flex flex-col items-center justify-center text-center h-14 px-2 py-1 gap-0.5">
+        <div class="text-2xl font-bold text-green-600 leading-none">{{ totalProductos }}</div>
+        <div class="text-gray-600 font-medium text-xs leading-none">Productos</div>
       </div>
-      <div class="bg-yellow-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
-        <div>
-          <p class="text-4xl font-bold text-yellow-500">{{ totalUnidades | number:'1.0-0':'en-US' }}</p>
-          <p class="text-gray-600 font-medium">Unidades</p>
-        </div>
+      <div class="bg-yellow-50 rounded-lg shadow flex flex-col items-center justify-center text-center h-14 px-2 py-1 gap-0.5">
+        <div class="text-2xl font-bold text-yellow-600 leading-none">{{ totalUnidades | number:'1.0-0':'en-US' }}</div>
+        <div class="text-gray-600 font-medium text-xs leading-none">Unidades</div>
       </div>
-      <div class="bg-purple-50 p-4 rounded-lg shadow flex flex-col items-center text-center h-32 justify-center">
-        <div>
-          <p class="text-4xl font-bold text-purple-500">{{ totalPeso | number:'1.2-2':'en-US' }}</p>
-          <p class="text-gray-600 font-medium">Peso Total (Kg)</p>
-        </div>
+      <div class="bg-purple-50 rounded-lg shadow flex flex-col items-center justify-center text-center h-14 px-2 py-1 gap-0.5">
+        <div class="text-2xl font-bold text-purple-600 leading-none">{{ totalPeso | number:'1.2-2':'en-US' }}</div>
+        <div class="text-gray-600 font-medium text-xs leading-none">Peso Total (Kg)</div>
       </div>
  </div>
 
@@ -124,6 +143,7 @@
               <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Cant. Productos</th>
               <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Cant. Unidades</th>
               <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white;">Peso Total</th>
+              <th style="position: sticky; top: 0; z-index: 30; background-color: #1f2937; color: white; width: 90px;" class="text-center">Acciones</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-rowData>
@@ -135,6 +155,15 @@
               <td class="text-center">{{ rowData.productos }}</td>
               <td class="text-center">{{ rowData.unidades }}</td>
               <td class="text-center">{{ rowData.peso }}</td>
+              <td class="text-center">
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-eye"
+                  class="p-button-sm p-button-text"
+                  (click)="$event.stopPropagation(); verDetalleOrden(rowData)"
+                ></button>
+              </td>
             </tr>
           </ng-template>
         </p-table>
@@ -145,6 +174,7 @@
         <div class="flex justify-between items-center mb-4">
         <section class="flex flex-wrap justify-center sm:justify-end gap-4">
           <p-button severity="primary" label="Planificar" (onClick)="planificar()" icon="pi pi-folder"></p-button>
+          <p-button severity="info" label="Ver abastecimiento" (onClick)="verAbastecimiento()" icon="pi pi-chart-line"></p-button>
           <!-- <p-button severity="primary" label="Planificar Masivo" icon="pi pi-folder"></p-button>
           <p-button severity="warning" label="Comprobar Stock" icon="pi pi-check"></p-button> -->
         </section>
@@ -224,4 +254,117 @@
 </div>
 
 <p-confirmDialog />
+
+<!-- Modal persistente: errores por falta de stock al planificar -->
+<p-dialog
+  header="Planificación fallida - Falta de stock"
+  [(visible)]="stockErrorVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '70rem', maxWidth: '98vw' }"
+>
+  <ng-template pTemplate="content">
+    <p-table [value]="stockErrorRows" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Producto</th>
+          <th style="width: 140px" class="text-center">Lote/LPN</th>
+          <th style="width: 140px" class="text-center">LodNum</th>
+          <th>Observación</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td>{{ rowData.producto }}</td>
+          <td class="text-center">{{ rowData.lote || '-' }}</td>
+          <td class="text-center">{{ rowData.lodNum || '-' }}</td>
+          <td>{{ rowData.observacion }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-6 text-sm text-gray-500">No hay datos para mostrar.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <button pButton type="button" label="Cerrar" icon="pi pi-times" class="p-button-secondary" (click)="cerrarModalErrorStock()"></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal persistente: abastecimiento (órdenes seleccionadas) -->
+<p-dialog
+  header="Abastecimiento - Órdenes seleccionadas"
+  [(visible)]="abastecimientoVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '85rem', maxWidth: '98vw' }"
+>
+  <ng-template pTemplate="content">
+    <div *ngIf="abastecimientoLoading" class="text-sm text-gray-500 mb-3">
+      Analizando abastecimiento... (puede tardar si hay muchas líneas)
+    </div>
+
+    <p-table [value]="abastecimientoRows" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 120px">Orden</th>
+          <th>Producto</th>
+          <th style="width: 140px" class="text-center">Lote/LPN</th>
+          <th style="width: 120px" class="text-center">Cantidad</th>
+          <th style="width: 120px" class="text-center">Stock</th>
+          <th style="width: 120px" class="text-center">Saldo</th>
+          <th style="width: 120px" class="text-center">Abastecido</th>
+          <th>Observación</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td>
+            <div class="leading-tight">
+              <div class="font-medium">{{ rowData.numOrden || rowData.ordenId }}</div>
+              <div class="text-xs text-gray-500" *ngIf="rowData.numOrden && rowData.ordenId">ID: {{ rowData.ordenId }}</div>
+            </div>
+          </td>
+          <td>{{ rowData.producto }}</td>
+          <td class="text-center">{{ rowData.lote || '-' }}</td>
+          <td class="text-center">{{ rowData.cantidad }}</td>
+          <td class="text-center">{{ rowData.stockDisponible !== null ? rowData.stockDisponible : '-' }}</td>
+          <td class="text-center">{{ rowData.saldoDespues !== null ? rowData.saldoDespues : '-' }}</td>
+          <td class="text-center">
+            <span
+              class="inline-block min-w-[3.5rem] rounded-full border px-2 py-1 text-xs font-semibold"
+              [ngClass]="{
+                'bg-green-50 text-green-700 border-green-200': rowData.abastecido === true,
+                'bg-red-50 text-red-700 border-red-200': rowData.abastecido === false,
+                'bg-gray-50 text-gray-700 border-gray-200': rowData.abastecido === null
+              }"
+            >
+              {{ rowData.abastecido === true ? 'Sí' : (rowData.abastecido === false ? 'No' : '-') }}
+            </span>
+          </td>
+          <td>{{ rowData.observacion }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center p-6 text-sm text-gray-500">No hay datos para mostrar.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <button pButton type="button" label="Cerrar" icon="pi pi-times" class="p-button-secondary" (click)="cerrarModalAbastecimiento()"></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
 <p-toast />

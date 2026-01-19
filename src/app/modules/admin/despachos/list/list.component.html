@@ -236,6 +236,17 @@
                 ></p-button>
 
                 <p-button
+                  severity="success"
+                  icon="pi pi-plus"
+                  (click)="agregarDetalle(rowData)"
+                  [disabled]="rowData.nombreEstado != 'Creado'"
+                  [size]="small"
+                  [raised]="true"
+                  pTooltip="Agregar detalle"
+                  tooltipPosition="top"
+                ></p-button>
+
+                <p-button
                   severity="info"
                   icon="fa fa-calendar"
                   (click)="editarFechaSalida(rowData)"

@@ -22,6 +22,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PropietarioService } from '../../_services/propietario.service';
 import { GeneralService } from '../../_services/general.service';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { OrdenSalidaCabeceraDialogComponent } from '../neworder/dialogs/orden-salida-cabecera-dialog.component';
+import { OrdenSalidaDetalleDialogComponent } from '../neworder/dialogs/orden-salida-detalle-dialog.component';
 
 @Component({
   selector: 'app-list',
@@ -354,9 +356,40 @@ export class ListComponent implements OnInit {
   }
 
   edit(rowData: any) {
-    // Navegar a editar en el componente neworder que soporta edición
-    this.router.navigate(['/picking/neworder'], {
-      queryParams: { id: rowData.ordenSalidaId }
+    const ordenSalidaId: any = rowData?.ordenSalidaId || rowData?.id;
+    if (!ordenSalidaId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo obtener el ID de la orden de salida.'
+      });
+      return;
+    }
+
+    if (rowData?.nombreEstado !== 'Creado') {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Solo se puede editar la cabecera cuando la orden está en estado Creado.'
+      });
+      return;
+    }
+
+    this.ref = this.dialogService.open(OrdenSalidaCabeceraDialogComponent, {
+      header: `Editar cabecera (ORS ${ordenSalidaId})`,
+      width: '70rem',
+      style: { 'max-width': '95vw' },
+      modal: true,
+      data: {
+        mode: 'edit',
+        ordenSalidaId: Number(ordenSalidaId)
+      }
+    });
+
+    this.ref.onClose.subscribe((result: any) => {
+      if (result?.success) {
+        this.buscar();
+      }
     });
   }
 
@@ -369,7 +402,110 @@ export class ListComponent implements OnInit {
   }
 
   nuevaOrdenB2B() {
-    this.router.navigate(['/picking/neworder']);
+    // Abrir flujo en 2 modales: cabecera -> detalle
+    this.ref = this.dialogService.open(OrdenSalidaCabeceraDialogComponent, {
+      header: 'Nueva Orden - Cabecera',
+      width: '70rem',
+      style: { 'max-width': '95vw' },
+      modal: true,
+      data: {
+        propietarioId: this.model?.PropietarioId ?? null,
+        almacenId: this.model?.AlmacenId ?? null
+      }
+    });
+
+    this.ref.onClose.subscribe((cabeceraResult: any) => {
+      if (!cabeceraResult?.ordenSalidaId) {
+        return;
+      }
+
+      this.ref = this.dialogService.open(OrdenSalidaDetalleDialogComponent, {
+        header: `Nueva Orden - Detalle (ORS ${cabeceraResult.ordenSalidaId})`,
+        width: '90rem',
+        style: { 'max-width': '98vw' },
+        modal: true,
+        data: cabeceraResult
+      });
+
+      this.ref.onClose.subscribe((detalleResult: any) => {
+        if (detalleResult?.success) {
+          this.buscar();
+        }
+      });
+    });
+  }
+
+  agregarDetalle(rowData: OrdenSalida): void {
+    const ordenSalidaId: any = (rowData as any).ordenSalidaId || (rowData as any).id;
+    if (!ordenSalidaId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo obtener el ID de la orden de salida.'
+      });
+      return;
+    }
+
+    if ((rowData as any).nombreEstado !== 'Creado') {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'Solo se puede agregar detalle cuando la orden está en estado Creado.'
+      });
+      return;
+    }
+
+    const propietarioId = Number((rowData as any).propietarioId ?? (rowData as any).PropietarioId);
+    const almacenId = Number((rowData as any).almacenId ?? (rowData as any).AlmacenId);
+
+    const abrirModal = (pid: number, aid: number) => {
+      this.ref = this.dialogService.open(OrdenSalidaDetalleDialogComponent, {
+        header: `Agregar detalle (ORS ${ordenSalidaId})`,
+        width: '90rem',
+        style: { 'max-width': '98vw' },
+        modal: true,
+        data: {
+          ordenSalidaId: Number(ordenSalidaId),
+          cabeceraPayload: { PropietarioId: pid, AlmacenId: aid }
+        }
+      });
+
+      this.ref.onClose.subscribe((detalleResult: any) => {
+        if (detalleResult?.success) {
+          this.buscar();
+        }
+      });
+    };
+
+    // Si la fila no trae PropietarioId, obtenerlo antes de abrir el modal (necesario para buscar productos)
+    if (Number.isFinite(propietarioId) && propietarioId > 0 && Number.isFinite(almacenId) && almacenId > 0) {
+      abrirModal(propietarioId, almacenId);
+      return;
+    }
+
+    this.despachosService.obtenerOrdenSalidaPorId(Number(ordenSalidaId)).subscribe({
+      next: (orden: any) => {
+        const pid = Number(orden?.propietarioId ?? orden?.PropietarioId);
+        const aid = Number(orden?.almacenId ?? orden?.AlmacenId);
+        if (!Number.isFinite(pid) || pid <= 0 || !Number.isFinite(aid) || aid <= 0) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo obtener Propietario/Almacén de la orden.'
+          });
+          return;
+        }
+        abrirModal(pid, aid);
+      },
+      error: (err) => {
+        console.error('Error al obtener orden:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo obtener la orden para abrir el detalle.'
+        });
+      }
+    });
   }
 
   delete(id: number) {
