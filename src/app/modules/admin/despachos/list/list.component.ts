@@ -366,11 +366,14 @@ export class ListComponent implements OnInit {
       return;
     }
 
-    if (rowData?.nombreEstado !== 'Creado') {
+    // Reglas: admin (rol 1) puede editar siempre; otros solo cuando está Planificado
+    if (!this.puedeEditar(rowData)) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atención',
-        detail: 'Solo se puede editar la cabecera cuando la orden está en estado Creado.'
+        detail: this.tieneRol1
+          ? 'No tiene permisos para editar esta orden.'
+          : 'Solo se puede editar la cabecera cuando la orden está en estado Planificado.'
       });
       return;
     }
@@ -590,6 +593,33 @@ export class ListComponent implements OnInit {
     const token = localStorage.getItem('token');
     if (token) {
       this.decodedToken = this.jwtHelper.decodeToken(token);
+
+      const isRol1 = (r: any): boolean => {
+        if (r === 1 || r === '1') {
+          return true;
+        }
+        // formatos comunes cuando el rol viene como objeto
+        return (
+          r?.id === 1 || r?.id === '1' ||
+          r?.Id === 1 || r?.Id === '1' ||
+          r?.roleId === 1 || r?.roleId === '1' ||
+          r?.RoleId === 1 || r?.RoleId === '1'
+        );
+      };
+
+      const contieneRol1 = (rolesValue: any): boolean => {
+        if (!rolesValue) {
+          return false;
+        }
+        if (Array.isArray(rolesValue)) {
+          return rolesValue.some(isRol1);
+        }
+        if (typeof rolesValue === 'string') {
+          // por si viene como "1,2,3"
+          return rolesValue.split(',').map(x => x.trim()).some(isRol1);
+        }
+        return isRol1(rolesValue);
+      };
       
       // Buscar el rol en diferentes propiedades comunes del token JWT
       const roles = this.decodedToken.role || 
@@ -603,11 +633,7 @@ export class ListComponent implements OnInit {
       if (userString) {
         try {
           const user = JSON.parse(userString);
-          if (user.roles && Array.isArray(user.roles)) {
-            this.tieneRol1 = user.roles.includes(1);
-          } else if (user.roles === 1 || user.role === 1) {
-            this.tieneRol1 = true;
-          }
+          this.tieneRol1 = contieneRol1(user.roles) || contieneRol1(user.role);
         } catch (e) {
           console.error('Error al parsear user desde localStorage:', e);
         }
@@ -615,11 +641,7 @@ export class ListComponent implements OnInit {
       
       // Si no se encontró en localStorage, verificar en el token decodificado
       if (!this.tieneRol1) {
-        if (Array.isArray(roles)) {
-          this.tieneRol1 = roles.includes(1) || roles.some((r: any) => r === 1 || r === '1');
-        } else if (roles === 1 || roles === '1') {
-          this.tieneRol1 = true;
-        }
+        this.tieneRol1 = contieneRol1(roles);
       }
     }
   }
@@ -629,8 +651,8 @@ export class ListComponent implements OnInit {
     if (this.tieneRol1) {
       return true;
     }
-    // Si no tiene rol 1, solo puede editar si el estado es 'Creado'
-    return rowData.nombreEstado === 'Creado';
+    // Si no es admin, solo puede editar si el estado es 'Planificado'
+    return rowData?.nombreEstado === 'Planificado';
   }
 
 
