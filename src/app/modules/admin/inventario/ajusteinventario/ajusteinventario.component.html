@@ -107,18 +107,24 @@
             [rows]="10" 
             [resizableColumns]="true" 
             selectionMode="multiple" 
+            dataKey="id"
+            [selectionPageOnly]="true"
             [responsive]="true"
             [(selection)]="seleccion"
             >
 
             <ng-template pTemplate="colgroup" let-columns>
                 <colgroup>
+                    <col [ngStyle]="{'width': '50px'}">
                     <col *ngFor="let col of columns"   [ngStyle]="{'width': col.width}" >
                 </colgroup>
             </ng-template>
 
             <ng-template pTemplate="header" let-columns>
                 <tr>
+                    <th [ngStyle]="{'width': '50px'}" class="text-center">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
                     <th  [ngStyle]="{'width': col.width}" *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
                         {{col.header}}
                         <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order"></p-sortIcon>
@@ -128,6 +134,9 @@
 
             <ng-template pTemplate="body" let-rowData let-columns="columns">
                 <tr  [pSelectableRow]="rowData">
+                    <td class="ui-resizable-column text-center">
+                        <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                    </td>
                     <td class="ui-resizable-column text-center">
                         <div class="ui-inputgroup">
                             <p-button severity="primary" icon="fa fa-edit" (click)="edit(rowData.id)"></p-button>

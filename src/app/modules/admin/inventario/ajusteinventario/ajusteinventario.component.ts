@@ -231,11 +231,22 @@ export class AjusteinventarioComponent implements OnInit{
       return;
     }
 
+    const selectedCount = this.seleccion.length;
+    const lpns = Array.from(
+      new Set(this.seleccion.map((x) => x?.lodNum).filter((x): x is string => !!x))
+    );
+    const lpnResumen =
+      lpns.length === 0 ? '-' : lpns.length === 1 ? lpns[0] : `${lpns[0]} (+${lpns.length - 1} más)`;
+
     this.ref = this.dialogService.open(ModificarinventariomasivoComponent, {
       header: 'Modificar Inventario',
       width: '620px',
       height: '420px',
-      data: {codigo:  this.model.ids}
+      data: {
+        codigo: this.model.ids,
+        lpnResumen,
+        selectedCount,
+      }
     });
     this.ref.onClose.subscribe((actualizado) => {
       if (actualizado) {

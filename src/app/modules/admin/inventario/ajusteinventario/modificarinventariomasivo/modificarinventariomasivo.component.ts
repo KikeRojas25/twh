@@ -30,6 +30,8 @@ export class ModificarinventariomasivoComponent implements OnInit{
   model: any = {};
   es: any;
   id: number;
+  selectedCount = 0;
+  lpnResumen = '-';
 
   constructor(
     private ref: DynamicDialogRef,
@@ -42,6 +44,8 @@ export class ModificarinventariomasivoComponent implements OnInit{
 
     this.id = this.config.data.codigo;
     this.model.ids = this.id;
+    this.selectedCount = this.config.data?.selectedCount ?? 0;
+    this.lpnResumen = this.config.data?.lpnResumen ?? '-';
 
     this.es = {
       firstDayOfWeek: 1,
