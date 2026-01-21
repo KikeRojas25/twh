@@ -37,10 +37,13 @@ getAllOrdenSalida(model: any): Observable<OrdenSalida[]> {
     AlmacenId: ''
   };
 
+      // Compat: aceptar tanto estadoIdfiltro (nuevo) como EstadoId (legacy)
+      const estadoId = (model?.estadoIdfiltro ?? model?.EstadoId ?? defaultValues.estadoIdfiltro);
+
       // Asignar valores por defecto si son undefined
-      model.estadoIdfiltro = model.estadoIdfiltro ?? defaultValues.estadoIdfiltro;
-      model.PropietarioId = model.PropietarioId ?? defaultValues.PropietarioId;
-      model.AlmacenId = model.AlmacenId ?? defaultValues.AlmacenId;
+      model.estadoIdfiltro = estadoId ?? defaultValues.estadoIdfiltro;
+      model.PropietarioId = model?.PropietarioId ?? defaultValues.PropietarioId;
+      model.AlmacenId = model?.AlmacenId ?? defaultValues.AlmacenId;
 
       // Formatear fechas
       const fecIni = model.fec_ini.toLocaleDateString();
@@ -48,12 +51,12 @@ getAllOrdenSalida(model: any): Observable<OrdenSalida[]> {
 
       // Construir parámetros de consulta
       const params = new URLSearchParams({
-        PropietarioID: model.PropietarioId,
-        EstadoId: model.estadoIdfiltro,
-        fec_ini: fecIni,
-        fec_fin: fecFin,
-        guiaremision: model.guiaremision,
-        AlmacenId: model.AlmacenId
+        PropietarioID: String(model.PropietarioId ?? ''),
+        EstadoId: String(model.estadoIdfiltro ?? ''),
+        fec_ini: String(fecIni ?? ''),
+        fec_fin: String(fecFin ?? ''),
+        guiaremision: String(model.guiaremision ?? ''),
+        AlmacenId: String(model.AlmacenId ?? '')
       }).toString();
 
       return this._httpClient.get<OrdenSalida[]>(`${this.baseUrl}GetAllOrdenSalida?${params}`, httpOptions);

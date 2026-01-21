@@ -75,6 +75,29 @@
           </p-dropdown>
         </div>
 
+        <!-- Estado -->
+        <div class="flex flex-col">
+          <label for="estado" class="text-xs font-medium text-gray-700 mb-1">Estado:</label>
+          <p-dropdown
+            name="estado"
+            [options]="estadosOrdenSalida"
+            [(ngModel)]="model.estadoIdfiltro"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [resetFilterOnHide]="false"
+            [hideTransitionOptions]="'0ms'"
+            [showTransitionOptions]="'0ms'"
+            placeholder="Todos"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span style="vertical-align: left">{{ item?.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
         <!-- Fecha Inicio -->
         <div class="flex flex-col">
           <label for="dateInicio" class="text-xs font-medium text-gray-700 mb-1">Fec. Inicio</label>

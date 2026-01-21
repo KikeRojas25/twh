@@ -59,6 +59,7 @@ export class ListComponent implements OnInit {
   searchCriteria = { oc: '', sku: '' };
   clientes: SelectItem[] = [];
   almacenes: SelectItem[] = [];
+  estadosOrdenSalida: SelectItem[] = [];
   familias: any[] = [];
   subfamilias: any[] = [];
   cols: any[];
@@ -104,6 +105,16 @@ export class ListComponent implements OnInit {
   ngOnInit(): void {
     // Verificar rol del usuario
     this.verificarRolUsuario();
+
+    // Estados (ORS) - hardcodeados según catálogo provisto
+    this.estadosOrdenSalida = [
+      { label: 'Creado', value: 21 },
+      { label: 'Planificado', value: 22 },
+      { label: 'Pendiente picking', value: 23 },
+      { label: 'Despachado', value: 24 },
+      { label: 'Pendiente Validación', value: 34 },
+      { label: 'Validado', value: 47 },
+    ];
 
     // Configurar calendario en español
     this.es = {
@@ -165,6 +176,13 @@ export class ListComponent implements OnInit {
   
     this.model.fec_ini =  this.dateInicio;
     this.model.fec_fin =  this.dateFin ;
+
+    // Normalizar filtro de estado para compatibilidad (UI usa estadoIdfiltro; antes se usaba EstadoId)
+    if (this.model.estadoIdfiltro === undefined || this.model.estadoIdfiltro === null || this.model.estadoIdfiltro === '') {
+      if (this.model.EstadoId !== undefined && this.model.EstadoId !== null && this.model.EstadoId !== '') {
+        this.model.estadoIdfiltro = this.model.EstadoId;
+      }
+    }
   
     // Guardar todos los filtros en localStorage con prefijo específico para despachos
     // Guardar PropietarioId (incluso si es null/undefined para permitir limpiar el filtro)
@@ -183,8 +201,11 @@ export class ListComponent implements OnInit {
     if (this.model.intervalo) {
       localStorage.setItem('despachos_Intervalo', this.model.intervalo);
     }
-    if (this.model.EstadoId) {
-      localStorage.setItem('despachos_Estado', this.model.EstadoId);
+    // Estado: persistir estadoIdfiltro (compat: usar la misma key existente)
+    if (this.model.estadoIdfiltro !== null && this.model.estadoIdfiltro !== undefined && this.model.estadoIdfiltro !== '') {
+      localStorage.setItem('despachos_Estado', String(this.model.estadoIdfiltro));
+    } else {
+      localStorage.removeItem('despachos_Estado');
     }
     if (this.dateInicio) {
       localStorage.setItem('despachos_DateInicio', this.dateInicio.toISOString());
@@ -214,8 +235,11 @@ export class ListComponent implements OnInit {
     if (this.model.intervalo) {
       localStorage.setItem('Intervalo', this.model.intervalo);
     }
-    if (this.model.EstadoId) {
-      localStorage.setItem('Estado', this.model.EstadoId);
+    // compat: mantener key antigua, pero con el valor normalizado
+    if (this.model.estadoIdfiltro !== null && this.model.estadoIdfiltro !== undefined && this.model.estadoIdfiltro !== '') {
+      localStorage.setItem('Estado', String(this.model.estadoIdfiltro));
+    } else {
+      localStorage.removeItem('Estado');
     }
   
     this.despachosService.getAllOrdenSalida(this.model).subscribe(list => {
@@ -314,6 +338,8 @@ export class ListComponent implements OnInit {
 
     const estado = localStorage.getItem('despachos_Estado');
     if (estado) {
+      // Usar la propiedad alineada al servicio; mantener también la legacy por compatibilidad
+      this.model.estadoIdfiltro = estado;
       this.model.EstadoId = estado;
     }
   }
