@@ -71,12 +71,14 @@
   
     <!-- Tabla -->
     <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
-      <p-table [value]="cargas"
+      <p-table #dt
+               [value]="cargas"
                [columns]="cols"
                [(selection)]="selectedRow"
                selectionMode="multiple"
                [paginator]="true"
                [rows]="40"
+               [globalFilterFields]="['workNum','numOrden','guiaRemision','estado','operador']"
                [resizableColumns]="true"
                [scrollable]="true"
                [style]="{width:'100%'}">

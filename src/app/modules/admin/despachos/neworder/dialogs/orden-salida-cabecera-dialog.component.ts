@@ -62,7 +62,7 @@ export class OrdenSalidaCabeceraDialogComponent implements OnInit {
     public config: DynamicDialogConfig
   ) {
     this.form = this.fb.group({
-      almacenId: [null, Validators.required],
+      almacenId: [null],
       propietarioId: [null, Validators.required],
       ordenCompraCliente: ['', Validators.required],
       fechaRequerida: [new Date(), Validators.required],

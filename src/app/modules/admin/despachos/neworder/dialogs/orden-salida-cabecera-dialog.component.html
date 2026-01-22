@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div class="space-y-4">
         <div class="flex flex-col">
-          <label class="text-xs font-medium text-gray-700 mb-1">Almacén: <span class="text-red-500">*</span></label>
+          <label class="text-xs font-medium text-gray-700 mb-1">Almacén:</label>
           <p-dropdown
             formControlName="almacenId"
             [options]="almacenes"
@@ -15,9 +15,6 @@
             placeholder="Seleccione un almacén"
             styleClass="text-sm"
           ></p-dropdown>
-          <small *ngIf="(form.get('almacenId')?.touched || form.get('almacenId')?.dirty) && form.get('almacenId')?.invalid" class="p-error text-xs mt-1">
-            El almacén es obligatorio.
-          </small>
         </div>
 
         <div class="flex flex-col">
