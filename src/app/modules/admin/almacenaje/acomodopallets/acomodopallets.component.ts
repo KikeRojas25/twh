@@ -27,7 +27,8 @@ import { OrdenRecibo } from '../../recepcion/recepcion.types';
 import { Area } from '../../inventario/inventario.type';
 import { AlmacenService } from '../../_services/almacen.service';
 import { RecepcionService } from '../../recepcion/recepcion.service';
-import { environment } from '../../../../../environments/environment';
+import { ReportesService } from '../../reportes/reportes.service';
+import * as FileSaver from 'file-saver';
 
 
 declare var $: any;
@@ -89,6 +90,7 @@ export class AcomodopalletsComponent implements OnInit {
             , private activatedRoute: ActivatedRoute
             , private almacenService: AlmacenService
             ,private recepcionService: RecepcionService
+            ,private reporteService: ReportesService
             ,private messageService: MessageService,
             private router: Router,
             private confirmationService: ConfirmationService) { }
@@ -394,9 +396,30 @@ ejecutarAsignarYTerminar() {
           detail: 'Ubicaciones asignadas y acomodo terminado correctamente'
         });
 
-        // instrucción de acomodo.
-        let url = environment.baseUrl + '/reptwh/instruccionacomodo.aspx?ordenreciboid=' + String(this.id);
-        window.open(url);
+        // Instrucción de acomodo (PDF vía API para evitar mixed-content HTTP/HTTPS)
+        this.reporteService.exportarInstruccionAcomodoPdf(String(this.id)).subscribe({
+          next: (res) => {
+            const contentDisposition = res.headers?.get('content-disposition') || res.headers?.get('Content-Disposition');
+            const fileName = this.getFilenameFromContentDisposition(contentDisposition) ?? 'InstruccionAcomodo.pdf';
+            const blob = res.body ?? new Blob([], { type: 'application/pdf' });
+            FileSaver.saveAs(blob, fileName);
+          },
+          error: (err) => {
+            const fallbackMsg = 'No se pudo descargar la instrucción de acomodo (PDF).';
+            if (err?.error instanceof Blob) {
+              err.error.text().then((t: string) => {
+                try {
+                  const j = JSON.parse(t);
+                  this.messageService.add({ severity: 'error', summary: 'Error', detail: j?.message ?? fallbackMsg });
+                } catch {
+                  this.messageService.add({ severity: 'error', summary: 'Error', detail: fallbackMsg });
+                }
+              }).catch(() => this.messageService.add({ severity: 'error', summary: 'Error', detail: fallbackMsg }));
+              return;
+            }
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message ?? fallbackMsg });
+          }
+        });
 
         // Redireccionar con delay de 2 segundos
         setTimeout(() => {
@@ -476,6 +499,17 @@ ejecutarAsignarYTerminar() {
     }
     else {
       this.condition = true;
+    }
+  }
+
+  private getFilenameFromContentDisposition(contentDisposition: string | null): string | null {
+    if (!contentDisposition) return null;
+    const match = /filename\*?=(?:UTF-8''|")?([^\";]+)"?/i.exec(contentDisposition);
+    if (!match?.[1]) return null;
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
     }
   }
   drop(event) {

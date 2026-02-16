@@ -14,6 +14,7 @@ import { ReportesService } from '../reportes.service';
 import { CalendarModule } from 'primeng/calendar';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-kardexgeneral',
@@ -215,6 +216,11 @@ onFiltroChange(): void {
     return;
   }
 
+  if (!this.model.IdPropietario) {
+    alert('Debe seleccionar Propietario para exportar.');
+    return;
+  }
+
   const fechaInicio = new Date(this.dateInicio);
   const fechaFin = new Date(this.dateFin);
 
@@ -228,20 +234,39 @@ onFiltroChange(): void {
     return;
   }
 
-  const fecInicioStr = `${fechaInicio.getDate()}/${fechaInicio.getMonth() + 1}/${fechaInicio.getFullYear()}`;
-  const fecFinStr = `${fechaFin.getDate()}/${fechaFin.getMonth() + 1}/${fechaFin.getFullYear()}`;
+  const fechaInicioParam = this.formatDateForApi(fechaInicio);
+  const fechaFinParam = this.formatDateForApi(fechaFin);
 
-  // Requerimiento: Exportar debe funcionar como enlace (legacy ASPX),
-  // sin depender de los datos cargados en la grilla.
-  const legacyUrl = this.reporteService.buildKardexGeneralLegacyUrl({
-    Grupoid: this.model.IdGrupo,
-    PropietarioId: this.model.IdPropietario,
-    fecinicio: fecInicioStr,
-    fecfin: fecFinStr,
+  this.reporteService.exportarKardexDetalladoExcel({
+    propietarioId: this.model.IdPropietario,
+    fechaInicio: fechaInicioParam,
+    fechaFin: fechaFinParam,
+    grupoid: this.model.IdGrupo,
+  }).subscribe({
+    next: (res) => {
+      const contentDisposition = res.headers?.get('content-disposition') || res.headers?.get('Content-Disposition');
+      const fileName = this.getFilenameFromContentDisposition(contentDisposition) ?? 'Kardex.xlsx';
+      const blob = res.body ?? new Blob([], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      FileSaver.saveAs(blob, fileName);
+    },
+    error: (err) => {
+      const fallbackMsg = 'No se pudo descargar el reporte de kardex.';
+
+      if (err?.error instanceof Blob) {
+        err.error.text().then((t: string) => {
+          try {
+            const j = JSON.parse(t);
+            alert(j?.message ?? fallbackMsg);
+          } catch {
+            alert(fallbackMsg);
+          }
+        }).catch(() => alert(fallbackMsg));
+        return;
+      }
+
+      alert(err?.error?.message ?? fallbackMsg);
+    }
   });
-
-  window.open(legacyUrl, '_blank');
-  return;
  }
 
  cargarClientes(){
@@ -260,6 +285,25 @@ onFiltroChange(): void {
 
 getMovimiento(item: InventarioGeneral): string {
   return (item as any).movimiento || '';
+}
+
+private formatDateForApi(date: Date): string {
+  // Formato estable para backend: YYYY-MM-DD
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+private getFilenameFromContentDisposition(contentDisposition: string | null): string | null {
+  if (!contentDisposition) return null;
+  const match = /filename\*?=(?:UTF-8''|")?([^\";]+)"?/i.exec(contentDisposition);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
 }
 
 }

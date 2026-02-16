@@ -76,6 +76,50 @@ exportarInventarioExcel(clienteid: number | string, grupoid?: number | string): 
   });
 }
 
+/**
+ * Exporta Kardex Detallado vía API (SSRS) como Excel.
+ * Endpoint backend (ReporteController):
+ * GET /api/Reporte/ExportarKardexDetalladoExcel?propietarioId=...&fechaInicio=...&fechaFin=...&grupoid=...
+ */
+exportarKardexDetalladoExcel(params: {
+  propietarioId: number | string;
+  fechaInicio: string;
+  fechaFin: string;
+  grupoid?: number | string;
+}): Observable<HttpResponse<Blob>> {
+  let httpParams = new HttpParams()
+    .set('propietarioId', String(params.propietarioId))
+    .set('fechaInicio', params.fechaInicio)
+    .set('fechaFin', params.fechaFin);
+
+  if (params?.grupoid !== undefined && params.grupoid !== null && String(params.grupoid).trim() !== '') {
+    httpParams = httpParams.set('grupoid', String(params.grupoid));
+  }
+
+  return this._httpClient.get(`${this.baseUrl}ExportarKardexDetalladoExcel`, {
+    params: httpParams,
+    headers: httpOptions.headers,
+    observe: 'response',
+    responseType: 'blob',
+  });
+}
+
+/**
+ * Exporta la Instrucción de Acomodo vía API como PDF.
+ * Endpoint backend (ReporteController):
+ * GET /api/Reporte/ExportarInstruccionAcomodoPdf?ordenreciboid=...
+ */
+exportarInstruccionAcomodoPdf(ordenreciboid: string): Observable<HttpResponse<Blob>> {
+  const params = new HttpParams().set('ordenreciboid', ordenreciboid);
+
+  return this._httpClient.get(`${this.baseUrl}ExportarInstruccionAcomodoPdf`, {
+    params,
+    headers: httpOptions.headers,
+    observe: 'response',
+    responseType: 'blob',
+  });
+}
+
 
   getKardexGeneral(IdAlmacen?: number, IdPropietario?: number, IdGrupo?: number, fecini?: Date, fecfin?: Date): Observable<InventarioGeneral[]> {
   
