@@ -233,11 +233,30 @@ onFiltroChange(): void {
   const fecInicioStr = `${fechaInicio.getDate()}/${fechaInicio.getMonth() + 1}/${fechaInicio.getFullYear()}`;
   const fecFinStr = `${fechaFin.getDate()}/${fechaFin.getMonth() + 1}/${fechaFin.getFullYear()}`;
 
-  // Exportación local (evita mixed-content: el reporte legacy es HTTP 104... y producción es HTTPS)
+  // Preferir el reporte legacy (ASPX) como "enlace" (no depende de la data cargada en la grilla).
+  // Solo hacemos fallback a Excel local si el navegador lo bloquearía por mixed-content (app HTTPS + reportes HTTP).
+  const legacyUrl = this.reporteService.buildKardexGeneralLegacyUrl({
+    Grupoid: this.model.IdGrupo,
+    PropietarioId: this.model.IdPropietario,
+    fecinicio: fecInicioStr,
+    fecfin: fecFinStr,
+  });
+
+  const mixedContentRisk =
+    typeof window !== 'undefined' &&
+    window.location?.protocol === 'https:' &&
+    legacyUrl.startsWith('http://');
+
+  if (!mixedContentRisk) {
+    window.open(legacyUrl, '_blank');
+    return;
+  }
+
+  // Fallback: exportación local con data ya consultada al API.
   const data = (this.inventariosFiltrados?.length ? this.inventariosFiltrados : this.inventarios) ?? [];
 
   if (!data.length) {
-    alert('No hay datos para exportar.');
+    alert('No hay datos para exportar. Primero presione "Ver" para cargar resultados.');
     return;
   }
 
