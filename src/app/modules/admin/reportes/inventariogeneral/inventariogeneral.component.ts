@@ -13,8 +13,6 @@ import { ReportesService } from '../reportes.service';
 import { InputTextModule } from 'primeng/inputtext';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
-import * as XLSX from 'xlsx';
-import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-inventariogeneral',
@@ -219,55 +217,15 @@ export class InventariogeneralComponent implements OnInit {
     return;
 }
 
-  // Preferir el reporte legacy (ASPX) como "enlace" (no depende de la data cargada en la grilla).
-  // Solo hacemos fallback a Excel local si el navegador lo bloquearía por mixed-content (app HTTPS + reportes HTTP).
+  // Requerimiento: Exportar debe funcionar como enlace (legacy ASPX),
+  // sin depender de los datos cargados en la grilla.
   const legacyUrl = this.reporteService.buildInventarioGeneralLegacyUrl({
     clienteid: this.model.IdPropietario,
     grupoid: this.model.IdGrupo,
   });
 
-  const mixedContentRisk =
-    typeof window !== 'undefined' &&
-    window.location?.protocol === 'https:' &&
-    legacyUrl.startsWith('http://');
-
-  if (!mixedContentRisk) {
-    window.open(legacyUrl, '_blank');
-    return;
-  }
-
-  // Fallback: exportación local con data ya consultada al API.
-  const data = (this.inventariosFiltrados?.length ? this.inventariosFiltrados : this.inventarios) ?? [];
-
-  if (!data.length) {
-    alert('No hay datos para exportar. Primero presione "Ver" para cargar resultados.');
-    return;
-  }
-
-  const exportData = data.map((x) => ({
-    'CÓDIGO': x.codigo ?? '',
-    'DESCRIPCIÓN': x.descripcionLarga ?? '',
-    'LOTE': x.lotNum ?? '',
-    'CANTIDAD': x.untQty ?? 0,
-    'CANTIDAD SEPARADA': (x as any).cantidadSeparada ?? 0,
-    'STOCK DISPONIBLE': (x as any).stockDisponible ?? 0,
-    'ESTADO': (x as any).estado ?? '',
-    'UBICACIÓN': x.ubicacion ?? '',
-  }));
-
-  const worksheet = XLSX.utils.json_to_sheet(exportData);
-  const workbook: XLSX.WorkBook = { Sheets: { Inventario: worksheet }, SheetNames: ['Inventario'] };
-  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  FileSaver.saveAs(blob, 'Inventario.xlsx');
-
-  // let url = 'http://104.36.166.65/reptwh/Rep_Inventario.aspx?clienteid=' + String( this.model.IdPropietario) +
-  // '&grupoid=' + String(this.model.IdGrupo);
-  // window.open(url);
-
-
-
-
+  window.open(legacyUrl, '_blank');
+  return;
  }
  
  cargarClientes(){

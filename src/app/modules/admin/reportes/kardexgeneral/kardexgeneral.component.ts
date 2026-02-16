@@ -14,8 +14,6 @@ import { ReportesService } from '../reportes.service';
 import { CalendarModule } from 'primeng/calendar';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
-import * as XLSX from 'xlsx';
-import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-kardexgeneral',
@@ -233,8 +231,8 @@ onFiltroChange(): void {
   const fecInicioStr = `${fechaInicio.getDate()}/${fechaInicio.getMonth() + 1}/${fechaInicio.getFullYear()}`;
   const fecFinStr = `${fechaFin.getDate()}/${fechaFin.getMonth() + 1}/${fechaFin.getFullYear()}`;
 
-  // Preferir el reporte legacy (ASPX) como "enlace" (no depende de la data cargada en la grilla).
-  // Solo hacemos fallback a Excel local si el navegador lo bloquearía por mixed-content (app HTTPS + reportes HTTP).
+  // Requerimiento: Exportar debe funcionar como enlace (legacy ASPX),
+  // sin depender de los datos cargados en la grilla.
   const legacyUrl = this.reporteService.buildKardexGeneralLegacyUrl({
     Grupoid: this.model.IdGrupo,
     PropietarioId: this.model.IdPropietario,
@@ -242,52 +240,8 @@ onFiltroChange(): void {
     fecfin: fecFinStr,
   });
 
-  const mixedContentRisk =
-    typeof window !== 'undefined' &&
-    window.location?.protocol === 'https:' &&
-    legacyUrl.startsWith('http://');
-
-  if (!mixedContentRisk) {
-    window.open(legacyUrl, '_blank');
-    return;
-  }
-
-  // Fallback: exportación local con data ya consultada al API.
-  const data = (this.inventariosFiltrados?.length ? this.inventariosFiltrados : this.inventarios) ?? [];
-
-  if (!data.length) {
-    alert('No hay datos para exportar. Primero presione "Ver" para cargar resultados.');
-    return;
-  }
-
-  const exportData = data.map((x) => {
-    const anyX = x as any;
-    return {
-      'ALMACÉN': anyX.almacen ?? '',
-      'MOVIMIENTO': anyX.movimiento ?? '',
-      'F. MOVIMIENTO': anyX.fechaRegistro ?? '',
-      'LPN': x.lodNum ?? '',
-      'PROPIETARIO': anyX.cliente ?? '',
-      'CÓDIGO': x.codigo ?? '',
-      'DESCRIPCIÓN': x.descripcionLarga ?? '',
-      'LOTE': x.lotNum ?? '',
-      'CANTIDAD': x.untQty ?? 0,
-      'PESO': anyX.peso ?? 0,
-      'REFERENCIA': anyX.referencia ?? '',
-      'UBICACIÓN': x.ubicacion ?? '',
-      'F. EXPIRACIÓN': anyX.fechaExpire ?? '',
-      'F. PRODUCCIÓN': anyX.fechaProduccion ?? '',
-      'RANGO INICIO': fecInicioStr,
-      'RANGO FIN': fecFinStr,
-    };
-  });
-
-  const worksheet = XLSX.utils.json_to_sheet(exportData);
-  const workbook: XLSX.WorkBook = { Sheets: { Kardex: worksheet }, SheetNames: ['Kardex'] };
-  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-  FileSaver.saveAs(blob, 'Kardex.xlsx');
-
+  window.open(legacyUrl, '_blank');
+  return;
  }
 
  cargarClientes(){
