@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { InventarioGeneral } from '../_models/inventariogeneral';
@@ -56,6 +56,25 @@ getInventarioGeneral(IdGrupo?: number, IdPropietario?: number): Observable<Inven
   return this._httpClient.get<InventarioGeneral[]>(`${this.baseUrlInventario}GetInventarioGeneral`, { params: filteredParams  , headers: httpOptions.headers });
       
   }
+
+/**
+ * Exporta Inventario General vía API (SSRS) como Excel.
+ * Endpoint backend (ReporteController): GET /api/Reporte/ExportarInventarioExcel?clienteid=...&grupoid=...
+ * Retorna el archivo como `File(...)` (xlsx) con `Content-Disposition`.
+ */
+exportarInventarioExcel(clienteid: number | string, grupoid?: number | string): Observable<HttpResponse<Blob>> {
+  let params = new HttpParams().set('clienteid', String(clienteid));
+  if (grupoid !== undefined && grupoid !== null && String(grupoid).trim() !== '') {
+    params = params.set('grupoid', String(grupoid));
+  }
+
+  return this._httpClient.get(`${this.baseUrl}ExportarInventarioExcel`, {
+    params,
+    headers: httpOptions.headers,
+    observe: 'response',
+    responseType: 'blob',
+  });
+}
 
 
   getKardexGeneral(IdAlmacen?: number, IdPropietario?: number, IdGrupo?: number, fecini?: Date, fecfin?: Date): Observable<InventarioGeneral[]> {

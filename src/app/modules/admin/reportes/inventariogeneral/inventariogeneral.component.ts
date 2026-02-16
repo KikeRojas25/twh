@@ -13,6 +13,7 @@ import { ReportesService } from '../reportes.service';
 import { InputTextModule } from 'primeng/inputtext';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-inventariogeneral',
@@ -212,21 +213,53 @@ export class InventariogeneralComponent implements OnInit {
   }
  exportar(){
 
-  if (!this.model.IdGrupo && !this.model.IdPropietario) {
-    alert('Debe seleccionar al menos un Grupo o un Propietario');
+  // Requerimiento: basta con IdCliente/Propietario
+  if (!this.model.IdPropietario) {
+    alert('Debe seleccionar Propietario para exportar.');
     return;
-}
+  }
 
-  // Requerimiento: Exportar debe funcionar como enlace (legacy ASPX),
-  // sin depender de los datos cargados en la grilla.
-  const legacyUrl = this.reporteService.buildInventarioGeneralLegacyUrl({
-    clienteid: this.model.IdPropietario,
-    grupoid: this.model.IdGrupo,
+  this.reporteService.exportarInventarioExcel(this.model.IdPropietario).subscribe({
+    next: (res) => {
+      const contentDisposition = res.headers?.get('content-disposition') || res.headers?.get('Content-Disposition');
+      const fileName = this.getFilenameFromContentDisposition(contentDisposition) ?? 'Inventario.xlsx';
+      const blob = res.body ?? new Blob([], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      FileSaver.saveAs(blob, fileName);
+    },
+    error: (err) => {
+      // Backend puede devolver JSON de error; cuando pedimos blob, llega como Blob
+      const fallbackMsg = 'No se pudo descargar el reporte de inventario.';
+
+      if (err?.error instanceof Blob) {
+        err.error.text().then((t: string) => {
+          try {
+            const j = JSON.parse(t);
+            alert(j?.message ?? fallbackMsg);
+          } catch {
+            alert(fallbackMsg);
+          }
+        }).catch(() => alert(fallbackMsg));
+        return;
+      }
+
+      alert(err?.error?.message ?? fallbackMsg);
+    }
   });
-
-  window.open(legacyUrl, '_blank');
-  return;
  }
+
+ private getFilenameFromContentDisposition(contentDisposition: string | null): string | null {
+  if (!contentDisposition) return null;
+
+  // Ej: attachment; filename="Inventario_1_20260216_123456.xlsx"
+  const match = /filename\*?=(?:UTF-8''|")?([^\";]+)"?/i.exec(contentDisposition);
+  if (!match?.[1]) return null;
+
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
  
  cargarClientes(){
   
