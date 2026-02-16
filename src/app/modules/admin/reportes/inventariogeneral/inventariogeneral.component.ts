@@ -13,6 +13,8 @@ import { ReportesService } from '../reportes.service';
 import { InputTextModule } from 'primeng/inputtext';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-inventariogeneral',
@@ -217,20 +219,31 @@ export class InventariogeneralComponent implements OnInit {
     return;
 }
 
+  // Nota: el servidor legacy de reportes es HTTP (104...) y desde producción HTTPS el navegador lo bloquea.
+  // Por eso exportamos el Excel desde el cliente usando la data ya consultada al API.
+  const data = (this.inventariosFiltrados?.length ? this.inventariosFiltrados : this.inventarios) ?? [];
 
-  let url = 'http://104.36.166.65/reptwh/Rep_Inventario.aspx?';
-  let params = [];
-
-  if (this.model.IdPropietario) {
-      params.push('clienteid=' + encodeURIComponent(String(this.model.IdPropietario)));
-  }
-  if (this.model.IdGrupo) {
-      params.push('grupoid=' + encodeURIComponent(String(this.model.IdGrupo)));
+  if (!data.length) {
+    alert('No hay datos para exportar.');
+    return;
   }
 
-  url += params.join('&'); // Une solo los parámetros definidos con '&'
-  
-  window.open(url, '_blank');
+  const exportData = data.map((x) => ({
+    'CÓDIGO': x.codigo ?? '',
+    'DESCRIPCIÓN': x.descripcionLarga ?? '',
+    'LOTE': x.lotNum ?? '',
+    'CANTIDAD': x.untQty ?? 0,
+    'CANTIDAD SEPARADA': (x as any).cantidadSeparada ?? 0,
+    'STOCK DISPONIBLE': (x as any).stockDisponible ?? 0,
+    'ESTADO': (x as any).estado ?? '',
+    'UBICACIÓN': x.ubicacion ?? '',
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  const workbook: XLSX.WorkBook = { Sheets: { Inventario: worksheet }, SheetNames: ['Inventario'] };
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  FileSaver.saveAs(blob, 'Inventario.xlsx');
 
   // let url = 'http://104.36.166.65/reptwh/Rep_Inventario.aspx?clienteid=' + String( this.model.IdPropietario) +
   // '&grupoid=' + String(this.model.IdGrupo);

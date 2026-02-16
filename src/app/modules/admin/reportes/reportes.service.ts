@@ -25,6 +25,11 @@ export class ReportesService {
 private _httpClient = inject(HttpClient);
 private baseUrlInventario = environment.baseUrl + '/api/Inventario/';
 private baseUrl = environment.baseUrl + '/api/Reporte/';
+// Nota: en algunos builds el tipado de `environment` puede no refrescarse de inmediato en watch mode.
+// Por eso leemos la propiedad de forma defensiva y usamos un fallback razonable.
+private reportesBaseUrl: string =
+  (environment as any).reportesBaseUrl ??
+  `${new URL(environment.baseUrl).origin}/reptwh`;
   
 constructor() { }
 
@@ -121,6 +126,79 @@ getReporteAjusteInventario(propietarioId: string, fecIni: string, fecFin: string
     `${this.baseUrlInventario}reporte_movimientos_ubicaciones`, // <- nombre exacto del endpoint
     { params }
   );
+}
+
+/**
+ * Descarga el reporte legacy (ASPX) como Blob, evitando mixed-content/popup.
+ * Si el servidor de reportes está en otro origen, requiere CORS habilitado.
+ */
+downloadInventarioGeneralXls(params: { clienteid?: number; grupoid?: number }): Observable<Blob> {
+  let httpParams = new HttpParams();
+  if (params?.clienteid !== undefined && params.clienteid !== null) {
+    httpParams = httpParams.set('clienteid', String(params.clienteid));
+  }
+  if (params?.grupoid !== undefined && params.grupoid !== null) {
+    httpParams = httpParams.set('grupoid', String(params.grupoid));
+  }
+
+  return this._httpClient.get(`${this.reportesBaseUrl}/Rep_Inventario.aspx`, {
+    params: httpParams,
+    responseType: 'blob',
+  });
+}
+
+downloadKardexGeneralXls(params: {
+  Grupoid?: number;
+  PropietarioId?: number;
+  fecinicio: string;
+  fecfin: string;
+}): Observable<Blob> {
+  let httpParams = new HttpParams()
+    .set('fecinicio', params.fecinicio)
+    .set('fecfin', params.fecfin);
+
+  if (params?.Grupoid !== undefined && params.Grupoid !== null) {
+    httpParams = httpParams.set('Grupoid', String(params.Grupoid));
+  }
+  if (params?.PropietarioId !== undefined && params.PropietarioId !== null) {
+    httpParams = httpParams.set('PropietarioId', String(params.PropietarioId));
+  }
+
+  return this._httpClient.get(`${this.reportesBaseUrl}/reportegeneralKARDEX.aspx`, {
+    params: httpParams,
+    responseType: 'blob',
+  });
+}
+
+buildInventarioGeneralLegacyUrl(params: { clienteid?: number; grupoid?: number }): string {
+  const qp: string[] = [];
+  if (params?.clienteid !== undefined && params.clienteid !== null) {
+    qp.push(`clienteid=${encodeURIComponent(String(params.clienteid))}`);
+  }
+  if (params?.grupoid !== undefined && params.grupoid !== null) {
+    qp.push(`grupoid=${encodeURIComponent(String(params.grupoid))}`);
+  }
+  const q = qp.length ? `?${qp.join('&')}` : '';
+  return `${this.reportesBaseUrl}/Rep_Inventario.aspx${q}`;
+}
+
+buildKardexGeneralLegacyUrl(params: {
+  Grupoid?: number;
+  PropietarioId?: number;
+  fecinicio: string;
+  fecfin: string;
+}): string {
+  const qp: string[] = [
+    `fecinicio=${encodeURIComponent(params.fecinicio)}`,
+    `fecfin=${encodeURIComponent(params.fecfin)}`,
+  ];
+  if (params?.Grupoid !== undefined && params.Grupoid !== null) {
+    qp.push(`Grupoid=${encodeURIComponent(String(params.Grupoid))}`);
+  }
+  if (params?.PropietarioId !== undefined && params.PropietarioId !== null) {
+    qp.push(`PropietarioId=${encodeURIComponent(String(params.PropietarioId))}`);
+  }
+  return `${this.reportesBaseUrl}/reportegeneralKARDEX.aspx?${qp.join('&')}`;
 }
 
 

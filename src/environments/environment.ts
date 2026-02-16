@@ -6,6 +6,9 @@ export const environment = {
     production: false,
     baseUrl: 'http://localhost:5000', 
     socketUrl: 'http://localhost:5000', // URL base para SignalR Hub (el servicio construirá la URL completa: {socketUrl}/hubs/ordenSalida)
+    // Base para reportes legacy (ASPX). Debe ser HTTPS en producción para evitar "mixed content".
+    // Ejemplo: 'https://twh.pe/reptwh' o 'https://mi-dominio/reptwh'
+    reportesBaseUrl: 'http://104.36.166.65/reptwh',
     enableWebSocket: true // Habilitar/deshabilitar SignalR (poner false si el servidor aún no está configurado)
 };
 

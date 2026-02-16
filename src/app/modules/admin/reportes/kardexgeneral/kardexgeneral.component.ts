@@ -14,6 +14,8 @@ import { ReportesService } from '../reportes.service';
 import { CalendarModule } from 'primeng/calendar';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-kardexgeneral',
@@ -231,9 +233,41 @@ onFiltroChange(): void {
   const fecInicioStr = `${fechaInicio.getDate()}/${fechaInicio.getMonth() + 1}/${fechaInicio.getFullYear()}`;
   const fecFinStr = `${fechaFin.getDate()}/${fechaFin.getMonth() + 1}/${fechaFin.getFullYear()}`;
 
-  let url = `http://104.36.166.65/reptwh/reportegeneralKARDEX.aspx?Grupoid=${this.model.IdGrupo || ''}&PropietarioId=${this.model.IdPropietario || ''}&fecinicio=${fecInicioStr}&fecfin=${fecFinStr}`;
+  // Exportación local (evita mixed-content: el reporte legacy es HTTP 104... y producción es HTTPS)
+  const data = (this.inventariosFiltrados?.length ? this.inventariosFiltrados : this.inventarios) ?? [];
 
-  window.open(url, '_blank');
+  if (!data.length) {
+    alert('No hay datos para exportar.');
+    return;
+  }
+
+  const exportData = data.map((x) => {
+    const anyX = x as any;
+    return {
+      'ALMACÉN': anyX.almacen ?? '',
+      'MOVIMIENTO': anyX.movimiento ?? '',
+      'F. MOVIMIENTO': anyX.fechaRegistro ?? '',
+      'LPN': x.lodNum ?? '',
+      'PROPIETARIO': anyX.cliente ?? '',
+      'CÓDIGO': x.codigo ?? '',
+      'DESCRIPCIÓN': x.descripcionLarga ?? '',
+      'LOTE': x.lotNum ?? '',
+      'CANTIDAD': x.untQty ?? 0,
+      'PESO': anyX.peso ?? 0,
+      'REFERENCIA': anyX.referencia ?? '',
+      'UBICACIÓN': x.ubicacion ?? '',
+      'F. EXPIRACIÓN': anyX.fechaExpire ?? '',
+      'F. PRODUCCIÓN': anyX.fechaProduccion ?? '',
+      'RANGO INICIO': fecInicioStr,
+      'RANGO FIN': fecFinStr,
+    };
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  const workbook: XLSX.WorkBook = { Sheets: { Kardex: worksheet }, SheetNames: ['Kardex'] };
+  const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  FileSaver.saveAs(blob, 'Kardex.xlsx');
 
  }
 

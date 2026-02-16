@@ -5,6 +5,9 @@ export const environment = {
     // 
     baseUrl: 'https://twh.pe/apitwh4',
     socketUrl: 'https://twh.pe/apitwh4',
+    // Base para reportes legacy (ASPX). Debe ser HTTPS para que el navegador no bloquee la descarga.
+    // Ajustable sin tocar los componentes.
+    reportesBaseUrl: 'https://twh.pe/reptwh',
     enableWebSocket: true // Habilitar/deshabilitar SignalR (poner false si el servidor aún no está configurado)
 };
 

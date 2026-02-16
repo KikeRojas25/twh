@@ -9,6 +9,7 @@ import { ProductoService } from '../../_services/producto.service';
 import { PropietarioService } from '../../_services/propietario.service';
 import { DespachosService } from '../../despachos/despachos.service';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { GeneralService } from '../../_services/general.service';
 
 import { DialogService } from 'primeng/dynamicdialog';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -54,6 +55,7 @@ export class EditComponent implements OnInit {
   productosFiltrados: any[] = [];
   propietarios: SelectItem[] = [];
   ubigeo: SelectItem[] = [];
+  estados: SelectItem[] = [];
 
   pedidoId!: number;
   idPropietario?: number;
@@ -74,6 +76,7 @@ export class EditComponent implements OnInit {
     private despachoService: DespachosService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
+    private generalService: GeneralService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -131,6 +134,29 @@ export class EditComponent implements OnInit {
         label: x.ubigeo
       }));
     });
+
+    // Catálogo de estados (tabla 3). Fallback si el API de lotes no retorna estadoId.
+    this.generalService.getAll(3).subscribe({
+      next: (resp: any[]) => {
+        this.estados = (resp ?? []).map((x: any) => ({ value: x.id, label: x.nombreEstado }));
+      },
+      error: (err) => console.error('Error al cargar estados (tabla 3):', err),
+    });
+  }
+
+  private inferEstadoIdFromTexto(estadoTexto: any): number | null {
+    const t = String(estadoTexto ?? '').trim().toLowerCase();
+    if (!t || !this.estados || this.estados.length === 0) return null;
+
+    const match = this.estados.find(e => String(e.label ?? '').toLowerCase().includes(t));
+    if (match?.value !== null && match?.value !== undefined) return Number(match.value) || null;
+
+    if (t.includes('dispon')) {
+      const disp = this.estados.find(e => String(e.label ?? '').toLowerCase().includes('dispon'));
+      if (disp?.value !== null && disp?.value !== undefined) return Number(disp.value) || null;
+    }
+
+    return null;
   }
 
 
@@ -175,6 +201,30 @@ agregarItem(): void {
     return;
   }
 
+  // 🔹 Forzar selección desde el modal de lotes para garantizar estadoId
+  if (!this.model.lote) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Atención',
+      detail: 'Debe seleccionar un lote desde "Ver lotes disponibles" antes de agregar el ítem.'
+    });
+    return;
+  }
+  const estadoIdNum = Number(this.model.estadoId);
+  if (!estadoIdNum || estadoIdNum <= 0) {
+    const retry = this.inferEstadoIdFromTexto(this.model.estadoTexto);
+    if (retry && retry > 0) {
+      this.model.estadoId = retry;
+    } else {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'No se pudo determinar el estado del lote seleccionado. Seleccione el lote desde el modal.'
+      });
+      return;
+    }
+  }
+
   // 🔹 Verificar si el producto ya está en el detalle
   const existente = this.detalle.find(
     (d) => d.productoId === this.model.productoSeleccionado.id
@@ -198,7 +248,7 @@ agregarItem(): void {
       lote: this.model.lote || null,
       referencia: this.model.referencia || null,
       cantidad: this.model.cantidad,
-      estadoId: 0,
+      estadoId: Number(this.model.estadoId),
       huellaId: null
     };
 
@@ -433,16 +483,25 @@ verLotes() {
       console.log('✅ Respuesta de lotes:', resp);
 
       if (resp && Array.isArray(resp) && resp.length > 0) {
-        this.lotesInfo = resp.map(lote => ({
-          numeroLote: lote.lotNum,
-          cantidadDisponible: lote.untQty,
-          unidad: lote.codigo ? 'UND' : 'UND',
-          codigo: lote.codigo,
-          descripcionLarga: lote.descripcionLarga,
-          fechaExpire: lote.fechaExpire,
-          ubicacion: null,
-          estado: lote.untQty > 0 ? 'Disponible' : 'Sin stock'
-        }));
+        this.lotesInfo = resp.map(lote => {
+          const estadoTexto = (lote.estado ?? lote.Estado ?? (lote.untQty > 0 ? 'Disponible' : 'Sin stock'));
+          const rawEstadoId =
+            (lote.estadoId ?? lote.EstadoId ?? lote.estadoID ?? lote.EstadoID ?? lote.idEstado ?? lote.IdEstado ?? null);
+          const estadoIdNum = rawEstadoId !== null && rawEstadoId !== undefined ? Number(rawEstadoId) : null;
+          const inferred = this.inferEstadoIdFromTexto(estadoTexto);
+
+          return {
+            numeroLote: lote.lotNum,
+            cantidadDisponible: lote.untQty,
+            unidad: lote.codigo ? 'UND' : 'UND',
+            codigo: lote.codigo,
+            descripcionLarga: lote.descripcionLarga,
+            fechaExpire: lote.fechaExpire,
+            ubicacion: null,
+            estado: estadoTexto,
+            estadoId: (estadoIdNum && estadoIdNum > 0) ? estadoIdNum : inferred
+          };
+        });
 
         this.messageService.add({
           severity: 'success',
@@ -474,6 +533,10 @@ seleccionarLote(lote: any) {
   console.log('✅ Lote seleccionado:', lote);
 
   this.model.lote = lote.numeroLote;
+  this.model.estadoTexto = lote.estado ?? lote.Estado ?? null;
+  const rawEstadoId = (lote.estadoId ?? lote.EstadoId ?? lote.estadoID ?? lote.EstadoID ?? lote.idEstado ?? lote.IdEstado ?? null);
+  const estadoIdNum = rawEstadoId !== null && rawEstadoId !== undefined ? Number(rawEstadoId) : null;
+  this.model.estadoId = (estadoIdNum && estadoIdNum > 0) ? estadoIdNum : this.inferEstadoIdFromTexto(this.model.estadoTexto ?? (lote.cantidadDisponible > 0 ? 'Disponible' : 'Sin stock'));
 
   if (this.model.cantidad > lote.cantidadDisponible) {
     this.model.cantidad = lote.cantidadDisponible;

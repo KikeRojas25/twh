@@ -78,6 +78,8 @@ export class WorkListComponent {
             { header: 'Propietario', field: 'propietario', width: '160px' },
             { header: 'N° Trabajo', field: 'workNum', width: '120px' },
             { header: 'Orden Salida', field: 'numOrden', width: '160px' },
+            { header: 'F. Registro', field: 'fechaRegistro', width: '160px' },
+            { header: 'Cliente', field: 'cliente', width: '160px' },
             { header: 'Guía Remisión', field: 'guiaRemision', width: '160px' },
             { header: '# Pallets', field: 'cantidadLPN', width: '100px' },
             { header: '# Bultos', field: 'cantidadTotal', width: '100px' },
