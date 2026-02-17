@@ -288,11 +288,11 @@ getMovimiento(item: InventarioGeneral): string {
 }
 
 private formatDateForApi(date: Date): string {
-  // Formato estable para backend: YYYY-MM-DD
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
+  // Requerimiento backend: dd/MM/AAAA
   const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
 }
 
 private getFilenameFromContentDisposition(contentDisposition: string | null): string | null {
