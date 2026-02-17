@@ -216,11 +216,6 @@ onFiltroChange(): void {
     return;
   }
 
-  if (!this.model.IdPropietario) {
-    alert('Debe seleccionar Propietario para exportar.');
-    return;
-  }
-
   const fechaInicio = new Date(this.dateInicio);
   const fechaFin = new Date(this.dateFin);
 

@@ -82,15 +82,18 @@ exportarInventarioExcel(clienteid: number | string, grupoid?: number | string): 
  * GET /api/Reporte/ExportarKardexDetalladoExcel?propietarioId=...&fechaInicio=...&fechaFin=...&grupoid=...
  */
 exportarKardexDetalladoExcel(params: {
-  propietarioId: number | string;
+  propietarioId?: number | string;
   fechaInicio: string;
   fechaFin: string;
   grupoid?: number | string;
 }): Observable<HttpResponse<Blob>> {
   let httpParams = new HttpParams()
-    .set('propietarioId', String(params.propietarioId))
     .set('fechaInicio', params.fechaInicio)
     .set('fechaFin', params.fechaFin);
+
+  if (params?.propietarioId !== undefined && params.propietarioId !== null && String(params.propietarioId).trim() !== '') {
+    httpParams = httpParams.set('propietarioId', String(params.propietarioId));
+  }
 
   if (params?.grupoid !== undefined && params.grupoid !== null && String(params.grupoid).trim() !== '') {
     httpParams = httpParams.set('grupoid', String(params.grupoid));
