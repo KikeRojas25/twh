@@ -75,6 +75,9 @@ export class IdentificarReciboMultipleComponent implements OnInit {
   nivel: SelectItem[] = [];
   sobredimensionado: boolean = false;
 
+  subEstados: SelectItem[] = [];
+  private todosSubEstados: SelectItem[] = [];
+
   es: any;
   
   colsDetalles = [
@@ -130,6 +133,7 @@ export class IdentificarReciboMultipleComponent implements OnInit {
     
     this.configurarCalendario();
     this.cargarEstados();
+    this.cargarSubEstados();
     this.cargarNiveles();
     this.cargarOrden();
     
@@ -158,7 +162,19 @@ export class IdentificarReciboMultipleComponent implements OnInit {
       });
     });
   }
-
+  cargarSubEstados(): void {
+    const TABLA_SUB_ESTADOS = 45;
+    this.subEstados = [];
+    this.todosSubEstados = [];
+    this.generalService.getAll(TABLA_SUB_ESTADOS).subscribe(resp => {
+      resp.forEach(element => {
+        const item: SelectItem = { value: element.id, label: (element as any).nombreEstado };
+        this.todosSubEstados.push(item);
+      });
+      // Por defecto mostramos todos hasta que se seleccione un estado
+      this.subEstados = [...this.todosSubEstados];
+    });
+  }
   cargarNiveles(): void {
     this.generalService.getValorTabla(39).subscribe(resp => {
       resp.forEach(element => {
@@ -391,6 +407,7 @@ export class IdentificarReciboMultipleComponent implements OnInit {
       codigo: this.modelDetail.codigo,
       linea: this.modelDetail.linea,
       estadoId: this.modelDetail.estadoId,
+      subEstadoId: this.modelDetail.subEstadoId ?? null,
       estado: this.estados.find(x => x.value === this.modelDetail.estadoId)?.label || '',
       OrdenReciboDetalleId: this.modelDetail.id,
       ordenReciboId: this.id,
@@ -581,6 +598,11 @@ export class IdentificarReciboMultipleComponent implements OnInit {
       this.loading = false;
       return;
     }
+
+    // Asegurar que el subEstadoId viaje en cada item. Si no se selecciona, enviar null explícito.
+    addInventarioCopia.forEach((x: any) => {
+      x.subEstadoId = this.modelDetail?.subEstadoId ?? null;
+    });
     
     this.almacenajeService.identificar_detallemultiple(addInventarioCopia as any, sobredimensionadoId?.toString()).subscribe({
       next: (response) => {
@@ -686,6 +708,11 @@ export class IdentificarReciboMultipleComponent implements OnInit {
 
     this.loading = true;
     
+    // Si no se selecciona subestado, enviar null (no undefined)
+    if (this.modelDetail?.subEstadoId === undefined) {
+      this.modelDetail.subEstadoId = null;
+    }
+
     // Usar modelDetail en lugar de modeldetail para consistencia
     this.almacenajeService.identificar_detalle(this.modelDetail).subscribe({
       next: (response) => {

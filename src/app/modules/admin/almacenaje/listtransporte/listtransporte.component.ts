@@ -456,6 +456,7 @@ export class ListtransporteComponent implements OnInit {
       codigo: this.modelDetail.codigo,
       linea: this.modelDetail.linea,
       estadoId: this.modelDetail.estadoId,
+      subEstadoId: this.modelDetail.subEstadoId ?? null,
       estado: this.estados.find(x => x.value === this.modelDetail.estadoId)?.label || '',
       OrdenReciboDetalleId: this.modelDetail.id,
       ordenReciboId: this.ordenReciboIdSeleccionado,
@@ -483,6 +484,11 @@ export class ListtransporteComponent implements OnInit {
     this.loadingIdentificar = true;
     const sobredimensionadoId = this.sobredimensionado ? this.modelDetail.sobredimensionadoId : undefined;
     
+    // Asegurar que el subEstadoId viaje en cada item. Si no se selecciona, enviar null explícito.
+    this.addInventario.forEach((x: any) => {
+      x.subEstadoId = this.modelDetail?.subEstadoId ?? null;
+    });
+
     this.recepcionService.identificar_detallemultiple(this.addInventario as any, sobredimensionadoId?.toString()).subscribe({
       next: () => {
         this.messageService.add({
@@ -508,6 +514,10 @@ export class ListtransporteComponent implements OnInit {
   
   generarPallets(): void {
     this.loadingIdentificar = true;
+    // Si no se selecciona subestado, enviar null (no undefined)
+    if (this.modelDetail?.subEstadoId === undefined) {
+      this.modelDetail.subEstadoId = null;
+    }
     this.recepcionService.identificar_detalle(this.modelDetail).subscribe({
       next: () => {
         this.messageService.add({

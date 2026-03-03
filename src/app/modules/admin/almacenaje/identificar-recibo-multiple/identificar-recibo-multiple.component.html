@@ -189,6 +189,23 @@
                   </ng-template>
                 </p-dropdown>
               </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Sub Estado</label>
+                <p-dropdown 
+                  [options]="subEstados" 
+                  [(ngModel)]="modelDetail.subEstadoId"
+                  name="subEstadoId"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Seleccione un sub estado"
+                  [showClear]="true"
+                  [style]="{ width: '180px' }"
+                  [styleClass]="'text-sm border-gray-300 focus:border-amber-500'">
+                  <ng-template let-item pTemplate="selectedItem">
+                    <span>{{ item.label }}</span>
+                  </ng-template>
+                </p-dropdown>
+              </div>
               <div>
                 <label class="block text-xs font-medium text-gray-700 mb-1">Huella</label>
                 <p-dropdown 
