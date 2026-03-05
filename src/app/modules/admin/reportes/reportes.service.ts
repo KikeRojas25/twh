@@ -123,6 +123,22 @@ exportarInstruccionAcomodoPdf(ordenreciboid: string): Observable<HttpResponse<Bl
   });
 }
 
+/**
+ * Descarga la Hoja de Picking (PDF) vía API.
+ * Endpoint backend (ReporteController):
+ * GET /api/Reporte/HojaPickingPdf?wrkid=...
+ */
+hojaPickingPdf(wrkid: number | string): Observable<HttpResponse<Blob>> {
+  const params = new HttpParams().set('wrkid', String(wrkid));
+
+  return this._httpClient.get(`${this.baseUrl}HojaPickingPdf`, {
+    params,
+    headers: httpOptions.headers,
+    observe: 'response',
+    responseType: 'blob',
+  });
+}
+
 
   getKardexGeneral(IdAlmacen?: number, IdPropietario?: number, IdGrupo?: number, fecini?: Date, fecfin?: Date): Observable<InventarioGeneral[]> {
   

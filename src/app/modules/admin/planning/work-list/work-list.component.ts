@@ -15,12 +15,14 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import * as FileSaver from 'file-saver';
 import { ClienteService } from '../../_services/cliente.service';
 import { OrdenSalida, carga } from '../../despachos/despachos.types';
 import { PlanningService } from '../planning.service';
 import { AsignarPickerComponent } from './AsignarPicker/AsignarPicker.component';
 import { AsignarPuertaComponent } from './AsignarPuerta/AsignarPuerta.component';
 import { PropietarioService } from '../../_services/propietario.service';
+import { ReportesService } from '../../reportes/reportes.service';
 
 @Component({
     selector: 'app-work-list',
@@ -46,6 +48,7 @@ import { PropietarioService } from '../../_services/propietario.service';
 })
 export class WorkListComponent {
     private ordensalidaService = inject(PlanningService);
+    private reportesService = inject(ReportesService);
     private propietarioService = inject(PropietarioService);
     private router = inject(Router);
     private dialogService = inject(DialogService);
@@ -130,6 +133,55 @@ export class WorkListComponent {
         const isPdf = tipo === 'pdf' ? '1' : '0';
         let baseUrl = 'http://104.36.166.65/reptwh';
 
+        // Para propietarios 125 y 129, el PDF se descarga por API (evita mixed-content).
+        if (tipo === 'pdf' && [125, 129].includes(Number(pid))) {
+            this.reportesService.hojaPickingPdf(id).subscribe({
+                next: (res) => {
+                    const contentDisposition =
+                        res.headers?.get('content-disposition') || res.headers?.get('Content-Disposition');
+                    const fileName =
+                        this.getFilenameFromContentDisposition(contentDisposition) ?? `HojaPicking_${id}.pdf`;
+                    const blob = res.body ?? new Blob([], { type: 'application/pdf' });
+                    FileSaver.saveAs(blob, fileName);
+                },
+                error: (err) => {
+                    const fallbackMsg = 'No se pudo descargar la Hoja de Picking (PDF).';
+
+                    if (err?.error instanceof Blob) {
+                        err.error
+                            .text()
+                            .then((t: string) => {
+                                try {
+                                    const j = JSON.parse(t);
+                                    this.messageService.add({
+                                        severity: 'error',
+                                        summary: 'Error',
+                                        detail: j?.message ?? fallbackMsg,
+                                    });
+                                } catch {
+                                    this.messageService.add({
+                                        severity: 'error',
+                                        summary: 'Error',
+                                        detail: fallbackMsg,
+                                    });
+                                }
+                            })
+                            .catch(() =>
+                                this.messageService.add({ severity: 'error', summary: 'Error', detail: fallbackMsg })
+                            );
+                        return;
+                    }
+
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: err?.error?.message ?? fallbackMsg,
+                    });
+                },
+            });
+            return;
+        }
+
         let endpoint = 'reportepicking.aspx';
 
         if (pid === 47) {
@@ -155,6 +207,17 @@ export class WorkListComponent {
 
         const url = `${baseUrl}/${endpoint}?id=${id}&pdf=${isPdf}`;
         window.open(url, '_blank');
+    }
+
+    private getFilenameFromContentDisposition(contentDisposition: string | null): string | null {
+        if (!contentDisposition) return null;
+        const match = /filename\*?=(?:UTF-8''|")?([^\";]+)"?/i.exec(contentDisposition);
+        if (!match?.[1]) return null;
+        try {
+            return decodeURIComponent(match[1]);
+        } catch {
+            return match[1];
+        }
     }
 
     eliminar(id: number): void {
