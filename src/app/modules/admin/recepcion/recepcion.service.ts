@@ -25,24 +25,31 @@ export class RecepcionService {
 
   getAll(model: any): Observable<OrdenRecibo[]> {
 
-    if(model.PropietarioId === undefined)
-       model.PropietarioId = '';
-       if(model.EstadoId === undefined)
-       model.EstadoId = '';
-       if(model.AlmacenId === undefined)
-       model.AlmacenId = '';
-       if(model.guiaremision === undefined)
-       model.guiaremision = '';
+    // Normalizar IDs (algunos dropdowns pueden entregar objetos {label,value})
+    const propietarioId = this.normalizeSelectValue(model?.PropietarioId);
+    const estadoId = this.normalizeSelectValue(model?.EstadoId);
+    const almacenId = this.normalizeSelectValue(model?.AlmacenId);
+    const guia = model?.guiaremision ?? '';
 
-
-    const params = '?PropietarioID=' + model.PropietarioId +
-    '&EstadoId=' + model.EstadoId +
-    '&fec_ini=' + model.fec_ini.toLocaleDateString() +
-    '&fec_fin=' + model.fec_fin.toLocaleDateString() +
-    '&AlmacenId=' + model.AlmacenId +
-    '&guiaremision=' + model.guiaremision  ;
+    const params =
+    '?PropietarioID=' + encodeURIComponent(propietarioId) +
+    '&EstadoId=' + encodeURIComponent(estadoId) +
+    '&fec_ini=' + encodeURIComponent(model.fec_ini.toLocaleDateString()) +
+    '&fec_fin=' + encodeURIComponent(model.fec_fin.toLocaleDateString()) +
+    '&AlmacenId=' + encodeURIComponent(almacenId) +
+    '&guiaremision=' + encodeURIComponent(guia);
 
     return this.http.get<OrdenRecibo[]>(this.baseUrl + params, httpOptions);
+  }
+
+  private normalizeSelectValue(value: any): string {
+    if (value === undefined || value === null) return '';
+    // PrimeNG SelectItem: {label, value}
+    if (typeof value === 'object') {
+      const v = value?.value ?? value?.id ?? value?.Id ?? '';
+      return v === undefined || v === null ? '' : String(v);
+    }
+    return String(value);
   }
   getAllByEquipoTransporte(model: any): Observable<OrdenRecibo[]> {
     const params = '?EquipoTransporteId=' + model.EquipoTransporteId ;

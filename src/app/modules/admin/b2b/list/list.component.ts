@@ -322,7 +322,9 @@ export class ListComponent implements OnInit, OnDestroy {
       default:
         return 'bg-gray-500 text-white';
     }
-  }planificar(rowData: any): void {
+  }
+  
+  planificar(rowData: any): void {
   // ✅ Validar propietario seleccionado
   if (!this.model.PropietarioId) {
     this.messageService.add({

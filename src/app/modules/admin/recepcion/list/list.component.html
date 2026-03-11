@@ -35,6 +35,8 @@
         <div class="flex flex-col">
           <label for="almacen" class="text-xs font-medium text-gray-700 mb-1">Almacén:</label>
       <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" 
+      optionLabel="label"
+      optionValue="value"
       [style]="{'width': '100%'}" 
       [resetFilterOnHide]="true"
       [hideTransitionOptions]="'0ms'"
@@ -62,6 +64,8 @@
       [options]="clientes" 
       [resetFilterOnHide]="true"
       [(ngModel)]="model.PropietarioId" 
+      optionLabel="label"
+      optionValue="value"
       [filter]="true"
       filterBy="label" 
       appendTo="body"

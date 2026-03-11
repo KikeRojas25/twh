@@ -23,13 +23,48 @@ export class PropietarioService {
 
   /**
    * 🔹 Obtener todos los propietarios o filtrarlos por grupo
-   * Endpoint: GET /api/propietarios?idGrupo={idGrupo}
+   * Endpoint: GET /api/propietarios?idGrupo={idGrupo}&usuarioId={usuarioId}
    */
   getAllPropietarios(idGrupo?: number): Observable<Cliente[]> {
-    const url = idGrupo
-      ? `${this.baseUrl}?idGrupo=${idGrupo}`
-      : `${this.baseUrl}`;
+    const qs = new URLSearchParams();
+    if (idGrupo !== undefined && idGrupo !== null) {
+      qs.set('idGrupo', String(idGrupo));
+    }
+
+    const usuarioId = this.getUsuarioIdFromToken();
+    if (usuarioId) {
+      qs.set('usuarioId', usuarioId);
+    }
+
+    const url = qs.toString() ? `${this.baseUrl}?${qs.toString()}` : `${this.baseUrl}`;
     return this._httpClient.get<Cliente[]>(url, httpOptions);
+  }
+
+  private getUsuarioIdFromToken(): string | null {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+
+    try {
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      const jsonPayload = decodeURIComponent(
+        atob(padded)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(jsonPayload);
+
+      const val = payload?.nameid ?? payload?.NameId ?? payload?.usuarioId ?? payload?.UsuarioId ?? null;
+      if (val === null || val === undefined) return null;
+      return String(val);
+    } catch {
+      return null;
+    }
   }
 
   /**

@@ -44,6 +44,8 @@ getAllOrdenSalida(model: any): Observable<OrdenSalida[]> {
       model.estadoIdfiltro = estadoId ?? defaultValues.estadoIdfiltro;
       model.PropietarioId = model?.PropietarioId ?? defaultValues.PropietarioId;
       model.AlmacenId = model?.AlmacenId ?? defaultValues.AlmacenId;
+      // Nuevo: UsuarioId requerido por el endpoint (tomarlo del token si no viene)
+      model.UsuarioId = model?.UsuarioId ?? this.getUsuarioIdFromToken() ?? '';
 
       // Formatear fechas
       const fecIni = model.fec_ini.toLocaleDateString();
@@ -56,11 +58,39 @@ getAllOrdenSalida(model: any): Observable<OrdenSalida[]> {
         fec_ini: String(fecIni ?? ''),
         fec_fin: String(fecFin ?? ''),
         guiaremision: String(model.guiaremision ?? ''),
-        AlmacenId: String(model.AlmacenId ?? '')
+        AlmacenId: String(model.AlmacenId ?? ''),
+        UsuarioId: String(model.UsuarioId ?? '')
       }).toString();
 
       return this._httpClient.get<OrdenSalida[]>(`${this.baseUrl}GetAllOrdenSalida?${params}`, httpOptions);
 }
+
+  private getUsuarioIdFromToken(): string | null {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+
+    try {
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+      const jsonPayload = decodeURIComponent(
+        atob(padded)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(jsonPayload);
+
+      const val = payload?.nameid ?? payload?.NameId ?? payload?.usuarioId ?? payload?.UsuarioId ?? null;
+      if (val === null || val === undefined) return null;
+      return String(val);
+    } catch {
+      return null;
+    }
+  }
 
 RegistarOrdenSalida(model: any){
       return this._httpClient.post(this.baseUrl + 'RegisterOrdenSalida', model, httpOptions);
