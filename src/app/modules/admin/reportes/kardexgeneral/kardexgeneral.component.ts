@@ -156,7 +156,7 @@ export class KardexgeneralComponent implements OnInit {
     const diferenciaEnDias = diferenciaEnMilisegundos / (1000 * 60 * 60 * 24);
 
     // Validar que el rango de fechas no supere 30 días (1 mes)
-    if (diferenciaEnDias > 30) {
+    if (diferenciaEnDias > 190) {
         alert('El rango de fechas no puede ser mayor a un mes.');
         return;
     }
@@ -224,7 +224,7 @@ onFiltroChange(): void {
   const diferenciaEnDias = diferenciaEnMilisegundos / (1000 * 60 * 60 * 24);
 
   // Validar que el rango de fechas no supere 30 días (1 mes)
-  if (diferenciaEnDias > 30) {
+  if (diferenciaEnDias > 190) {
     alert('El rango de fechas no puede ser mayor a un mes.');
     return;
   }
