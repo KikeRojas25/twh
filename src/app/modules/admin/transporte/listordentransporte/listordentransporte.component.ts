@@ -86,10 +86,10 @@ export class ListordentransporteComponent implements OnInit {
 
       { header: 'NÚMERO MANIFIESTO', field: 'numero_manifiesto', width: '150px' },
       { header: 'ESTADO', field: 'Estado', width: '120px' },
-      { header: 'TIPO ENTREGA', field: 'TipoEntrega', width: '120px' },
+      
       { header: 'PLACA', field: 'Placa', width: '100px' },
 
-
+      { header: 'CHOFER', field: 'Chofer', width: '150px' },
 
       { header: 'SHIPMENT', field: 'shipment', width: '120px' },
       { header: 'DELIVERY', field: 'delivery', width: '120px' },
@@ -110,7 +110,7 @@ export class ListordentransporteComponent implements OnInit {
       { header: 'FECHA ENTREGA', field: 'fecha_entrega', width: '120px' },
       { header: 'HORA ENTREGA', field: 'hora_entrega', width: '100px' },
 
-      { header: 'CHOFER', field: 'Chofer', width: '150px' },
+      
       { header: 'POR ASIGNAR', field: 'por_asignar', width: '100px' }
     ];
   }

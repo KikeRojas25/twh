@@ -223,11 +223,8 @@
 
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.numero_manifiesto }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.estado }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.TipoEntrega }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.Placa }}</td>
-
-
-
+            <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.placa }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.chofer }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.shipment }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.delivery }}</td>
             <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.remitente }}</td>
@@ -247,7 +244,7 @@
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.fecha_entrega | date:'dd/MM/yyyy' }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.hora_entrega }}</td>
         
-            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.Chofer }}</td>
+          
             <td class="text-center px-4 py-2 text-sm">
               <span 
                 [ngClass]="{
