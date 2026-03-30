@@ -61,6 +61,7 @@ import { WebSocketService } from 'app/core/services/websocket.service';
     providers: [DialogService, MessageService, ConfirmationService],
 })
 export class ListComponent implements OnInit, OnDestroy {
+  private readonly b2bDefaultAlmacenId = 100;
     ref: DynamicDialogRef | undefined;
     ocResults: any[];
     searchCriteria = { oc: '', sku: '' };
@@ -96,6 +97,18 @@ export class ListComponent implements OnInit, OnDestroy {
     detalleProductos: PedidoDetalle[] = [];
     loadingDetalle = false;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
+
+    private normalizeDetalleProducto(item: any): PedidoDetalle {
+      return {
+        codigo: item?.codigo ?? item?.Codigo ?? '-',
+        descripcion: item?.descripcion ?? item?.Descripcion ?? item?.producto ?? item?.Producto ?? '-',
+        producto: item?.producto ?? item?.Producto ?? item?.descripcion ?? item?.Descripcion ?? '-',
+        cantidad: Number(item?.cantidad ?? item?.Cantidad ?? 0),
+        unidadMedida: item?.unidadMedida ?? item?.UnidadMedida ?? item?.unidad ?? item?.Unidad ?? '-',
+        lote: item?.lote ?? item?.Lote ?? item?.numeroLote ?? item?.NumeroLote ?? null,
+        estado: item?.estado ?? item?.Estado ?? item?.nombreEstado ?? item?.NombreEstado ?? null,
+      };
+    }
 
     constructor(
         public dialogService: DialogService,
@@ -298,13 +311,14 @@ export class ListComponent implements OnInit, OnDestroy {
     }
 
     
-  edit(id): void {
+        edit(id: number, propietarioId?: number): void {
+          const propietarioNavegacion = Number(propietarioId || this.model?.PropietarioId || 0);
+          const navExtras = propietarioNavegacion > 0
+           ? { queryParams: { propietarioId: propietarioNavegacion } }
+           : undefined;
 
-
-     this.router.navigate(['/b2b/edit', id]);
-
-   
-  }
+          this.router.navigate(['/b2b/edit', id], navExtras);
+    }
 
 
   getEstadoClass(estado: string): string {
@@ -323,18 +337,75 @@ export class ListComponent implements OnInit, OnDestroy {
         return 'bg-gray-500 text-white';
     }
   }
-  
-  planificar(rowData: any): void {
-  // ✅ Validar propietario seleccionado
-  if (!this.model.PropietarioId) {
-    this.messageService.add({
-      severity: 'warn',
-      summary: 'Aviso',
-      detail: 'Debe seleccionar un propietario antes de planificar.'
-    });
-    return;
+
+  private esRespuestaPlanificacionExitosa(resp: any): boolean {
+    const bandera = resp?.resultado ?? resp?.success ?? resp?.ok ?? resp?.estado ?? resp?.status;
+
+    if (typeof bandera === 'boolean') {
+      return bandera;
+    }
+
+    if (typeof bandera === 'number') {
+      return bandera === 1 || bandera === 200;
+    }
+
+    if (typeof bandera === 'string') {
+      const valor = bandera.trim().toLowerCase();
+      return ['true', 'ok', 'success', 'exito', 'exitoso', 'planificado', 'planificada'].includes(valor);
+    }
+
+    return false;
   }
 
+  private extraerMensajePlanificacion(resp: any, fallback: string): string {
+    if (!resp) {
+      return fallback;
+    }
+
+    const mensajeDirecto =
+      resp?.Observacion ??
+      resp?.observacion ??
+      resp?.message ??
+      resp?.Message ??
+      resp?.mensaje ??
+      resp?.error ??
+      null;
+
+    if (typeof mensajeDirecto === 'string' && mensajeDirecto.trim().length > 0) {
+      return mensajeDirecto.trim();
+    }
+
+    const errores =
+      (Array.isArray(resp?.errors) ? resp.errors : null) ??
+      (Array.isArray(resp?.errores) ? resp.errores : null) ??
+      null;
+
+    if (errores && errores.length > 0) {
+      return errores.map((x: any) => String(x)).join(' | ');
+    }
+
+    return fallback;
+  }
+
+  private extraerMensajeErrorPlanificacion(err: any, fallback: string): string {
+    const data = err?.error;
+
+    if (typeof data === 'string' && data.trim().length > 0) {
+      return data.trim();
+    }
+
+    if (data && typeof data === 'object') {
+      return this.extraerMensajePlanificacion(data, fallback);
+    }
+
+    if (typeof err?.message === 'string' && err.message.trim().length > 0) {
+      return err.message.trim();
+    }
+
+    return fallback;
+  }
+
+  planificar(rowData: any): void {
   // ✅ Obtener usuario desde token
   const token = localStorage.getItem('token');
   const jwtHelper = new JwtHelperService();
@@ -351,10 +422,46 @@ export class ListComponent implements OnInit, OnDestroy {
     acceptButtonStyleClass: 'p-button-success',
     rejectButtonStyleClass: 'p-button-secondary',
     accept: () => {
+      const ordenId = Number(rowData?.ordenSalidaId || rowData?.id || rowData?.Id || 0);
+      const propietarioId = Number(
+        rowData?.propietarioId ??
+        rowData?.PropietarioId ??
+        rowData?.propietarioID ??
+        rowData?.PropietarioID ??
+        this.model?.PropietarioId ??
+        0
+      );
+      const almacenId = this.b2bDefaultAlmacenId;
+
+      if (!ordenId) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Datos incompletos',
+          detail: 'No se pudo identificar la orden a planificar.'
+        });
+        return;
+      }
+
+      if (!propietarioId) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Datos incompletos',
+          detail: 'No se pudo determinar el propietario de la orden.'
+        });
+        return;
+      }
+
       const payload = {
-        Ids: rowData.ordenSalidaId.toString(),
-        PropietarioId: this.model.PropietarioId,
-        UsuarioId: usuarioId,
+        // Mismo formato usado en pending-picking (flujo que ya funciona)
+        ids: String(ordenId),
+        usuarioid: usuarioId,
+        PropietarioId: propietarioId,
+        AlmacenId: almacenId,
+        // Metadata para backend: enviar correo de confirmacion con hoja de picking PDF
+        enviarCorreoConfirmacion: true,
+        adjuntarHojaPickingPdf: true,
+        correoDestino: rowData?.correo ?? rowData?.Correo ?? null,
+        numeroOrden: rowData?.numOrden ?? rowData?.NumOrden ?? null,
         FechaDespacho: new Date(),
         IdTipoVehiculo: null,
         placa: null
@@ -364,18 +471,21 @@ export class ListComponent implements OnInit, OnDestroy {
 
       this.planningService.PlanificarPicking(payload).subscribe({
         next: (resp: any) => {
-          if (resp?.success) {
+          console.log('📋 Respuesta planificación:', JSON.stringify(resp));
+          const ok = this.esRespuestaPlanificacionExitosa(resp);
+
+          if (ok) {
             this.messageService.add({
               severity: 'success',
               summary: 'Planificación exitosa',
-              detail: `Orden ${rowData.numOrden} planificada correctamente.`
+              detail: this.extraerMensajePlanificacion(resp, `Orden ${rowData.numOrden} planificada correctamente.`)
             });
             this.buscar(); // 🔄 Recargar lista
           } else {
             this.messageService.add({
-              severity: 'warn',
-              summary: 'Aviso',
-              detail: resp?.message || 'No se pudo planificar la orden.'
+              severity: 'error',
+              summary: 'No se pudo planificar',
+              detail: this.extraerMensajePlanificacion(resp, `La orden ${rowData.numOrden} no pudo ser planificada.`)
             });
           }
         },
@@ -384,7 +494,7 @@ export class ListComponent implements OnInit, OnDestroy {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Ocurrió un error al planificar la orden.'
+            detail: this.extraerMensajeErrorPlanificacion(err, `Ocurrió un error al planificar la orden ${rowData.numOrden}.`)
           });
         }
       });
@@ -400,7 +510,7 @@ export class ListComponent implements OnInit, OnDestroy {
 
         this.b2bService.obtenerDetallePedido(ordenSalidaId).subscribe({
           next: (res) => {
-            this.detalleProductos = res.data || [];
+            this.detalleProductos = (res.data || []).map((item) => this.normalizeDetalleProducto(item));
             this.loadingDetalle = false;
             console.log('Detalle de la orden:', this.detalleProductos);
 

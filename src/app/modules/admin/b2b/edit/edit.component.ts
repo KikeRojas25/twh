@@ -23,6 +23,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-edit',
@@ -44,7 +45,8 @@ import { ToastModule } from 'primeng/toast';
     PanelModule,
     TableModule,
     ToastModule,
-    AutoCompleteModule
+    AutoCompleteModule,
+    MatIcon
   ],
   providers: [DialogService, MessageService, ConfirmationService]
 })
@@ -58,7 +60,10 @@ export class EditComponent implements OnInit {
   estados: SelectItem[] = [];
 
   pedidoId!: number;
+  ordenCabeceraActual: any = null;
   idPropietario?: number;
+  private propietarioIdFallback?: number;
+  private compradorNombreFallback?: string;
   estadoCliente: 'pendiente' | 'encontrado' | 'no_encontrado' = 'pendiente';
   dialogStockVisible = false;
   stockInfo: any = null;
@@ -86,14 +91,16 @@ export class EditComponent implements OnInit {
       fechaRequerida: ['', Validators.required],
       horaRequerida: ['', Validators.required],
       observaciones: [''],
+      clienteId: [null],
+      direccionId: [null],
 
       nombre: ['', Validators.required],
-      contacto: ['', Validators.required],
+      contacto: [''],
       documento: ['', Validators.required],
       telefono: ['', [Validators.maxLength(15)]],
       correo: ['', [Validators.email]],
       direccionEntrega: ['', Validators.required],
-      iddestino: ['', Validators.required],
+      iddestino: [''],
       latitud: [null],
       longitud: [null]
     });
@@ -105,14 +112,20 @@ export class EditComponent implements OnInit {
 
     const usuarioId = this.decodedToken.nameid;
 
+    const propietarioIdQuery = Number(this.route.snapshot.queryParamMap.get('propietarioId') || 0);
+    if (propietarioIdQuery > 0) {
+      this.propietarioIdFallback = propietarioIdQuery;
+    }
+
     this.propietarioService.getPropietariosByUsuario(usuarioId).subscribe({
       next: (resp) => {
         this.propietarios = resp.map((x) => ({
           value: x.id,
           label: x.razonSocial
         }));
-        if (this.propietarios.length === 1) {
-          this.idPropietario = this.propietarios[0].value;
+
+        if (!this.idPropietario) {
+          this.intentarResolverPropietarioPorNombre();
         }
       },
       error: (err) => console.error('Error al cargar propietarios:', err)
@@ -159,15 +172,55 @@ export class EditComponent implements OnInit {
     return null;
   }
 
+  private normalizarTexto(value: any): string {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private intentarResolverPropietarioPorNombre(): void {
+    if (this.idPropietario || !this.compradorNombreFallback || !this.propietarios?.length) {
+      return;
+    }
+
+    const comprador = this.normalizarTexto(this.compradorNombreFallback);
+    const exacto = this.propietarios.find((p) => this.normalizarTexto(p.label) === comprador);
+    const parcial = this.propietarios.find((p) => this.normalizarTexto(p.label).includes(comprador) || comprador.includes(this.normalizarTexto(p.label)));
+    const match = exacto || parcial;
+
+    if (match?.value) {
+      this.idPropietario = Number(match.value);
+    }
+  }
+
 
   
       
     buscarProductos(event: any): void {
         const texto = event.query?.trim();
-        if (!texto || texto.length < 3) return;   // min chars
-        if (!this.idPropietario) return;
+        if (!texto || texto.length < 2) return;
 
-        this.productoService.buscarProductosPorPropietario(this.idPropietario, texto)
+        const propietarioIdBusqueda = Number(this.idPropietario || 0);
+
+        if (!propietarioIdBusqueda || propietarioIdBusqueda <= 0) {
+          this.intentarResolverPropietarioPorNombre();
+        }
+
+        const propietarioResuelto = Number(this.idPropietario || 0);
+
+        if (!propietarioResuelto || propietarioResuelto <= 0) {
+          this.productosFiltrados = [];
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Propietario no definido',
+            detail: 'No se puede listar productos porque no se encontró el propietario de la orden.'
+          });
+          return;
+        }
+
+        this.productoService.buscarProductosPorPropietario(propietarioResuelto, texto)
         .subscribe(res => {
 
                 console.log('productos', res);
@@ -266,42 +319,315 @@ agregarItem(): void {
 
   // ✅ Cargar datos del pedido desde el backend
   cargarPedido(id: number) {
+    this.despachoService.obtenerOrdenSalidaPorId(id).subscribe({
+      next: (orden: any) => {
+        this.aplicarCabeceraDesdeOrdenSalida(orden);
+        this.cargarDetalleDesdeOrdenSalida(id);
+        this.completarCabeceraDesdePedidoB2B(id);
+      },
+      error: (err) => {
+        console.error('Error al cargar cabecera de orden de salida:', err);
+        // Fallback para registros legacy
+        this.cargarPedidoLegacyB2B(id);
+      }
+    });
+  }
+
+  private aplicarCabeceraDesdeOrdenSalida(orden: any): void {
+    this.ordenCabeceraActual = orden || null;
+    const valor = (...candidatos: any[]) => candidatos.find((x) => x !== undefined && x !== null && x !== '');
+
+    const fechaRequeridaRaw = valor(orden?.fechaRequerida, orden?.FechaRequerida);
+    const horaRequeridaRaw = valor(orden?.horaRequerida, orden?.HoraRequerida);
+    const nombreRaw = valor(
+      orden?.destinatario,
+      orden?.Destinatario,
+      orden?.nombre,
+      orden?.Nombre
+    );
+
+    this.compradorNombreFallback = nombreRaw || null;
+
+    this.form.patchValue({
+      ordenCompraCliente: valor(orden?.ordenCompraCliente, orden?.OrdenCompraCliente, ''),
+      fechaRequerida: fechaRequeridaRaw ? new Date(fechaRequeridaRaw) : null,
+      horaRequerida: horaRequeridaRaw ? this.convertirHora(horaRequeridaRaw) : null,
+      observaciones: valor(orden?.observaciones, orden?.Observaciones, ''),
+      clienteId: valueOrNull(valor(orden?.clienteId, orden?.ClienteId)),
+      direccionId: valueOrNull(valor(orden?.direccionId, orden?.DireccionId)),
+      nombre: nombreRaw || '',
+      contacto: valor(orden?.contacto, orden?.Contacto, ''),
+      documento: valor(orden?.documento, orden?.Documento, ''),
+      telefono: valor(orden?.telefono, orden?.Telefono, ''),
+      correo: valor(orden?.correo, orden?.Correo, ''),
+      direccionEntrega: valor(
+        orden?.direccion,
+        orden?.Direccion,
+        orden?.direccionEntrega,
+        orden?.DireccionEntrega,
+        ''
+      ),
+      iddestino: valueOrNull(valor(
+        orden?.iddestino,
+        orden?.IdDestino,
+        orden?.PedUbicacionId,
+        orden?.UbicacionId
+      )),
+    });
+
+    const propietarioIdOrden = Number(valor(
+      orden?.propietarioId,
+      orden?.PropietarioId,
+      orden?.propietarioID,
+      orden?.PropietarioID,
+      orden?.propietario?.id,
+      orden?.Propietario?.Id,
+      0
+    ));
+
+    if (propietarioIdOrden > 0) {
+      this.idPropietario = propietarioIdOrden;
+    } else if (this.propietarioIdFallback && this.propietarioIdFallback > 0) {
+      this.idPropietario = this.propietarioIdFallback;
+    } else {
+      this.idPropietario = undefined;
+      this.productosFiltrados = [];
+      this.intentarResolverPropietarioPorNombre();
+    }
+
+    this.cargarCompradorYDireccionDesdeCliente(
+      valor(orden?.clienteId, orden?.ClienteId),
+      valor(orden?.direccionId, orden?.DireccionId)
+    );
+
+    function valueOrNull(v: any): any {
+      return v === undefined || v === '' ? null : v;
+    }
+  }
+
+  private cargarCompradorYDireccionDesdeCliente(clienteIdRaw: any, direccionIdRaw: any): void {
+    const clienteId = Number(clienteIdRaw || 0);
+    const direccionId = Number(direccionIdRaw || 0);
+
+    if (!clienteId || clienteId <= 0) {
+      return;
+    }
+
+    this.form.patchValue({ clienteId, direccionId: direccionId > 0 ? direccionId : null });
+
+    const propietarioId = Number(this.idPropietario || 0);
+    if (propietarioId > 0) {
+      this.clienteService.getAllClientesxPropietarios(propietarioId).subscribe({
+        next: (clientes: any[]) => {
+          const cliente = (clientes || []).find((x: any) => Number(x?.id) === clienteId);
+          if (!cliente) {
+            return;
+          }
+
+          this.form.patchValue({
+            nombre: this.form.get('nombre')?.value || cliente?.razonSocial || cliente?.nombre || cliente?.cliente || '',
+            documento: this.form.get('documento')?.value || cliente?.documento || cliente?.ruc || '',
+            contacto: this.form.get('contacto')?.value || cliente?.contacto || '',
+            telefono: this.form.get('telefono')?.value || cliente?.telefono || '',
+            correo: this.form.get('correo')?.value || cliente?.correo || ''
+          });
+        },
+        error: () => {
+          // Complemento no bloqueante
+        }
+      });
+    }
+
+    this.clienteService.getAllDirecciones(clienteId).subscribe({
+      next: (direcciones: any[]) => {
+        const direccion = (direcciones || []).find((x: any) =>
+          Number(x?.iddireccion ?? x?.idDireccion ?? x?.id ?? 0) === direccionId
+        ) || (direcciones || [])[0];
+
+        if (!direccion) {
+          return;
+        }
+
+        this.form.patchValue({
+          direccionId: Number(direccion?.iddireccion ?? direccion?.idDireccion ?? direccion?.id ?? direccionId ?? 0) || null,
+          direccionEntrega: this.form.get('direccionEntrega')?.value || direccion?.direccion || '',
+          iddestino: this.form.get('iddestino')?.value || direccion?.iddestino || direccion?.idDestino || direccion?.idDistrito || null,
+          latitud: this.form.get('latitud')?.value || direccion?.latitud || null,
+          longitud: this.form.get('longitud')?.value || direccion?.longitud || null,
+        });
+      },
+      error: () => {
+        // Complemento no bloqueante
+      }
+    });
+  }
+
+  private cargarDetalleDesdeOrdenSalida(id: number): void {
+    this.despachoService.obtenerDetalleOrdenSalida(id).subscribe({
+      next: (detalleResp: any[]) => {
+        if (!detalleResp || detalleResp.length === 0) {
+          this.cargarDetalleLegacyB2B(id);
+          return;
+        }
+
+        this.detalle = (detalleResp || []).map((item: any) => ({
+          productoId: item?.productoId ?? item?.ProductoId ?? null,
+          codigo: item?.codigo ?? item?.Codigo ?? item?.productoId ?? item?.ProductoId ?? '-',
+          descripcion: item?.descripcion ?? item?.Descripcion ?? item?.producto ?? item?.Producto ?? '-',
+          unidadMedida: item?.unidadMedida ?? item?.UnidadMedida ?? item?.unidad ?? item?.Unidad ?? 'UND',
+          lote: item?.lote ?? item?.Lote ?? null,
+          referencia: item?.referencia ?? item?.Referencia ?? null,
+          cantidad: Number(item?.cantidad ?? item?.Cantidad ?? 0),
+          estadoId: Number(item?.estadoId ?? item?.EstadoId ?? 0),
+          huellaId: item?.huellaId ?? item?.HuellaId ?? null
+        }));
+      },
+      error: () => {
+        this.cargarDetalleLegacyB2B(id);
+      }
+    });
+  }
+
+  private completarCabeceraDesdePedidoB2B(id: number): void {
     this.b2bService.getPedidoById(id).subscribe({
       next: (resp) => {
-        if (resp?.data) {
-          const pedido = resp.data;
-
-          console.log('pedido', pedido);
-
-          // Llenar form
-          this.form.patchValue({
-            ordenCompraCliente: pedido.ordenCompraCliente,
-            fechaRequerida: new Date(pedido.fechaRequerida),
-            horaRequerida: this.convertirHora(pedido.horaRequerida),
-            observaciones: pedido.observaciones,
-            nombre: pedido.comprador?.nombre,
-            contacto: pedido.contacto,
-            documento: pedido.comprador?.documento,
-            telefono: pedido.telefono,
-            correo: pedido.correo,
-            direccionEntrega: pedido.comprador?.direccionEntrega,
-            iddestino: pedido.comprador?.iddestino
-          });
-
-          // Cargar detalle
-          this.b2bService.obtenerDetallePedido(id).subscribe({
-            next: (detalleResp) => {
-              this.detalle = detalleResp.data || [];
-            },
-            error: () => {
-              this.messageService.add({
-                severity: 'warn',
-                summary: 'Aviso',
-                detail: 'No se pudo cargar el detalle del pedido.'
-              });
-            }
-          });
+        const pedido = resp?.data;
+        if (!pedido) {
+          return;
         }
+
+        const clienteIdPedido = pedido?.clienteId ?? pedido?.ClienteId ?? pedido?.comprador?.id ?? null;
+        const direccionIdPedido = pedido?.direccionId ?? pedido?.DireccionId ?? pedido?.comprador?.direccionId ?? null;
+
+        // Completar solo campos que no llegaron desde OrdenSalida
+        if (!this.form.get('documento')?.value || !this.form.get('nombre')?.value || !this.form.get('iddestino')?.value) {
+          this.form.patchValue({
+            clienteId: this.form.get('clienteId')?.value || clienteIdPedido || null,
+            direccionId: this.form.get('direccionId')?.value || direccionIdPedido || null,
+            documento: this.form.get('documento')?.value || pedido?.comprador?.documento || '',
+            nombre: this.form.get('nombre')?.value || pedido?.comprador?.nombre || pedido?.comprador?.razonSocial || '',
+            contacto: this.form.get('contacto')?.value || pedido?.contacto || '',
+            telefono: this.form.get('telefono')?.value || pedido?.telefono || '',
+            correo: this.form.get('correo')?.value || pedido?.correo || '',
+            direccionEntrega: this.form.get('direccionEntrega')?.value || pedido?.comprador?.direccionEntrega || '',
+            iddestino: this.form.get('iddestino')?.value || pedido?.comprador?.iddestino || null,
+          });
+
+          if (!this.idPropietario) {
+            const propietarioIdPedido = Number(
+              pedido?.propietarioId ??
+              pedido?.PropietarioId ??
+              pedido?.propietarioID ??
+              pedido?.PropietarioID ??
+              pedido?.propietario?.id ??
+              pedido?.Propietario?.Id ??
+              pedido?.ordenSalida?.propietarioId ??
+              pedido?.ordenSalida?.PropietarioId ??
+              pedido?.cabecera?.propietarioId ??
+              pedido?.cabecera?.PropietarioId ??
+              0
+            );
+            if (propietarioIdPedido > 0) {
+              this.idPropietario = propietarioIdPedido;
+            }
+          }
+
+          this.cargarCompradorYDireccionDesdeCliente(clienteIdPedido, direccionIdPedido);
+        }
+      },
+      error: () => {
+        // Sin ruido: es un complemento y no debe bloquear la edición
+      }
+    });
+  }
+
+  private cargarDetalleLegacyB2B(id: number): void {
+    this.b2bService.obtenerDetallePedido(id).subscribe({
+      next: (detalleResp) => {
+        this.detalle = (detalleResp?.data || []).map((item: any) => ({
+          productoId: item?.productoId ?? item?.ProductoId ?? null,
+          codigo: item?.codigo ?? item?.Codigo ?? '-',
+          descripcion: item?.descripcion ?? item?.Descripcion ?? item?.producto ?? item?.Producto ?? '-',
+          unidadMedida: item?.unidadMedida ?? item?.UnidadMedida ?? item?.unidad ?? item?.Unidad ?? 'UND',
+          lote: item?.lote ?? item?.Lote ?? null,
+          referencia: item?.referencia ?? item?.Referencia ?? null,
+          cantidad: Number(item?.cantidad ?? item?.Cantidad ?? 0),
+          estadoId: Number(item?.estadoId ?? item?.EstadoId ?? 0),
+          huellaId: item?.huellaId ?? item?.HuellaId ?? null
+        }));
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Aviso',
+          detail: 'No se pudo cargar el detalle del pedido.'
+        });
+      }
+    });
+  }
+
+  private cargarPedidoLegacyB2B(id: number): void {
+    this.b2bService.getPedidoById(id).subscribe({
+      next: (resp) => {
+        const pedido = resp?.data;
+        if (!pedido) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se encontró la cabecera de la orden para edición.'
+          });
+          return;
+        }
+
+        this.compradorNombreFallback = pedido.comprador?.nombre || pedido.comprador?.razonSocial || null;
+        this.form.patchValue({
+          ordenCompraCliente: pedido.ordenCompraCliente,
+          fechaRequerida: pedido.fechaRequerida ? new Date(pedido.fechaRequerida) : null,
+          horaRequerida: pedido.horaRequerida ? this.convertirHora(pedido.horaRequerida) : null,
+          observaciones: pedido.observaciones,
+          clienteId: pedido?.clienteId ?? pedido?.ClienteId ?? pedido?.comprador?.id ?? null,
+          direccionId: pedido?.direccionId ?? pedido?.DireccionId ?? pedido?.comprador?.direccionId ?? null,
+          nombre: pedido.comprador?.nombre,
+          contacto: pedido.contacto,
+          documento: pedido.comprador?.documento,
+          telefono: pedido.telefono,
+          correo: pedido.correo,
+          direccionEntrega: pedido.comprador?.direccionEntrega,
+          iddestino: pedido.comprador?.iddestino
+        });
+
+        const propietarioIdPedido = Number(
+          pedido?.propietarioId ??
+          pedido?.PropietarioId ??
+          pedido?.propietarioID ??
+          pedido?.PropietarioID ??
+          pedido?.propietario?.id ??
+          pedido?.Propietario?.Id ??
+          pedido?.ordenSalida?.propietarioId ??
+          pedido?.ordenSalida?.PropietarioId ??
+          pedido?.cabecera?.propietarioId ??
+          pedido?.cabecera?.PropietarioId ??
+          resp?.propietarioId ??
+          resp?.PropietarioId ??
+          0
+        );
+
+        if (propietarioIdPedido > 0) {
+          this.idPropietario = propietarioIdPedido;
+        } else if (this.propietarioIdFallback && this.propietarioIdFallback > 0) {
+          this.idPropietario = this.propietarioIdFallback;
+        } else {
+          this.idPropietario = undefined;
+          this.productosFiltrados = [];
+          this.intentarResolverPropietarioPorNombre();
+        }
+
+        this.cargarCompradorYDireccionDesdeCliente(
+          pedido?.clienteId ?? pedido?.ClienteId ?? pedido?.comprador?.id ?? null,
+          pedido?.direccionId ?? pedido?.DireccionId ?? pedido?.comprador?.direccionId ?? null
+        );
+
+        this.cargarDetalleLegacyB2B(id);
       },
       error: (err) => {
         console.error(err);
@@ -367,6 +693,80 @@ agregarItem(): void {
       }))
     };
 
+    const formatFecha = (fecha: any): string => {
+      if (!fecha) return '';
+      return new Date(fecha).toISOString().split('T')[0];
+    };
+
+    const propietarioId = Number(
+      this.idPropietario ||
+      this.ordenCabeceraActual?.propietarioId ||
+      this.ordenCabeceraActual?.PropietarioId ||
+      0
+    );
+
+    const almacenId = Number(
+      this.ordenCabeceraActual?.almacenId ||
+      this.ordenCabeceraActual?.AlmacenId ||
+      0
+    );
+
+    const propietarioLabel = this.propietarios.find((x) => Number(x.value) === propietarioId)?.label ||
+      this.ordenCabeceraActual?.propietario ||
+      this.ordenCabeceraActual?.Propietario ||
+      null;
+
+    const ordenSalidaPayload = {
+      Id: this.pedidoId,
+      PropietarioId: propietarioId,
+      Propietario: propietarioLabel,
+      NumOrden: this.ordenCabeceraActual?.numOrden || this.ordenCabeceraActual?.NumOrden || null,
+      AlmacenId: almacenId,
+      GuiaRemision: this.ordenCabeceraActual?.guiaRemision || this.ordenCabeceraActual?.GuiaRemision || '',
+      FechaRequerida: formatFecha(this.form.value.fechaRequerida),
+      HoraRequerida: horaFormateada || '',
+      OrdenCompraCliente: this.form.value.ordenCompraCliente || '',
+      ClienteId: Number(this.form.value.clienteId || this.ordenCabeceraActual?.clienteId || this.ordenCabeceraActual?.ClienteId || 0),
+      DireccionId: Number(this.form.value.direccionId || this.ordenCabeceraActual?.direccionId || this.ordenCabeceraActual?.DireccionId || 0),
+      EquipoTransporteId: this.ordenCabeceraActual?.EquipoTransporteId || null,
+      EstadoId: Number(this.ordenCabeceraActual?.estadoId || this.ordenCabeceraActual?.EstadoId || 0),
+      UsuarioRegistro: Number(this.decodedToken?.nameid || 0),
+      UbicacionId: this.ordenCabeceraActual?.UbicacionId || null,
+      TipoRegistroId: Number(this.ordenCabeceraActual?.TipoRegistroId || 170),
+      codigodespacho: this.ordenCabeceraActual?.codigodespacho || null,
+      distrito: this.ordenCabeceraActual?.distrito || null,
+      departamento: this.ordenCabeceraActual?.departamento || null,
+      contacto: this.form.value.contacto || this.ordenCabeceraActual?.contacto || null,
+      telefono: this.form.value.telefono || this.ordenCabeceraActual?.telefono || null,
+      correo: this.form.value.correo || this.ordenCabeceraActual?.correo || this.ordenCabeceraActual?.Correo || null,
+      usuarioid: Number(this.decodedToken?.nameid || 0),
+      sucursal: this.ordenCabeceraActual?.sucursal || null,
+      CargaMasivaId: Number(this.ordenCabeceraActual?.CargaMasivaId || 0),
+      GuiaRemisionIngreso: this.ordenCabeceraActual?.GuiaRemisionIngreso || null,
+      tipodescargaid: this.ordenCabeceraActual?.tipodescargaid || this.ordenCabeceraActual?.Tipodescargaid || null,
+      Items: this.detalle.length,
+      ordeninfor: this.ordenCabeceraActual?.ordeninfor || null,
+      ordenentrega: this.ordenCabeceraActual?.ordenentrega || null,
+      Tamano: this.ordenCabeceraActual?.Tamano || null,
+      ocingreso: this.ordenCabeceraActual?.ocingreso || null,
+      peso: this.ordenCabeceraActual?.peso || null,
+      cantidad: this.ordenCabeceraActual?.cantidad || null,
+      destino: this.form.value.direccionEntrega || this.ordenCabeceraActual?.destino || null,
+      referencia: this.ordenCabeceraActual?.referencia || null,
+      Detalles: this.detalle.map((x: any) => {
+        const detalleItem: any = {
+          productoId: x.productoId,
+          cantidad: Number(x.cantidad || 0),
+          estadoId: Number(x.estadoId || 0),
+          huellaId: x.huellaId !== null && x.huellaId !== undefined ? Number(x.huellaId) : 0,
+        };
+
+        if (x.lote) detalleItem.lote = x.lote;
+        if (x.referencia) detalleItem.referencia = x.referencia;
+        return detalleItem;
+      })
+    };
+
 
 
 
@@ -387,7 +787,7 @@ agregarItem(): void {
 
 
 
-    this.b2bService.actualizarPedido(pedidoActualizado).subscribe({
+    this.despachoService.actualizarOrdenSalida(ordenSalidaPayload).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
@@ -397,11 +797,38 @@ agregarItem(): void {
         this.router.navigate(['/b2b/ordenessalida']);
       },
       error: (err) => {
+        const status = Number(err?.status || 0);
+
+        // Fallback para registros legacy que solo aceptan endpoint B2B
+        if (status === 404 || status === 405) {
+          this.b2bService.actualizarPedido(pedidoActualizado).subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Actualizado',
+                detail: 'Pedido actualizado correctamente.'
+              });
+              this.router.navigate(['/b2b/ordenessalida']);
+            },
+            error: (legacyErr) => {
+              console.error(legacyErr);
+              const detalle = legacyErr?.error?.message || 'No se pudo actualizar el pedido.';
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: detalle
+              });
+            }
+          });
+          return;
+        }
+
         console.error(err);
+        const detalle = err?.error?.message || 'No se pudo actualizar el pedido.';
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar el pedido.'
+          detail: detalle
         });
       }
     });
@@ -566,15 +993,37 @@ obtenerProximoVencimiento(): string {
   }
 
   const lotesConFecha = this.lotesInfo
-    .filter(lote => lote.fechaVencimiento)
-    .sort((a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime());
+    .filter(lote => lote.fechaExpire)
+    .sort((a, b) => new Date(a.fechaExpire).getTime() - new Date(b.fechaExpire).getTime());
 
   if (lotesConFecha.length === 0) {
     return 'Sin vencimiento';
   }
 
-  const fechaProxima = new Date(lotesConFecha[0].fechaVencimiento);
+  const fechaProxima = new Date(lotesConFecha[0].fechaExpire);
   return fechaProxima.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+get totalCantidadDetalle(): number {
+  return this.detalle.reduce((total, item) => total + Number(item.cantidad || 0), 0);
+}
+
+get formularioListoParaGuardado(): boolean {
+  return this.form.valid && this.detalle.length > 0;
+}
+
+get destinoSeleccionadoLabel(): string {
+  const direccionEntrega = String(this.form.get('direccionEntrega')?.value || '').trim();
+  if (direccionEntrega) {
+    return direccionEntrega;
+  }
+
+  const idDestino = this.form.get('iddestino')?.value;
+  return this.ubigeo.find((item) => item.value === idDestino)?.label ?? 'Pendiente de seleccionar';
+}
+
+get compradorDisplay(): string {
+  return this.form.get('nombre')?.value || 'Comprador no definido';
 }
 
 eliminarFila(index: number) {

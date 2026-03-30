@@ -40,7 +40,10 @@ export interface PedidoRequest {
 }
 export interface PedidoDetalle {
   codigo: string;
-  descripcion: string;
+  descripcion?: string;
+  producto?: string;
   cantidad: number;
   unidadMedida: string;
+  lote?: string | null;
+  estado?: string | null;
 }

@@ -1,3 +1,82 @@
+ :host {
+  display: block;
+}
+
+.b2b-new-hero {
+  background:
+    radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 28%),
+    radial-gradient(circle at 85% 20%, rgba(45, 212, 191, 0.14), transparent 24%),
+    linear-gradient(135deg, #020617 0%, #0f172a 55%, #111827 100%);
+}
+
+.b2b-hero-card,
+.b2b-status-panel {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(14px);
+  border-radius: 1.5rem;
+  padding: 1rem 1.1rem;
+}
+
+.b2b-hero-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.b2b-hero-value {
+  display: block;
+  margin-top: 0.5rem;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.b2b-top-card {
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1.5rem;
+  padding: 1.25rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
+
+.b2b-check-item {
+  border-radius: 1rem;
+  border: 1px solid transparent;
+  padding: 0.9rem 1rem;
+}
+
+.b2b-check-item span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.b2b-check-item strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.b2b-check-item-ready {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.b2b-check-item-pending {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
 /* Estilos específicos del componente B2B New */
 
 /* Estilos para asegurar visibilidad de headers en tablas */
@@ -93,6 +172,24 @@
 
 ::ng-deep .p-dialog .p-dialog-content {
   padding: 1.5rem !important;
+}
+
+::ng-deep .p-dialog-mask {
+  background: rgba(2, 6, 23, 0.72) !important;
+  backdrop-filter: blur(1.5px);
+}
+
+::ng-deep .p-dialog {
+  box-shadow: 0 30px 60px rgba(2, 6, 23, 0.45) !important;
+}
+
+::ng-deep .b2b-lotes-dialog {
+  z-index: 13050 !important;
+}
+
+::ng-deep .b2b-lotes-dialog .p-dialog-content {
+  overflow: auto !important;
+  max-height: 72vh !important;
 }
 
 /* Estilos para botones pequeños */

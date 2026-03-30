@@ -14,7 +14,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { DespachosService } from '../../despachos/despachos.service';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { CardModule } from 'primeng/card';
 import { ProductoService } from '../../_services/producto.service';
@@ -54,6 +53,7 @@ import { GeneralService } from '../../_services/general.service';
   ]
 })
 export class NewComponent implements OnInit {
+  private readonly b2bDefaultAlmacenId = 100;
   form: FormGroup;
   model: any = {};
   detalle: any[] = []; // 👈 Aquí lo simplificamos a un array plano
@@ -71,6 +71,7 @@ export class NewComponent implements OnInit {
   direcciones: SelectItem[] = [];
   direccionesData: any[] = []; // Para guardar los datos completos de direcciones
   estados: SelectItem[] = [];
+  almacenesDisponibles: any[] = [];
 
 
   orden : any;
@@ -92,6 +93,43 @@ export class NewComponent implements OnInit {
 
   ubigeo: SelectItem[] = [];
 
+  private registroConfirmado(resp: any): boolean {
+    // Si el backend responde 2xx sin body, Angular entra por next con null/undefined.
+    // Se considera registro exitoso salvo que venga success=false explícito.
+    if (typeof resp === 'object' && resp?.success === false) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private resolverAlmacenId(): number {
+    return this.b2bDefaultAlmacenId;
+  }
+
+  private extraerOrdenIdDesdeRespuesta(resp: any): number | null {
+    const candidatos = [
+      resp,
+      resp?.id,
+      resp?.Id,
+      resp?.ordenSalidaId,
+      resp?.OrdenSalidaId,
+      resp?.data?.id,
+      resp?.data?.Id,
+      resp?.data?.ordenSalidaId,
+      resp?.data?.OrdenSalidaId,
+    ];
+
+    for (const valor of candidatos) {
+      const id = Number(valor);
+      if (Number.isFinite(id) && id > 0) {
+        return id;
+      }
+    }
+
+    return null;
+  }
+
   private inferEstadoIdFromTexto(estadoTexto: any): number | null {
     const t = String(estadoTexto ?? '').trim().toLowerCase();
     if (!t || !this.estados || this.estados.length === 0) return null;
@@ -107,11 +145,65 @@ export class NewComponent implements OnInit {
     return null;
   }
 
+  private completarDatosCliente(clienteId: number): void {
+    if (!this.idPropietario || !clienteId) {
+      return;
+    }
+
+    this.clienteService.getAllClientesxPropietarios(this.idPropietario).subscribe({
+      next: (clientes: any[]) => {
+        const cliente = (clientes || []).find((item: any) => Number(item?.id) === Number(clienteId));
+        if (!cliente) {
+          return;
+        }
+
+        this.form.patchValue({
+          nombre: this.form.get('nombre')?.value || cliente?.razonSocial || cliente?.nombre || cliente?.cliente || '',
+          documento: this.form.get('documento')?.value || cliente?.documento || cliente?.ruc || '',
+          contacto: this.form.get('contacto')?.value || cliente?.contacto || '',
+          telefono: this.form.get('telefono')?.value || cliente?.telefono || '',
+          correo: this.form.get('correo')?.value || cliente?.correo || ''
+        });
+      },
+      error: () => {
+        // Complemento no bloqueante
+      }
+    });
+  }
+
+  private completarDatosDireccion(clienteId: number, direccionId?: number | null): void {
+    if (!clienteId) {
+      return;
+    }
+
+    this.clienteService.getAllDirecciones(clienteId).subscribe({
+      next: (direcciones: any[]) => {
+        const direccion = (direcciones || []).find((item: any) =>
+          Number(item?.iddireccion ?? item?.idDireccion ?? item?.id ?? 0) === Number(direccionId ?? 0)
+        ) || (direcciones || [])[0];
+
+        if (!direccion) {
+          return;
+        }
+
+        this.form.patchValue({
+          direccionId: Number(direccion?.iddireccion ?? direccion?.idDireccion ?? direccion?.id ?? direccionId ?? 0) || null,
+          direccionEntrega: this.form.get('direccionEntrega')?.value || direccion?.direccion || '',
+          iddestino: this.form.get('iddestino')?.value || direccion?.iddestino || direccion?.idDestino || direccion?.idDistrito || null,
+          latitud: this.form.get('latitud')?.value || direccion?.latitud || null,
+          longitud: this.form.get('longitud')?.value || direccion?.longitud || null,
+        });
+      },
+      error: () => {
+        // Complemento no bloqueante
+      }
+    });
+  }
+
   
 
   constructor(
     private fb: FormBuilder,
-    private despachoService: DespachosService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private clienteService: ClienteService,
@@ -219,6 +311,13 @@ export class NewComponent implements OnInit {
         this.estados = (resp ?? []).map((x: any) => ({ value: x.id, label: x.nombreEstado }));
       },
       error: (err) => console.error('Error al cargar estados (tabla 3):', err),
+    });
+
+    this.generalService.getAllAlmacenes().subscribe({
+      next: (resp: any[]) => {
+        this.almacenesDisponibles = resp ?? [];
+      },
+      error: (err) => console.error('Error al cargar almacenes:', err),
     });
   
 
@@ -396,6 +495,16 @@ agregarProducto() {
     // Obtener el nombre del propietario
     const propietarioLabel = this.propietarios.find(x => x.value === this.idPropietario)?.label || null;
 
+    const almacenId = this.resolverAlmacenId();
+    if (!almacenId || almacenId <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: 'No se pudo determinar el almacén para registrar la orden.'
+      });
+      return;
+    }
+
     // Obtener datos de la dirección seleccionada
     const direccionIdSeleccionada = this.form.value.direccionId;
     const direccionSeleccionada = this.direccionesData.find(d => d.iddireccion === direccionIdSeleccionada);
@@ -404,9 +513,11 @@ agregarProducto() {
     const ordenSalida = {
       Id: 0,
       PropietarioId: this.idPropietario,
+      propietarioId: this.idPropietario,
       Propietario: propietarioLabel,
       NumOrden: null,
-      AlmacenId: 0, // TODO: Agregar campo almacenId al formulario si es necesario
+      AlmacenId: almacenId,
+      almacenId: almacenId,
       GuiaRemision: this.form.value.guiaRemision || '',
       FechaRequerida: fechaFormateada,
       HoraRequerida: horaFormateada,
@@ -423,6 +534,7 @@ agregarProducto() {
       departamento: direccionSeleccionada?.departamento || null,
       contacto: this.form.value.contacto || null,
       telefono: this.form.value.telefono || null,
+      correo: this.form.value.correo || null,
       usuarioid: Number(this.decodedToken.nameid),
       sucursal: null,
       CargaMasivaId: 0,
@@ -435,7 +547,7 @@ agregarProducto() {
       ocingreso: null,
       peso: null,
       cantidad: null,
-      destino: null,
+      destino: this.form.value.direccionEntrega || direccionSeleccionada?.direccion || null,
       referencia: null,
       Detalles: this.detalle.map((x) => {
         const detalle: any = {
@@ -482,9 +594,20 @@ agregarProducto() {
 
 
     this.b2bService.registerOrdenSalida(ordenSalida).subscribe({
-      next: (resp) => {
+      next: (resp: any) => {
+        if (!this.registroConfirmado(resp)) {
+          const detalle = resp?.message || 'La orden no fue registrada. Verifique los datos e intente nuevamente.';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'No se pudo registrar',
+            detail: detalle
+          });
+          return;
+        }
+
         this.messageService.add({ severity: 'success', summary: 'TWH', detail: 'Orden de salida registrada correctamente.' });
-        this.router.navigate(['/b2b/ordenessalida', resp]);
+        // Requerimiento funcional: después de grabar, mostrar el listado B2B
+        this.router.navigate(['/b2b/ordenessalida']);
       },
       error: (err) => {
         console.error(err);
@@ -739,7 +862,19 @@ onChangePropietario(propietarioId: number) {
   this.idPropietario = propietarioId;
   this.clientes = [];
   this.direcciones = [];
-  this.form.patchValue({ clienteId: null, direccionId: null });
+  this.form.patchValue({
+    clienteId: null,
+    direccionId: null,
+    nombre: '',
+    contacto: '',
+    documento: '',
+    telefono: '',
+    correo: '',
+    direccionEntrega: '',
+    iddestino: '',
+    latitud: null,
+    longitud: null,
+  });
 
   this.clienteService.getAllClientesxPropietarios(propietarioId).subscribe(resp => {
     this.clientes = resp.map(element => ({
@@ -758,7 +893,15 @@ onChangePropietario(propietarioId: number) {
 onChangeCliente(clienteId: number) {
   this.direcciones = [];
   this.direccionesData = [];
-  this.form.patchValue({ direccionId: null });
+  this.form.patchValue({
+    direccionId: null,
+    direccionEntrega: '',
+    iddestino: '',
+    latitud: null,
+    longitud: null,
+  });
+
+  this.completarDatosCliente(clienteId);
 
   this.clienteService.getAllDirecciones(clienteId).subscribe(resp => {
     this.direccionesData = resp; // Guardar datos completos
@@ -772,6 +915,29 @@ onChangeCliente(clienteId: number) {
       this.form.get('direccionId')?.setValue(this.direcciones[0].value);
     }
   });
+}
+
+onChangeDireccion(direccionId: number) {
+  const clienteId = Number(this.form.get('clienteId')?.value || 0);
+  if (!clienteId) {
+    return;
+  }
+
+  const direccion = this.direccionesData.find((item: any) =>
+    Number(item?.iddireccion ?? item?.idDireccion ?? item?.id ?? 0) === Number(direccionId)
+  );
+
+  if (direccion) {
+    this.form.patchValue({
+      direccionEntrega: direccion?.direccion || '',
+      iddestino: direccion?.iddestino || direccion?.idDestino || direccion?.idDistrito || null,
+      latitud: direccion?.latitud || null,
+      longitud: direccion?.longitud || null,
+    });
+    return;
+  }
+
+  this.completarDatosDireccion(clienteId, direccionId);
 }
 
 /**
@@ -793,15 +959,37 @@ obtenerProximoVencimiento(): string {
   }
 
   const lotesConFecha = this.lotesInfo
-    .filter(lote => lote.fechaVencimiento)
-    .sort((a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime());
+    .filter(lote => lote.fechaExpire)
+    .sort((a, b) => new Date(a.fechaExpire).getTime() - new Date(b.fechaExpire).getTime());
 
   if (lotesConFecha.length === 0) {
     return 'Sin vencimiento';
   }
 
-  const fechaProxima = new Date(lotesConFecha[0].fechaVencimiento);
+  const fechaProxima = new Date(lotesConFecha[0].fechaExpire);
   return fechaProxima.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+get propietarioSeleccionadoLabel(): string {
+  return this.propietarios.find((item) => item.value === this.idPropietario)?.label ?? 'Pendiente de seleccionar';
+}
+
+get clienteSeleccionadoLabel(): string {
+  const clienteId = this.form.get('clienteId')?.value;
+  return this.clientes.find((item) => item.value === clienteId)?.label ?? 'Pendiente de seleccionar';
+}
+
+get direccionSeleccionadaLabel(): string {
+  const direccionId = this.form.get('direccionId')?.value;
+  return this.direcciones.find((item) => item.value === direccionId)?.label ?? 'Pendiente de seleccionar';
+}
+
+get totalCantidadDetalle(): number {
+  return this.detalle.reduce((total, item) => total + Number(item.cantidad || 0), 0);
+}
+
+get formularioListoParaRegistro(): boolean {
+  return !!this.idPropietario && this.form.valid && this.detalle.length > 0;
 }
 
  cancelar() {

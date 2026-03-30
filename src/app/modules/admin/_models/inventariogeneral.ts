@@ -23,7 +23,8 @@ export interface InventarioGeneral {
      linea?: string;
      estado?: string;
      estadoId?: number;
-     subEstadoId?: number | null;
+     subEstado?: string;
+     subEstadoId?: number;
      ordenReciboId?: any;
      OrdenReciboDetalleId?: number;
      almacenId?: number ;

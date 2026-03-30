@@ -190,7 +190,7 @@
                   severity="primary"
                   icon="fa fa-edit"
                   [disabled]="rowData.nombreEstado !== 'Creado'"
-                  (click)="edit(rowData.ordenSalidaId)"
+                  (click)="edit(rowData.ordenSalidaId, rowData.propietarioId ?? rowData.PropietarioId)"
                   [size]="small"
                   [raised]="true"
                 ></p-button>
@@ -301,6 +301,8 @@
             <tr class="bg-gray-800 text-white">
               <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 120px">Código</th>
               <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700">Descripción</th>
+              <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 120px">Lote</th>
+              <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 140px">Estado</th>
               <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 100px">Cantidad</th>
               <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 100px">Unidad</th>
             </tr>
@@ -308,7 +310,24 @@
           <ng-template pTemplate="body" let-row>
             <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
               <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.codigo }}</td>
-              <td class="px-4 py-2 text-gray-700 text-sm">{{ row.producto }}</td>
+              <td class="px-4 py-2 text-gray-700 text-sm">{{ row.producto || row.descripcion }}</td>
+              <td class="text-center px-4 py-2 text-gray-700 text-sm">
+                <span *ngIf="row.lote" class="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">{{ row.lote }}</span>
+                <span *ngIf="!row.lote" class="text-xs text-gray-400">-</span>
+              </td>
+              <td class="text-center px-4 py-2 text-sm">
+                <span
+                  class="inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': row.estado === 'Activo' || row.estado === 'Disponible',
+                    'bg-amber-100 text-amber-800': row.estado === 'Por Vencer' || row.estado === 'Pendiente',
+                    'bg-red-100 text-red-800': row.estado === 'Vencido' || row.estado === 'Bloqueado' || row.estado === 'Anulado',
+                    'bg-gray-100 text-gray-700': !row.estado
+                  }"
+                >
+                  {{ row.estado || '-' }}
+                </span>
+              </td>
               <td class="text-center px-4 py-2 text-amber-700 text-sm font-medium">{{ row.cantidad }}</td>
               <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.unidadMedida }}</td>
             </tr>

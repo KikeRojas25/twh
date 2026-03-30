@@ -105,7 +105,6 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/facturacion/gestion-liquidacion/gestion-liquidacion.component')
                                           .then(m => m.GestionLiquidacionComponent)
                   },
-               
                 ]
               },
               {
@@ -180,10 +179,6 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/planning/trabajopendientevalidacion/trabajopendientevalidacion.component')
                                           .then(m => m.TrabajoPendienteValidacionComponent)
                   },
-
-                  
-
-
                
                 ]
               },
@@ -369,8 +364,7 @@ export const appRoutes: Route[] = [
                    loadComponent: () => import('./modules/admin/transporte/listordentransporte/listordentransporte.component')
                                          .then(m => m.ListordentransporteComponent)
                  },
-               
-              
+ 
               ]
            },
             {   
@@ -414,8 +408,7 @@ export const appRoutes: Route[] = [
               
               ]
            },
-           
-           
+                    
         {
           path: '**',
           redirectTo: 'inicio'

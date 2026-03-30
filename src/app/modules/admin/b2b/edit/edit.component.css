@@ -1,0 +1,174 @@
+:host {
+	display: block;
+}
+
+.b2b-new-hero {
+	background:
+		radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 28%),
+		radial-gradient(circle at 85% 20%, rgba(45, 212, 191, 0.14), transparent 24%),
+		linear-gradient(135deg, #020617 0%, #0f172a 55%, #111827 100%);
+}
+
+.b2b-hero-card,
+.b2b-status-panel {
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background: rgba(15, 23, 42, 0.55);
+	backdrop-filter: blur(14px);
+	border-radius: 1.5rem;
+	padding: 1rem 1.1rem;
+}
+
+.b2b-hero-label {
+	display: block;
+	font-size: 0.7rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #94a3b8;
+}
+
+.b2b-hero-value {
+	display: block;
+	margin-top: 0.5rem;
+	color: #f8fafc;
+	font-size: 0.95rem;
+	font-weight: 600;
+	line-height: 1.45;
+}
+
+.b2b-top-card {
+	border: 1px solid #e2e8f0;
+	background: rgba(255, 255, 255, 0.92);
+	border-radius: 1.5rem;
+	padding: 1.25rem;
+	box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
+
+.b2b-check-item {
+	border-radius: 1rem;
+	border: 1px solid transparent;
+	padding: 0.9rem 1rem;
+}
+
+.b2b-check-item span {
+	display: block;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.b2b-check-item strong {
+	display: block;
+	margin-top: 0.35rem;
+	font-size: 0.92rem;
+	font-weight: 700;
+}
+
+.b2b-check-item-ready {
+	border-color: #bbf7d0;
+	background: #f0fdf4;
+	color: #166534;
+}
+
+.b2b-check-item-pending {
+	border-color: #fde68a;
+	background: #fffbeb;
+	color: #92400e;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+	background-color: #1f2937 !important;
+	color: #ffffff !important;
+	border-bottom: 1px solid #374151 !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th.bg-gray-800 {
+	background-color: #1f2937 !important;
+	color: #ffffff !important;
+}
+
+::ng-deep .p-dropdown {
+	font-size: 0.875rem !important;
+	height: 2.25rem !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-label {
+	padding: 0.5rem 0.75rem !important;
+	font-size: 0.875rem !important;
+	line-height: 1.25rem !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-trigger {
+	width: 2.25rem !important;
+	height: 2.25rem !important;
+}
+
+::ng-deep .p-calendar {
+	font-size: 0.875rem !important;
+}
+
+::ng-deep .p-calendar .p-inputtext {
+	padding: 0.5rem 0.75rem !important;
+	font-size: 0.875rem !important;
+	height: 2.25rem !important;
+}
+
+::ng-deep .p-calendar .p-datepicker-trigger {
+	width: 2.25rem !important;
+	height: 2.25rem !important;
+}
+
+::ng-deep .p-inputtext {
+	font-size: 0.875rem !important;
+	padding: 0.5rem 0.75rem !important;
+}
+
+::ng-deep .p-inputtextarea {
+	font-size: 0.875rem !important;
+	padding: 0.5rem 0.75rem !important;
+}
+
+::ng-deep .p-autocomplete {
+	font-size: 0.875rem !important;
+}
+
+::ng-deep .p-autocomplete .p-autocomplete-input {
+	padding: 0.5rem 0.75rem !important;
+	font-size: 0.875rem !important;
+	height: 2.25rem !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr {
+	transition: background-color 0.15s ease-in-out;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+	background-color: #f9fafb !important;
+}
+
+::ng-deep .p-dialog .p-dialog-header {
+	background-color: #1f2937 !important;
+	color: #ffffff !important;
+	padding: 1rem 1.5rem !important;
+	border-bottom: 1px solid #374151 !important;
+}
+
+::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+	font-weight: 600 !important;
+	font-size: 1rem !important;
+	color: #ffffff !important;
+}
+
+::ng-deep .p-dialog .p-dialog-content {
+	padding: 1.5rem !important;
+}
+
+::ng-deep .p-button.p-button-sm {
+	padding: 0.375rem 0.75rem !important;
+	font-size: 0.75rem !important;
+}
+
+::ng-deep .p-button .p-button-icon {
+	font-size: 0.875rem !important;
+}

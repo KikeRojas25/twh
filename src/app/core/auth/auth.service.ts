@@ -78,7 +78,12 @@ export class AuthService {
 
             const data = response;
 
-            localStorage.clear();
+            // Limpiar solo la sesión autenticada previa sin borrar preferencias del usuario.
+            localStorage.removeItem('menu');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('accessToken2');
 
                 //Get and Set menú
              const stringMenu = JSON.stringify(data.menu);

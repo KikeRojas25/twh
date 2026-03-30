@@ -1,637 +1,588 @@
-<div class="flex min-w-0 flex-auto flex-col">
-    <!-- Encabezado -->
-    <div
-        class="flex items-center justify-between border-b bg-white p-6 shadow-sm"
-    >
-        <div>
-            <div
-                class="flex items-center space-x-2 text-sm font-medium text-primary-600"
-            >
-                <a>TWH</a>
-                <i class="pi pi-angle-right text-primary-500"></i>
-                <a>Órdenes de Salida</a>
-            </div>
-            <h2
-                class="mt-2 text-3xl font-extrabold tracking-tight text-gray-900"
-            >
-                Editar solicitud de salida
-            </h2>
-            <p class="text-sm text-gray-500">
-                Solo puede modificar los productos o la dirección de entrega.
-            </p>
+<div class="b2b-new-view flex flex-col flex-auto min-w-0 bg-slate-100">
+  <div class="b2b-new-hero relative overflow-hidden border-b border-slate-800">
+    <div class="relative mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-6 py-8 sm:px-10 lg:flex-row lg:items-end lg:justify-between">
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-300">
+          <a class="whitespace-nowrap text-slate-200">TWH</a>
+          <div class="flex items-center gap-2 whitespace-nowrap">
+            <mat-icon class="text-slate-500" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+            <a class="text-slate-200">B2B</a>
+          </div>
+          <div class="flex items-center gap-2 whitespace-nowrap">
+            <mat-icon class="text-slate-500" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+            <a class="text-white">Editar Orden de Salida</a>
+          </div>
         </div>
 
-        <!-- Botón de guardar -->
-<div class="flex justify-end gap-2 mt-4">
-                <button
+        <div class="mt-4 max-w-3xl">
+          <div class="inline-flex items-center rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-amber-200">
+            Flujo B2B
+          </div>
+          <h2 class="mt-4 text-3xl font-semibold tracking-tight text-white md:text-5xl">
+            Editar Solicitud de Salida
+          </h2>
+          <p class="mt-3 text-sm leading-6 text-slate-300 md:text-base">
+            Modifica campos de cabecera y el detalle de productos para actualizar la orden sin perder el contexto operativo.
+          </p>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div class="b2b-hero-card">
+            <span class="b2b-hero-label">Pedido</span>
+            <strong class="b2b-hero-value">#{{ pedidoId || '-' }}</strong>
+          </div>
+          <div class="b2b-hero-card">
+            <span class="b2b-hero-label">Comprador</span>
+            <strong class="b2b-hero-value">{{ compradorDisplay }}</strong>
+          </div>
+          <div class="b2b-hero-card">
+            <span class="b2b-hero-label">Destino</span>
+            <strong class="b2b-hero-value">{{ destinoSeleccionadoLabel }}</strong>
+          </div>
+          <div class="b2b-hero-card">
+            <span class="b2b-hero-label">Detalle</span>
+            <strong class="b2b-hero-value">{{ detalle.length }} items / {{ totalCantidadDetalle }} unidades</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex shrink-0 flex-col gap-3 lg:w-[20rem]">
+        <div class="b2b-status-panel">
+          <span class="b2b-hero-label">Estado de edición</span>
+          <strong class="mt-2 text-lg font-semibold text-white">
+            {{ formularioListoParaGuardado ? 'Lista para guardar' : 'Hay datos pendientes' }}
+          </strong>
+          <p class="mt-2 text-sm text-slate-300">
+            {{ formularioListoParaGuardado ? 'La cabecera y el detalle están listos para actualizar el pedido.' : 'Completa los campos requeridos y valida al menos un item en el detalle.' }}
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row lg:flex-col">
+          <button
+            class="w-full border border-white/20 bg-white text-sm font-medium text-slate-900 shadow-sm transition-all duration-150 hover:border-white hover:bg-slate-50"
             pButton
             type="button"
             label="Cancelar"
             icon="pi pi-times"
-            class="p-button-secondary"
-            (click)="cancelar()"
-          ></button>
-
-
-
-
-        <button
+            iconPos="left"
+            (click)="cancelar()">
+          </button>
+          <button
+            class="w-full border border-amber-400 bg-amber-500 text-sm font-medium text-slate-950 shadow-sm transition-all duration-150 hover:bg-amber-400"
             pButton
             type="submit"
             form="formSalida"
             label="Guardar cambios"
             icon="pi pi-save"
-            class="p-button-success"
-        ></button>
+            iconPos="left">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <form
+    [formGroup]="form"
+    (ngSubmit)="guardarCambios()"
+    id="formSalida"
+    class="mx-auto w-full max-w-screen-2xl space-y-6 p-6 lg:p-8"
+  >
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div class="b2b-top-card xl:col-span-2">
+        <div class="flex items-start gap-3">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-700">
+            <i class="pi pi-check-circle text-lg"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Checklist de actualización</p>
+            <p class="mt-1 text-sm text-slate-500">Control rápido de cabecera, destino y detalle antes de guardar.</p>
+          </div>
         </div>
 
+        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-4">
+          <div class="b2b-check-item" [ngClass]="form.get('ordenCompraCliente')?.value ? 'b2b-check-item-ready' : 'b2b-check-item-pending'">
+            <span>Orden Compra</span>
+            <strong>{{ form.get('ordenCompraCliente')?.value ? 'Listo' : 'Pendiente' }}</strong>
+          </div>
+          <div class="b2b-check-item" [ngClass]="form.get('direccionEntrega')?.value ? 'b2b-check-item-ready' : 'b2b-check-item-pending'">
+            <span>Destino</span>
+            <strong>{{ form.get('direccionEntrega')?.value ? 'Listo' : 'Pendiente' }}</strong>
+          </div>
+          <div class="b2b-check-item" [ngClass]="form.get('direccionEntrega')?.value ? 'b2b-check-item-ready' : 'b2b-check-item-pending'">
+            <span>Direccion</span>
+            <strong>{{ form.get('direccionEntrega')?.value ? 'Listo' : 'Pendiente' }}</strong>
+          </div>
+          <div class="b2b-check-item" [ngClass]="detalle.length > 0 ? 'b2b-check-item-ready' : 'b2b-check-item-pending'">
+            <span>Detalle</span>
+            <strong>{{ detalle.length > 0 ? detalle.length + ' items' : 'Sin items' }}</strong>
+          </div>
+        </div>
+      </div>
 
+      <div class="b2b-top-card">
+        <div class="flex items-start gap-3">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-700">
+            <i class="pi pi-clock text-lg"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-slate-900">Ventana de atencion</p>
+            <p class="mt-1 text-sm text-slate-500">Puedes ajustar fecha y hora requerida de la orden.</p>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <span class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Fecha</span>
+            <div class="mt-2 text-base font-semibold text-slate-900">{{ form.get('fechaRequerida')?.value | date:'dd/MM/yyyy' }}</div>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <span class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Hora</span>
+            <div class="mt-2 text-base font-semibold text-slate-900">{{ form.get('horaRequerida')?.value | date:'HH:mm' }}</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Formulario -->
-    <form
-        [formGroup]="form"
-        (ngSubmit)="guardarCambios()"
-        id="formSalida"
-        class="space-y-8 p-6"
-    >
-        <!-- Panel 1: Datos Generales -->
-        <p-panel header="Datos Generales" class="rounded-xl shadow-sm">
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <!-- Orden de Compra -->
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium"
-                        >Orden de Compra Cliente:</label
-                    >
-                    <input
-                        pInputText
-                        formControlName="ordenCompraCliente"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    />
-                </div>
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex flex-col gap-2 border-b border-slate-200 bg-slate-900 px-5 py-4 text-white md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-slate-50">Datos Generales</h3>
+          <p class="mt-1 text-sm text-slate-300">Campos de cabecera de la solicitud que pueden actualizarse.</p>
+        </div>
+        <span class="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200">Cabecera editable</span>
+      </div>
+      <div class="p-5">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div class="flex flex-col">
+            <label class="mb-1 text-xs font-medium text-gray-700">Orden de Compra Cliente:</label>
+            <input pInputText formControlName="ordenCompraCliente" class="h-11 w-full text-base border-gray-300" />
+          </div>
+          <div class="flex flex-col">
+            <label class="mb-1 text-xs font-medium text-gray-700">Fecha requerida:</label>
+            <p-calendar formControlName="fechaRequerida" [showIcon]="true" appendTo="body" dateFormat="yy-mm-dd" [style]="{ width: '100%' }" styleClass="text-base border-gray-300 h-11"></p-calendar>
+          </div>
+          <div class="flex flex-col">
+            <label class="mb-1 text-xs font-medium text-gray-700">Hora requerida (24h):</label>
+            <p-calendar formControlName="horaRequerida" [timeOnly]="true" appendTo="body" [style]="{ width: '100%' }" styleClass="text-base border-gray-300 h-11"></p-calendar>
+          </div>
+          <div class="flex flex-col xl:col-span-3">
+            <label class="mb-1 text-xs font-medium text-gray-700">Observaciones:</label>
+            <textarea pInputTextarea formControlName="observaciones" rows="3" class="w-full text-base border-gray-300"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                <!-- Fecha Requerida -->
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium">Fecha requerida:</label>
-                    <p-calendar
-                        formControlName="fechaRequerida"
-                        [showIcon]="true"
-                        [disabled]="true"
-                        dateFormat="yy-mm-dd"
-                        [style]="{ width: '100%' }"
-                    ></p-calendar>
-                </div>
-
-                <!-- Hora Requerida -->
-                <div class="flex flex-col">
-                    <label class="mb-1 font-medium">Hora requerida (24h):</label>
-                    <p-calendar
-                        formControlName="horaRequerida"
-                        [timeOnly]="true"
-                        [disabled]="true"
-                        [style]="{ width: '100%' }"
-                    ></p-calendar>
-                </div>
-
-                <!-- Observaciones -->
-                <div class="flex flex-col md:col-span-3">
-                    <label class="mb-1 font-medium">Observaciones:</label>
-                    <textarea
-                        pInputTextarea
-                        formControlName="observaciones"
-                        rows="2"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    ></textarea>
-                </div>
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex flex-col gap-2 border-b border-slate-200 bg-slate-900 px-5 py-4 text-white md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-slate-50">Comprador y Direccion</h3>
+          <p class="mt-1 text-sm text-slate-300">Datos de comprador y destino logístico de la orden.</p>
+        </div>
+        <span class="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200">Destino editable</span>
+      </div>
+      <div class="space-y-5 p-5">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div class="xl:col-span-4">
+            <div class="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="flex flex-col">
+                <label class="mb-1 text-xs font-medium text-gray-700 text-center">Documento:</label>
+                <input pInputText formControlName="documento" readonly class="h-11 w-full cursor-not-allowed bg-gray-100 text-base text-center font-medium border-gray-300" />
+              </div>
+              <div class="flex flex-col">
+                <label class="mb-1 text-xs font-medium text-gray-700 text-center">Nombre / Razon Social:</label>
+                <input pInputText formControlName="nombre" readonly class="h-11 w-full cursor-not-allowed bg-gray-100 text-base text-center font-medium border-gray-300" />
+              </div>
             </div>
-        </p-panel>
-
-        <!-- Panel 2: Datos del Comprador -->
-        <p-panel header="Datos del Comprador" class="rounded-xl shadow-sm">
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
-                <div class="relative flex flex-col">
-                    <label class="mb-1 font-medium">Documento (RUC/DNI):</label>
-                    <input
-                        pInputText
-                        formControlName="documento"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    />
-                </div>
-
-                <div class="relative flex flex-col">
-                    <label class="mb-1 font-medium"
-                        >Nombre / Razón Social:</label
-                    >
-                    <input
-                        pInputText
-                        formControlName="nombre"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    />
-                </div>
-
-                <div class="relative flex flex-col">
-                    <label class="mb-1 font-medium">Contacto:</label>
-                    <input
-                        pInputText
-                        formControlName="contacto"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    />
-                </div>
-
-                <div class="relative flex flex-col">
-                    <label class="mb-1 font-medium">Teléfono:</label>
-                    <input
-                        pInputText
-                        formControlName="telefono"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    />
-                </div>
-            </div>
-            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
-                <div class="relative flex flex-col">
-                    <label class="mb-2 font-medium">Correo:</label>
-                    <input
-                        pInputText
-                        formControlName="correo"
-                        readonly
-                        class="bg-gray-100 cursor-not-allowed"
-                    />
-                </div>
-
-                <div class="relative flex flex-col">
-                    <label class="mb-2 font-medium">Destino: (*)</label>
-                    <p-dropdown
-                        [options]="ubigeo"
-                        formControlName="iddestino"
-                        virtualScroll="true"
-                        [itemSize]="30"
-                        optionLabel="label"
-                        optionValue="value"
-                        filter="true"
-                        placeholder="Seleccione un destino"
-                        class="w-full"
-                        appendTo="body"
-                    >
-                        <ng-template let-item pTemplate="selectedItem">
-                            <span>{{ item.label }}</span>
-                        </ng-template>
-                    </p-dropdown>
-                </div>
-
-                <div class="flex flex-col md:col-span-2">
-                    <label class="mb-2 font-medium"
-                        >Dirección de Entrega: (*)</label
-                    >
-                    <input
-                        pInputText
-                        formControlName="direccionEntrega"
-                        placeholder="Av. El Derby 123, Santiago de Surco"
-                    />
-                </div>
-            </div>
-        </p-panel>
-
-        <!-- Panel 3: Detalle del Pedido -->
-        <p-panel header="Detalle del Pedido" class="rounded-xl shadow-sm">
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <!-- Panel derecho: agregar ítem -->
-                <div>
-                    <p-card
-                        header="Agregar nuevo ítem"
-                        class="border border-gray-100 shadow-md"
-                    >
-                        <!-- Producto -->
-                        <label class="mb-1 block text-sm font-medium"
-                            >Producto</label
-                        >
-                        <p-autoComplete
-                            [(ngModel)]="model.productoSeleccionado"
-                            [suggestions]="productosFiltrados"
-                            [ngModelOptions]="{ standalone: true }"
-                            (completeMethod)="buscarProductos($event)"
-                            [minLength]="2"
-                            appendTo="body"
-                            [delay]="300"
-                            [field]="'nombreCompleto'"
-                            [dropdown]="true"
-                            [forceSelection]="true"
-                            [style]="{ width: '380px' }"
-                        >
-                            <ng-template let-item pTemplate="item">
-                                <div class="flex items-center justify-between">
-                                    <span>{{ item.nombreCompleto }}</span>
-                                    <small class="text-gray-500"
-                                        >({{ item.unidad }})</small
-                                    >
-                                </div>
-                            </ng-template>
-
-                            <ng-template let-item pTemplate="selectedItem">
-                                <div>{{ item.nombreCompleto }}</div>
-                            </ng-template>
-                        </p-autoComplete>
-
-                        <!-- Ver stock y lotes -->
-                        <div class="mt-2 flex justify-between items-center gap-2">
-                            <a
-                                class="cursor-pointer text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                (click)="verStock()"
-                                *ngIf="model.productoSeleccionado"
-                            >
-                                <i class="pi pi-chart-bar"></i>
-                                <span>Ver stock</span>
-                            </a>
-
-                            <a
-                                class="cursor-pointer text-xs text-green-600 hover:underline font-semibold flex items-center gap-1"
-                                (click)="verLotes()"
-                                *ngIf="model.productoSeleccionado"
-                            >
-                                <i class="pi pi-box"></i>
-                                <span>Ver lotes disponibles</span>
-                            </a>
-                        </div>
-
-                        <!-- Lote -->
-                        <div class="mt-3">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Lote</label
-                            >
-                            <input
-                                pInputText
-                                type="text"
-                                [ngModelOptions]="{ standalone: true }"
-                                [(ngModel)]="model.lote"
-                                class="w-full"
-                            />
-                        </div>
-
-                        <!-- Cantidad -->
-                        <div class="mt-3">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Cantidad</label
-                            >
-                            <input
-                                pInputText
-                                type="number"
-                                [ngModelOptions]="{ standalone: true }"
-                                min="1"
-                                [(ngModel)]="model.cantidad"
-                                class="w-full"
-                            />
-                        </div>
-
-                        <!-- Referencia -->
-                        <div class="mt-3">
-                            <label class="mb-1 block text-sm font-medium"
-                                >Referencia (DUA / OC)</label
-                            >
-                            <input
-                                pInputText
-                                type="text"
-                                [ngModelOptions]="{ standalone: true }"
-                                [(ngModel)]="model.referencia"
-                                class="w-full"
-                            />
-                        </div>
-
-                        <div class="mt-4 text-right">
-                            <button
-                                pButton
-                                label="Agregar ítem"
-                                type="button"
-                                icon="pi pi-plus"
-                                (click)="agregarItem()"
-                                class="p-button-sm p-button-success"
-                            ></button>
-                        </div>
-                    </p-card>
-                </div>
-
-                <!-- Panel izquierdo: tabla de detalle -->
-                <div class="lg:col-span-2">
-                    <p-table
-                        [value]="detalle"
-                        dataKey="codigo"
-                        class="w-full text-sm"
-                    >
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th style="width: 100px">Código</th>
-                                <th>Descripción</th>
-                                <th class="text-center" style="width: 100px">
-                                    Lote
-                                </th>
-                                <th class="text-center" style="width: 120px">
-                                    Referencia
-                                </th>
-                                <th class="text-center" style="width: 80px">
-                                    Cantidad
-                                </th>
-                                <th class="text-center" style="width: 80px">
-                                    Unidad
-                                </th>
-                                <th class="text-center" style="width: 80px">
-                                    Acciones
-                                </th>
-                            </tr>
-                        </ng-template>
-
-                        <ng-template pTemplate="body" let-row let-i="rowIndex">
-                            <tr>
-                                <td>{{ row.codigo }}</td>
-                                <td>{{ row.descripcion }}</td>
-                                <td class="text-center">
-                                    <span *ngIf="row.lote" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">{{ row.lote }}</span>
-                                    <span *ngIf="!row.lote" class="text-gray-400 text-xs">-</span>
-                                </td>
-                                <td class="text-center text-sm">
-                                    <span *ngIf="row.referencia">{{ row.referencia }}</span>
-                                    <span *ngIf="!row.referencia" class="text-gray-400 text-xs">-</span>
-                                </td>
-                                <td class="text-center">{{ row.cantidad }}</td>
-                                <td class="text-center">
-                                    {{ row.unidadMedida }}
-                                </td>
-                                <td class="text-center">
-                                    <button
-                                        pButton
-                                        icon="pi pi-trash"
-                                        (click)="eliminarFila(i)"
-                                        class="p-button-sm p-button-danger"
-                                        type="button"
-                                    ></button>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
-
-                    <div
-                        *ngIf="detalle.length === 0"
-                        class="mt-3 text-center text-gray-400"
-                    >
-                        No hay productos agregados aún.
-                    </div>
-                </div>
-            </div>
-        </p-panel>
-    </form>
-
-    <!-- Diálogo de stock -->
-    <p-dialog
-        header="Stock Disponible"
-        [(visible)]="dialogStockVisible"
-        [modal]="true"
-        [closable]="true"
-        [style]="{ width: '400px' }"
-        styleClass="p-fluid"
-    >
-        <div *ngIf="stockInfo; else cargandoStock" class="space-y-2">
-            <p class="text-sm">
-                <strong class="text-gray-700">Producto:</strong>
-                <span class="text-gray-900">{{ stockInfo.codigo }}</span>
-            </p>
-            <p class="text-sm">
-                <strong class="text-gray-700">Descripción:</strong>
-                <span class="text-gray-900">{{ stockInfo.descripcion }}</span>
-            </p>
-            <p class="text-sm">
-                <strong class="text-gray-700">Stock disponible:</strong>
-                <span class="text-amber-700 font-medium">{{ stockInfo.stockDisponibleTotal }} {{ stockInfo.unidadAlmacenamiento }}</span>
-            </p>
-            <p class="text-sm">
-                <strong class="text-gray-700">Estado:</strong>
-                <span class="text-gray-900">{{ stockInfo.estado }}</span>
-            </p>
+          </div>
+          <div class="flex flex-col xl:col-span-4">
+            <label class="mb-1 text-xs font-medium text-gray-700">Direccion de Entrega:</label>
+            <input pInputText formControlName="direccionEntrega" class="w-full text-sm border-gray-300" />
+          </div>
         </div>
 
-        <ng-template #cargandoStock>
-            <div class="text-center text-gray-500 py-4">
-                <i class="pi pi-spin pi-spinner mr-2"></i>
-                Consultando stock...
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Resumen del destino</p>
+              <p class="mt-2 text-sm font-semibold text-slate-900">{{ compradorDisplay }}</p>
+              <p class="mt-1 text-sm leading-6 text-slate-600">{{ form.get('direccionEntrega')?.value || 'Sin direccion registrada' }}</p>
             </div>
-        </ng-template>
-    </p-dialog>
+            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+              <i class="pi pi-map-marker text-amber-600"></i>
+              Entrega B2B
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- DIÁLOGO DE LOTES DISPONIBLES -->
-    <p-dialog
-        header="Lotes Disponibles en Inventario"
-        [(visible)]="dialogLotesVisible"
-        [modal]="true"
-        [closable]="true"
-        [style]="{ width: '900px', maxWidth: '95vw' }"
-        [contentStyle]="{ overflow: 'visible' }"
-    >
-        <ng-template pTemplate="header">
-            <div class="flex items-center gap-2">
-                <i class="pi pi-box text-amber-600 text-xl"></i>
-                <div>
-                    <div class="font-semibold text-lg">Lotes Disponibles</div>
-                    <div class="text-xs text-gray-600" *ngIf="model.productoSeleccionado">
-                        {{ model.productoSeleccionado.codigo }} - {{ model.productoSeleccionado.nombreCompleto }}
-                    </div>
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex flex-col gap-2 border-b border-slate-200 bg-slate-900 px-5 py-4 text-white lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h3 class="text-base font-semibold text-slate-50">Detalle del Pedido</h3>
+          <p class="mt-1 text-sm text-amber-200">Agrega, actualiza o elimina items con control de lote y stock.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3 lg:min-w-[18rem]">
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <span class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Items</span>
+            <div class="mt-1 text-xl font-semibold text-white">{{ detalle.length }}</div>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+            <span class="text-[11px] uppercase tracking-[0.18em] text-slate-400">Unidades</span>
+            <div class="mt-1 text-xl font-semibold text-white">{{ totalCantidadDetalle }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-5">
+        <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+          <div class="xl:sticky xl:top-6 xl:self-start">
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-sm">
+              <div class="border-b border-slate-200 bg-white px-5 py-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 class="text-sm font-semibold text-slate-900">Agregar nuevo item</h4>
+                    <p class="mt-1 text-sm text-slate-500">Busca producto, valida lote y agrega referencia.</p>
+                  </div>
+                  <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-700">
+                    <i class="pi pi-box text-base"></i>
+                  </span>
                 </div>
-            </div>
-        </ng-template>
+              </div>
 
-        <!-- Contenido del modal -->
-        <div *ngIf="lotesInfo && lotesInfo.length > 0; else sinLotes">
-            <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <i class="pi pi-info-circle text-blue-600 mr-2"></i>
-                <span class="text-sm text-blue-900">
-                    Haga clic en "Usar" para seleccionar un lote y agregarlo automáticamente
-                </span>
+              <div class="space-y-4 p-5">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Producto</label>
+                <p-autoComplete
+                  [(ngModel)]="model.productoSeleccionado"
+                  [suggestions]="productosFiltrados"
+                  [ngModelOptions]="{ standalone: true }"
+                  (completeMethod)="buscarProductos($event)"
+                  [minLength]="2"
+                  appendTo="body"
+                  [delay]="300"
+                  [field]="'nombreCompleto'"
+                  [dropdown]="true"
+                  [forceSelection]="true"
+                  [style]="{ width: '100%' }"
+                >
+                  <ng-template let-item pTemplate="item">
+                    <div class="flex items-center justify-between">
+                      <span>{{ item.nombreCompleto }}</span>
+                      <small class="text-gray-500">({{ item.unidad }})</small>
+                    </div>
+                  </ng-template>
+
+                  <ng-template let-item pTemplate="selectedItem">
+                    <div>{{ item.nombreCompleto }}</div>
+                  </ng-template>
+                </p-autoComplete>
+
+                <div class="mt-2 flex justify-between items-center gap-2">
+                  <a class="cursor-pointer text-xs text-blue-600 hover:underline flex items-center gap-1" (click)="verStock()" *ngIf="model.productoSeleccionado">
+                    <i class="pi pi-chart-bar"></i>
+                    <span>Ver stock</span>
+                  </a>
+
+                  <a class="cursor-pointer text-xs text-green-600 hover:underline font-semibold flex items-center gap-1" (click)="verLotes()" *ngIf="model.productoSeleccionado">
+                    <i class="pi pi-box"></i>
+                    <span>Ver lotes disponibles</span>
+                  </a>
+                </div>
+
+                <div class="mt-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Lote</label>
+                  <input pInputText type="text" [ngModelOptions]="{ standalone: true }" [(ngModel)]="model.lote" class="w-full text-sm border-gray-300" />
+                </div>
+
+                <div class="mt-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Cantidad</label>
+                  <input pInputText type="number" [ngModelOptions]="{ standalone: true }" min="1" [(ngModel)]="model.cantidad" class="w-full text-sm border-gray-300" />
+                </div>
+
+                <div class="mt-3">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Referencia (DUA / OC)</label>
+                  <input pInputText type="text" [ngModelOptions]="{ standalone: true }" [(ngModel)]="model.referencia" class="w-full text-sm border-gray-300" />
+                </div>
+
+                <button
+                  class="w-full border border-amber-500 bg-amber-500 px-3 py-2 text-sm font-medium text-slate-950 shadow-sm transition-all duration-150 hover:bg-amber-400"
+                  pButton
+                  label="Agregar item"
+                  type="button"
+                  icon="pi pi-plus"
+                  iconPos="left"
+                  (click)="agregarItem()">
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <span class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Resumen</span>
+                <p class="mt-2 text-2xl font-semibold text-slate-900">{{ detalle.length }}</p>
+                <p class="mt-1 text-sm text-slate-500">productos cargados</p>
+              </div>
+              <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <span class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Cantidad total</span>
+                <p class="mt-2 text-2xl font-semibold text-slate-900">{{ totalCantidadDetalle }}</p>
+                <p class="mt-1 text-sm text-slate-500">unidades solicitadas</p>
+              </div>
+              <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <span class="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Estado</span>
+                <p class="mt-2 text-base font-semibold" [ngClass]="formularioListoParaGuardado ? 'text-emerald-700' : 'text-amber-700'">
+                  {{ formularioListoParaGuardado ? 'Pedido consistente' : 'Faltan datos por completar' }}
+                </p>
+                <p class="mt-1 text-sm text-slate-500">Control previo al guardado</p>
+              </div>
             </div>
 
-            <p-table
-                [value]="lotesInfo"
-                [scrollable]="true"
-                scrollHeight="400px"
-                styleClass="p-datatable-sm p-datatable-striped"
-                [paginator]="lotesInfo.length > 10"
-                [rows]="10"
-                [rowsPerPageOptions]="[10, 20, 50]"
-            >
+            <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div class="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-900">Detalle consolidado</h4>
+                  <p class="mt-1 text-sm text-slate-500">Revisa codigo, lote, referencia y cantidad antes de guardar.</p>
+                </div>
+                <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+                  <i class="pi pi-list-check text-amber-600"></i>
+                  {{ detalle.length }} registros activos
+                </div>
+              </div>
+
+              <p-table [value]="detalle" dataKey="codigo" class="w-full" styleClass="p-datatable-sm" [scrollable]="true" scrollHeight="420px">
                 <ng-template pTemplate="header">
-                    <tr class="bg-gray-800 text-white">
-                        <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="numeroLote">
-                            Número de Lote
-                            <p-sortIcon field="numeroLote"></p-sortIcon>
-                        </th>
-                        <th class="text-sm font-semibold text-white px-4 py-3 text-right" pSortableColumn="cantidadDisponible">
-                            Cantidad
-                            <p-sortIcon field="cantidadDisponible"></p-sortIcon>
-                        </th>
-                        <th class="text-sm font-semibold text-white px-4 py-3">Unidad</th>
-                        <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="fechaVencimiento">
-                            Fecha Venc.
-                            <p-sortIcon field="fechaVencimiento"></p-sortIcon>
-                        </th>
-                        <th class="text-sm font-semibold text-white px-4 py-3">Ubicación</th>
-                        <th class="text-sm font-semibold text-white px-4 py-3">Estado</th>
-                        <th class="text-sm font-semibold text-white px-4 py-3 text-center">Acción</th>
-                    </tr>
+                  <tr class="bg-gray-800 text-white">
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 100px">Codigo</th>
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700">Descripcion</th>
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 100px">Lote</th>
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 120px">Referencia</th>
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 80px">Cantidad</th>
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 80px">Unidad</th>
+                    <th class="text-center px-4 py-2 text-sm font-semibold text-white border-b border-gray-700" style="width: 80px">Acciones</th>
+                  </tr>
                 </ng-template>
 
-                <ng-template pTemplate="body" let-lote>
-                    <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
-                        <td class="text-sm px-4 py-3">
-                            <span class="font-medium text-gray-900">{{ lote.numeroLote }}</span>
-                        </td>
-                        <td class="text-sm text-right px-4 py-3">
-                            <span class="font-semibold px-2 py-1 rounded" [ngClass]="{
-                                'bg-green-100 text-green-800': lote.cantidadDisponible > 50,
-                                'bg-amber-100 text-amber-800': lote.cantidadDisponible > 0 && lote.cantidadDisponible <= 50,
-                                'bg-red-100 text-red-800': lote.cantidadDisponible === 0
-                            }">
-                                {{ lote.cantidadDisponible }}
-                            </span>
-                        </td>
-                        <td class="text-sm text-gray-700 px-4 py-3">{{ lote.unidad || 'UND' }}</td>
-                        <td class="text-sm text-gray-700 px-4 py-3">
-                            <span *ngIf="lote.fechaExpire" class="flex items-center gap-1">
-                                <i class="pi pi-calendar text-gray-400 text-xs"></i>
-                                {{ lote.fechaExpire | date:'dd/MM/yyyy' }}
-                            </span>
-                            <span *ngIf="!lote.fechaExpire" class="text-gray-400">Sin fecha</span>
-                        </td>
-                        <td class="text-sm text-gray-700 px-4 py-3">
-                            <span *ngIf="lote.ubicacion" class="flex items-center gap-1">
-                                <i class="pi pi-map-marker text-gray-400 text-xs"></i>
-                                {{ lote.ubicacion }}
-                            </span>
-                            <span *ngIf="!lote.ubicacion" class="text-gray-400">-</span>
-                        </td>
-                        <td class="text-sm px-4 py-3">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="{
-                                'bg-green-100 text-green-800': lote.estado === 'Activo' || lote.estado === 'Disponible',
-                                'bg-amber-100 text-amber-800': lote.estado === 'Por Vencer',
-                                'bg-red-100 text-red-800': lote.estado === 'Vencido' || lote.estado === 'Bloqueado',
-                                'bg-gray-100 text-gray-800': !lote.estado
-                            }">
-                                {{ lote.estado || 'Disponible' }}
-                            </span>
-                        </td>
-                        <td class="text-center px-4 py-3">
-                            <button
-                                pButton
-                                type="button"
-                                icon="pi pi-check"
-                                class="p-button-sm p-button-success"
-                                label="Usar"
-                                (click)="seleccionarLote(lote)"
-                                [disabled]="lote.cantidadDisponible === 0 || lote.estado === 'Vencido' || lote.estado === 'Bloqueado'"
-                                [pTooltip]="lote.cantidadDisponible === 0 ? 'Sin stock disponible' : 'Seleccionar este lote'"
-                                tooltipPosition="left"
-                            ></button>
-                        </td>
-                    </tr>
+                <ng-template pTemplate="body" let-row let-i="rowIndex">
+                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+                    <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.codigo }}</td>
+                    <td class="px-4 py-2 text-gray-700 text-sm">{{ row.descripcion }}</td>
+                    <td class="text-center px-4 py-2 text-gray-700 text-sm">
+                      <span *ngIf="row.lote" class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">{{ row.lote }}</span>
+                      <span *ngIf="!row.lote" class="text-gray-400 text-xs">-</span>
+                    </td>
+                    <td class="text-center px-4 py-2 text-gray-700 text-sm">
+                      <span *ngIf="row.referencia">{{ row.referencia }}</span>
+                      <span *ngIf="!row.referencia" class="text-gray-400 text-xs">-</span>
+                    </td>
+                    <td class="text-center px-4 py-2 text-amber-700 text-sm font-medium">{{ row.cantidad }}</td>
+                    <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ row.unidadMedida }}</td>
+                    <td class="text-center px-4 py-2">
+                      <button pButton icon="pi pi-trash" (click)="eliminarFila(i)" class="p-button-sm p-button-danger" type="button"></button>
+                    </td>
+                  </tr>
                 </ng-template>
 
                 <ng-template pTemplate="emptymessage">
-                    <tr>
-                        <td colspan="7" class="text-center py-8">
-                            <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
-                            <p class="text-gray-500">No hay lotes disponibles</p>
-                        </td>
-                    </tr>
+                  <tr>
+                    <td [attr.colspan]="7" class="text-center p-8">
+                      <div class="flex flex-col items-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10">
+                        <i class="pi pi-inbox mb-3 text-4xl text-slate-300"></i>
+                        <span class="text-sm font-medium text-slate-600">No hay productos agregados aun</span>
+                        <span class="mt-1 text-xs text-slate-400">Usa el panel izquierdo para buscar productos y construir el detalle.</span>
+                      </div>
+                    </td>
+                  </tr>
                 </ng-template>
-            </p-table>
-
-            <!-- Información adicional -->
-            <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
-                        <i class="pi pi-box text-blue-600 text-2xl"></i>
-                        <div>
-                            <div class="text-xs text-gray-600">Total de Lotes</div>
-                            <div class="text-xl font-bold text-gray-900">{{ lotesInfo.length }}</div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
-                        <i class="pi pi-check-circle text-green-600 text-2xl"></i>
-                        <div>
-                            <div class="text-xs text-gray-600">Stock Total</div>
-                            <div class="text-xl font-bold text-green-700">
-                                {{ calcularStockTotal() }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
-                        <i class="pi pi-calendar text-amber-600 text-2xl"></i>
-                        <div>
-                            <div class="text-xs text-gray-600">Próximo Vencimiento</div>
-                            <div class="text-sm font-bold text-amber-700">
-                                {{ obtenerProximoVencimiento() }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+              </p-table>
             </div>
-
-            <!-- Tips -->
-            <div class="mt-4 p-3 bg-amber-50 border-l-4 border-amber-500 rounded">
-                <div class="flex items-start gap-2">
-                    <i class="pi pi-lightbulb text-amber-600 text-lg mt-0.5"></i>
-                    <div class="text-sm text-amber-900">
-                        <p class="font-semibold mb-2">💡 Recomendaciones:</p>
-                        <ul class="list-disc list-inside space-y-1 text-amber-800">
-                            <li>Priorice lotes con fecha de vencimiento más próxima (FEFO)</li>
-                            <li>Los lotes marcados en ámbar tienen stock limitado</li>
-                            <li>La cantidad se ajustará automáticamente si excede el disponible</li>
-                            <li>No puede seleccionar lotes vencidos o bloqueados</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
+    </div>
+  </form>
 
-        <!-- Template: Sin lotes -->
-        <ng-template #sinLotes>
-            <div class="text-center py-12">
-                <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-600 text-lg font-medium">No hay lotes disponibles</p>
-                <p class="text-gray-500 text-sm mt-2">
-                    Este producto no tiene lotes registrados en el inventario
-                </p>
-                <button
-                    pButton
-                    type="button"
-                    label="Cerrar"
-                    icon="pi pi-times"
-                    class="p-button-secondary mt-4"
-                    (click)="dialogLotesVisible = false"
-                ></button>
-            </div>
+  <p-dialog
+    header="Stock Disponible"
+    [(visible)]="dialogStockVisible"
+    [modal]="true"
+    [closable]="true"
+    [style]="{ width: '400px' }"
+    styleClass="p-fluid"
+  >
+    <div *ngIf="stockInfo; else cargandoStock" class="space-y-2">
+      <p class="text-sm">
+        <strong class="text-gray-700">Producto:</strong>
+        <span class="text-gray-900">{{ stockInfo.codigo }}</span>
+      </p>
+      <p class="text-sm">
+        <strong class="text-gray-700">Descripcion:</strong>
+        <span class="text-gray-900">{{ stockInfo.descripcionLarga || stockInfo.descripcion }}</span>
+      </p>
+      <p class="text-sm">
+        <strong class="text-gray-700">Stock disponible:</strong>
+        <span class="text-amber-700 font-medium">{{ stockInfo.stockDisponibleTotal }} {{ stockInfo.unidadAlmacenamiento }}</span>
+      </p>
+      <p class="text-sm">
+        <strong class="text-gray-700">Estado:</strong>
+        <span class="text-gray-900">{{ stockInfo.estado }}</span>
+      </p>
+    </div>
+
+    <ng-template #cargandoStock>
+      <div class="text-center text-gray-500 py-4">
+        <i class="pi pi-spin pi-spinner mr-2"></i>
+        Consultando stock...
+      </div>
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    header="Lotes Disponibles en Inventario"
+    [(visible)]="dialogLotesVisible"
+    [modal]="true"
+    [closable]="true"
+    [style]="{ width: '900px', maxWidth: '95vw' }"
+    [contentStyle]="{ overflow: 'visible' }"
+  >
+    <ng-template pTemplate="header">
+      <div class="flex items-center gap-2">
+        <i class="pi pi-box text-amber-600 text-xl"></i>
+        <div>
+          <div class="font-semibold text-lg">Lotes Disponibles</div>
+          <div class="text-xs text-gray-600" *ngIf="model.productoSeleccionado">
+            {{ model.productoSeleccionado.codigo }} - {{ model.productoSeleccionado.nombreCompleto }}
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <div *ngIf="lotesInfo && lotesInfo.length > 0; else sinLotes">
+      <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <i class="pi pi-info-circle text-blue-600 mr-2"></i>
+        <span class="text-sm text-blue-900">
+          Haga clic en "Usar" para seleccionar un lote y agregarlo automaticamente
+        </span>
+      </div>
+
+      <p-table
+        [value]="lotesInfo"
+        [scrollable]="true"
+        scrollHeight="400px"
+        styleClass="p-datatable-sm p-datatable-striped"
+        [paginator]="lotesInfo.length > 10"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+      >
+        <ng-template pTemplate="header">
+          <tr class="bg-gray-800 text-white">
+            <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="numeroLote">Numero de Lote <p-sortIcon field="numeroLote"></p-sortIcon></th>
+            <th class="text-sm font-semibold text-white px-4 py-3 text-right" pSortableColumn="cantidadDisponible">Cantidad <p-sortIcon field="cantidadDisponible"></p-sortIcon></th>
+            <th class="text-sm font-semibold text-white px-4 py-3">Unidad</th>
+            <th class="text-sm font-semibold text-white px-4 py-3" pSortableColumn="fechaVencimiento">Fecha Venc. <p-sortIcon field="fechaVencimiento"></p-sortIcon></th>
+            <th class="text-sm font-semibold text-white px-4 py-3">Ubicacion</th>
+            <th class="text-sm font-semibold text-white px-4 py-3">Estado</th>
+            <th class="text-sm font-semibold text-white px-4 py-3 text-center">Accion</th>
+          </tr>
         </ng-template>
 
-        <!-- Footer -->
-        <ng-template pTemplate="footer">
-            <div class="flex justify-between items-center">
-                <div class="text-xs text-gray-500">
-                    <i class="pi pi-info-circle mr-1"></i>
-                    Seleccione un lote para continuar
-                </div>
-                <button
-                    pButton
-                    type="button"
-                    label="Cerrar"
-                    icon="pi pi-times"
-                    class="p-button-secondary"
-                    (click)="dialogLotesVisible = false"
-                ></button>
-            </div>
+        <ng-template pTemplate="body" let-lote>
+          <tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
+            <td class="text-sm px-4 py-3"><span class="font-medium text-gray-900">{{ lote.numeroLote }}</span></td>
+            <td class="text-sm text-right px-4 py-3">
+              <span class="font-semibold px-2 py-1 rounded" [ngClass]="{
+                'bg-green-100 text-green-800': lote.cantidadDisponible > 50,
+                'bg-amber-100 text-amber-800': lote.cantidadDisponible > 0 && lote.cantidadDisponible <= 50,
+                'bg-red-100 text-red-800': lote.cantidadDisponible === 0
+              }">{{ lote.cantidadDisponible }}</span>
+            </td>
+            <td class="text-sm text-gray-700 px-4 py-3">{{ lote.unidad || 'UND' }}</td>
+            <td class="text-sm text-gray-700 px-4 py-3">
+              <span *ngIf="lote.fechaExpire" class="flex items-center gap-1">
+                <i class="pi pi-calendar text-gray-400 text-xs"></i>
+                {{ lote.fechaExpire | date:'dd/MM/yyyy' }}
+              </span>
+              <span *ngIf="!lote.fechaExpire" class="text-gray-400">Sin fecha</span>
+            </td>
+            <td class="text-sm text-gray-700 px-4 py-3">
+              <span *ngIf="lote.ubicacion" class="flex items-center gap-1">
+                <i class="pi pi-map-marker text-gray-400 text-xs"></i>
+                {{ lote.ubicacion }}
+              </span>
+              <span *ngIf="!lote.ubicacion" class="text-gray-400">-</span>
+            </td>
+            <td class="text-sm px-4 py-3">
+              <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="{
+                'bg-green-100 text-green-800': lote.estado === 'Activo' || lote.estado === 'Disponible',
+                'bg-amber-100 text-amber-800': lote.estado === 'Por Vencer',
+                'bg-red-100 text-red-800': lote.estado === 'Vencido' || lote.estado === 'Bloqueado',
+                'bg-gray-100 text-gray-800': !lote.estado
+              }">{{ lote.estado || 'Disponible' }}</span>
+            </td>
+            <td class="text-center px-4 py-3">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-check"
+                class="p-button-sm p-button-success"
+                label="Usar"
+                (click)="seleccionarLote(lote)"
+                [disabled]="lote.cantidadDisponible === 0 || lote.estado === 'Vencido' || lote.estado === 'Bloqueado'"
+                [pTooltip]="lote.cantidadDisponible === 0 ? 'Sin stock disponible' : 'Seleccionar este lote'"
+                tooltipPosition="left"
+              ></button>
+            </td>
+          </tr>
         </ng-template>
-    </p-dialog>
+      </p-table>
+
+      <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+            <i class="pi pi-box text-blue-600 text-2xl"></i>
+            <div>
+              <div class="text-xs text-gray-600">Total de Lotes</div>
+              <div class="text-xl font-bold text-gray-900">{{ lotesInfo.length }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+            <i class="pi pi-check-circle text-green-600 text-2xl"></i>
+            <div>
+              <div class="text-xs text-gray-600">Stock Total</div>
+              <div class="text-xl font-bold text-green-700">{{ calcularStockTotal() }}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-white rounded border border-gray-200">
+            <i class="pi pi-calendar text-amber-600 text-2xl"></i>
+            <div>
+              <div class="text-xs text-gray-600">Proximo Vencimiento</div>
+              <div class="text-sm font-bold text-amber-700">{{ obtenerProximoVencimiento() }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #sinLotes>
+      <div class="text-center py-12">
+        <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
+        <p class="text-gray-600 text-lg font-medium">No hay lotes disponibles</p>
+        <p class="text-gray-500 text-sm mt-2">Este producto no tiene lotes registrados en el inventario</p>
+        <button pButton type="button" label="Cerrar" icon="pi pi-times" class="p-button-secondary mt-4" (click)="dialogLotesVisible = false"></button>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-between items-center">
+        <div class="text-xs text-gray-500">
+          <i class="pi pi-info-circle mr-1"></i>
+          Seleccione un lote para continuar
+        </div>
+        <button pButton type="button" label="Cerrar" icon="pi pi-times" class="p-button-secondary" (click)="dialogLotesVisible = false"></button>
+      </div>
+    </ng-template>
+  </p-dialog>
 </div>
 
 <p-confirmDialog />
