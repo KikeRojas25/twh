@@ -172,6 +172,20 @@ export class EditComponent implements OnInit {
     return null;
   }
 
+  obtenerNombreEstadoPorId(estadoId: any): string | null {
+    const id = Number(estadoId);
+    if (!id || !this.estados?.length) {
+      return null;
+    }
+
+    const estado = this.estados.find((item) => Number(item.value) === id);
+    return estado?.label ? String(estado.label) : null;
+  }
+
+  obtenerTextoEstado(row: any): string {
+    return row?.estado ?? this.obtenerNombreEstadoPorId(row?.estadoId) ?? '-';
+  }
+
   private normalizarTexto(value: any): string {
     return String(value ?? '')
       .trim()
@@ -278,18 +292,23 @@ agregarItem(): void {
     }
   }
 
-  // 🔹 Verificar si el producto ya está en el detalle
-  const existente = this.detalle.find(
-    (d) => d.productoId === this.model.productoSeleccionado.id
-  );
+  // 🔹 Consolidar solo si coinciden producto, lote y estado
+  const loteActual = this.model.lote || null;
+  const existente = this.detalle.find((d) => {
+    const mismoProducto = d.productoId === this.model.productoSeleccionado.id;
+    const mismoLote = (d.lote || null) === loteActual;
+    const mismoEstado = Number(d.estadoId || 0) === estadoIdNum;
+    return mismoProducto && mismoLote && mismoEstado;
+  });
 
   if (existente) {
     // Si ya existe, sumamos la cantidad
     existente.cantidad += this.model.cantidad;
+    existente.estado = existente.estado || this.model.estadoTexto || this.obtenerNombreEstadoPorId(this.model.estadoId);
     this.messageService.add({
       severity: 'info',
       summary: 'Actualizado',
-      detail: `La cantidad del producto ${this.model.productoSeleccionado.nombreCompleto} fue actualizada.`
+      detail: `La cantidad del producto ${this.model.productoSeleccionado.nombreCompleto}${loteActual ? ' (Lote: ' + loteActual + ')' : ''} fue actualizada.`
     });
   } else {
     // 🔹 Crear el objeto de detalle
@@ -301,6 +320,7 @@ agregarItem(): void {
       lote: this.model.lote || null,
       referencia: this.model.referencia || null,
       cantidad: this.model.cantidad,
+      estado: this.model.estadoTexto || this.obtenerNombreEstadoPorId(this.model.estadoId),
       estadoId: Number(this.model.estadoId),
       huellaId: null
     };
@@ -478,6 +498,7 @@ agregarItem(): void {
           lote: item?.lote ?? item?.Lote ?? null,
           referencia: item?.referencia ?? item?.Referencia ?? null,
           cantidad: Number(item?.cantidad ?? item?.Cantidad ?? 0),
+          estado: item?.estado ?? item?.Estado ?? this.obtenerNombreEstadoPorId(item?.estadoId ?? item?.EstadoId ?? 0),
           estadoId: Number(item?.estadoId ?? item?.EstadoId ?? 0),
           huellaId: item?.huellaId ?? item?.HuellaId ?? null
         }));
@@ -552,6 +573,7 @@ agregarItem(): void {
           lote: item?.lote ?? item?.Lote ?? null,
           referencia: item?.referencia ?? item?.Referencia ?? null,
           cantidad: Number(item?.cantidad ?? item?.Cantidad ?? 0),
+          estado: item?.estado ?? item?.Estado ?? this.obtenerNombreEstadoPorId(item?.estadoId ?? item?.EstadoId ?? 0),
           estadoId: Number(item?.estadoId ?? item?.EstadoId ?? 0),
           huellaId: item?.huellaId ?? item?.HuellaId ?? null
         }));
@@ -669,10 +691,15 @@ agregarItem(): void {
         })
       : null;
 
+    const fechaRequerida: Date = this.form.value.fechaRequerida;
+    const fechaFormateada = fechaRequerida
+      ? new Date(fechaRequerida).toISOString().split('T')[0]
+      : null;
+
     const pedidoActualizado = {
       id: this.pedidoId,
       ordenCompraCliente: this.form.value.ordenCompraCliente,
-      fechaRequerida: this.form.value.fechaRequerida,
+      fechaRequerida: fechaFormateada,
       horaRequerida: horaFormateada,
       observaciones: this.form.value.observaciones,
       comprador: {
@@ -682,90 +709,21 @@ agregarItem(): void {
         telefono: this.form.value.telefono,
         correo: this.form.value.correo,
         direccionEntrega: this.form.value.direccionEntrega,
-        iddestino: this.form.value.iddestino
+        iddestino: Number(this.form.value.iddestino || 0)
       },
-      detalle: this.detalle.map((x) => ({
-        codigo: x.codigo,
-        cantidad: x.cantidad,
-        unidadMedidaId: x.unidadMedidaId,
-        lote: x.lote,
-        referencia: x.referencia
-      }))
-    };
-
-    const formatFecha = (fecha: any): string => {
-      if (!fecha) return '';
-      return new Date(fecha).toISOString().split('T')[0];
-    };
-
-    const propietarioId = Number(
-      this.idPropietario ||
-      this.ordenCabeceraActual?.propietarioId ||
-      this.ordenCabeceraActual?.PropietarioId ||
-      0
-    );
-
-    const almacenId = Number(
-      this.ordenCabeceraActual?.almacenId ||
-      this.ordenCabeceraActual?.AlmacenId ||
-      0
-    );
-
-    const propietarioLabel = this.propietarios.find((x) => Number(x.value) === propietarioId)?.label ||
-      this.ordenCabeceraActual?.propietario ||
-      this.ordenCabeceraActual?.Propietario ||
-      null;
-
-    const ordenSalidaPayload = {
-      Id: this.pedidoId,
-      PropietarioId: propietarioId,
-      Propietario: propietarioLabel,
-      NumOrden: this.ordenCabeceraActual?.numOrden || this.ordenCabeceraActual?.NumOrden || null,
-      AlmacenId: almacenId,
-      GuiaRemision: this.ordenCabeceraActual?.guiaRemision || this.ordenCabeceraActual?.GuiaRemision || '',
-      FechaRequerida: formatFecha(this.form.value.fechaRequerida),
-      HoraRequerida: horaFormateada || '',
-      OrdenCompraCliente: this.form.value.ordenCompraCliente || '',
-      ClienteId: Number(this.form.value.clienteId || this.ordenCabeceraActual?.clienteId || this.ordenCabeceraActual?.ClienteId || 0),
-      DireccionId: Number(this.form.value.direccionId || this.ordenCabeceraActual?.direccionId || this.ordenCabeceraActual?.DireccionId || 0),
-      EquipoTransporteId: this.ordenCabeceraActual?.EquipoTransporteId || null,
-      EstadoId: Number(this.ordenCabeceraActual?.estadoId || this.ordenCabeceraActual?.EstadoId || 0),
-      UsuarioRegistro: Number(this.decodedToken?.nameid || 0),
-      UbicacionId: this.ordenCabeceraActual?.UbicacionId || null,
-      TipoRegistroId: Number(this.ordenCabeceraActual?.TipoRegistroId || 170),
-      codigodespacho: this.ordenCabeceraActual?.codigodespacho || null,
-      distrito: this.ordenCabeceraActual?.distrito || null,
-      departamento: this.ordenCabeceraActual?.departamento || null,
-      contacto: this.form.value.contacto || this.ordenCabeceraActual?.contacto || null,
-      telefono: this.form.value.telefono || this.ordenCabeceraActual?.telefono || null,
-      correo: this.form.value.correo || this.ordenCabeceraActual?.correo || this.ordenCabeceraActual?.Correo || null,
-      usuarioid: Number(this.decodedToken?.nameid || 0),
-      sucursal: this.ordenCabeceraActual?.sucursal || null,
-      CargaMasivaId: Number(this.ordenCabeceraActual?.CargaMasivaId || 0),
-      GuiaRemisionIngreso: this.ordenCabeceraActual?.GuiaRemisionIngreso || null,
-      tipodescargaid: this.ordenCabeceraActual?.tipodescargaid || this.ordenCabeceraActual?.Tipodescargaid || null,
-      Items: this.detalle.length,
-      ordeninfor: this.ordenCabeceraActual?.ordeninfor || null,
-      ordenentrega: this.ordenCabeceraActual?.ordenentrega || null,
-      Tamano: this.ordenCabeceraActual?.Tamano || null,
-      ocingreso: this.ordenCabeceraActual?.ocingreso || null,
-      peso: this.ordenCabeceraActual?.peso || null,
-      cantidad: this.ordenCabeceraActual?.cantidad || null,
-      destino: this.form.value.direccionEntrega || this.ordenCabeceraActual?.destino || null,
-      referencia: this.ordenCabeceraActual?.referencia || null,
-      Detalles: this.detalle.map((x: any) => {
-        const detalleItem: any = {
-          productoId: x.productoId,
-          cantidad: Number(x.cantidad || 0),
-          estadoId: Number(x.estadoId || 0),
-          huellaId: x.huellaId !== null && x.huellaId !== undefined ? Number(x.huellaId) : 0,
+      detalle: this.detalle.map((x) => {
+        const item: any = {
+          codigo: x.codigo,
+          cantidad: x.cantidad,
+          unidadMedidaId: Number(x.unidadMedidaId || 0),
+          estadoId: Number(x.estadoId || 0)
         };
-
-        if (x.lote) detalleItem.lote = x.lote;
-        if (x.referencia) detalleItem.referencia = x.referencia;
-        return detalleItem;
+        if (x.lote) item.lote = x.lote;
+        if (x.referencia) item.referencia = x.referencia;
+        return item;
       })
     };
+
 
 
 
@@ -783,57 +741,26 @@ agregarItem(): void {
     rejectButtonStyleClass: 'p-button-secondary',
 
     accept: () => {
-
-
-
-
-    this.despachoService.actualizarOrdenSalida(ordenSalidaPayload).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Actualizado',
-          detail: 'Pedido actualizado correctamente.'
-        });
-        this.router.navigate(['/b2b/ordenessalida']);
-      },
-      error: (err) => {
-        const status = Number(err?.status || 0);
-
-        // Fallback para registros legacy que solo aceptan endpoint B2B
-        if (status === 404 || status === 405) {
-          this.b2bService.actualizarPedido(pedidoActualizado).subscribe({
-            next: () => {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Actualizado',
-                detail: 'Pedido actualizado correctamente.'
-              });
-              this.router.navigate(['/b2b/ordenessalida']);
-            },
-            error: (legacyErr) => {
-              console.error(legacyErr);
-              const detalle = legacyErr?.error?.message || 'No se pudo actualizar el pedido.';
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: detalle
-              });
-            }
+      this.b2bService.actualizarPedido(pedidoActualizado).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Actualizado',
+            detail: 'Pedido actualizado correctamente.'
           });
-          return;
+          this.router.navigate(['/b2b/ordenessalida']);
+        },
+        error: (err) => {
+          console.error(err);
+          const detalle = err?.error?.message || 'No se pudo actualizar el pedido.';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: detalle
+          });
         }
-
-        console.error(err);
-        const detalle = err?.error?.message || 'No se pudo actualizar el pedido.';
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: detalle
-        });
-      }
-    });
-
-  },
+      });
+    },
     reject: () => {
       // 🔹 Si el usuario cancela
       this.messageService.add({

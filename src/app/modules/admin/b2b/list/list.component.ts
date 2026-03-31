@@ -110,6 +110,12 @@ export class ListComponent implements OnInit, OnDestroy {
       };
     }
 
+    get totalCantidadDetalleProductos(): number {
+      return (this.detalleProductos || []).reduce((total: number, item: PedidoDetalle) => {
+        return total + Number(item?.cantidad || 0);
+      }, 0);
+    }
+
     constructor(
         public dialogService: DialogService,
         private despachosService: DespachosService,

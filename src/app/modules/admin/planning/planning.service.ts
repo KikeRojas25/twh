@@ -105,7 +105,7 @@ getAllOrdenSalidaPendientesResumen(model: any): Observable<any> {
  
 PlanificarPicking(model: any){
 
-  return this.http.post(this.baseUrlPlanning + 'PlanificarPicking', model, httpOptions2);
+  return this.http.post(this.baseUrlPlanning + 'PlanificarPicking', model, httpOptions);
 }
 
 PlanificarDespacho(model: any){

@@ -145,6 +145,20 @@ export class NewComponent implements OnInit {
     return null;
   }
 
+  obtenerNombreEstadoPorId(estadoId: any): string | null {
+    const id = Number(estadoId);
+    if (!id || !this.estados?.length) {
+      return null;
+    }
+
+    const estado = this.estados.find((item) => Number(item.value) === id);
+    return estado?.label ? String(estado.label) : null;
+  }
+
+  obtenerTextoEstado(row: any): string {
+    return row?.estado ?? this.obtenerNombreEstadoPorId(row?.estadoId) ?? '-';
+  }
+
   private completarDatosCliente(clienteId: number): void {
     if (!this.idPropietario || !clienteId) {
       return;
@@ -813,13 +827,15 @@ agregarItem(): void {
     (d) => {
       const mismoProducto = d.productoId === this.model.productoSeleccionado.id;
       const mismoLote = (d.lote || null) === loteActual;
-      return mismoProducto && mismoLote;
+      const mismoEstado = Number(d.estadoId || 0) === estadoIdNum;
+      return mismoProducto && mismoLote && mismoEstado;
     }
   );
 
   if (existente) {
     // Si ya existe el producto con el mismo lote, sumamos la cantidad
     existente.cantidad += this.model.cantidad;
+    existente.estado = existente.estado || this.model.estadoTexto || this.obtenerNombreEstadoPorId(this.model.estadoId);
     this.messageService.add({
       severity: 'info',
       summary: 'Actualizado',
@@ -835,6 +851,7 @@ agregarItem(): void {
       lote: this.model.lote || null,
       referencia: this.model.referencia || null,
       cantidad: this.model.cantidad,
+      estado: this.model.estadoTexto || this.obtenerNombreEstadoPorId(estadoIdNum),
       estadoId: estadoIdNum,
       huellaId: null
     };
@@ -855,6 +872,7 @@ agregarItem(): void {
   this.model.lote = null;
   this.model.referencia = null;
   this.model.estadoId = null;
+  this.model.estadoTexto = null;
 }
 
 

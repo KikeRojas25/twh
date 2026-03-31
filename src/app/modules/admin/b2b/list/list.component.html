@@ -347,14 +347,20 @@
     </ng-template>
 
     <ng-template pTemplate="footer">
-      <button
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-sm transition-all duration-150"
-        pButton
-        label="Cerrar"
-        icon="pi pi-times"
-        iconPos="left"
-        (click)="detalleOrdenModal = false">
-      </button>
+      <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+        <div class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800">
+          <span class="uppercase tracking-[0.18em] text-[11px] text-amber-600">Cantidad total</span>
+          <span class="text-base font-semibold">{{ totalCantidadDetalleProductos }}</span>
+        </div>
+        <button
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-sm transition-all duration-150"
+          pButton
+          label="Cerrar"
+          icon="pi pi-times"
+          iconPos="left"
+          (click)="detalleOrdenModal = false">
+        </button>
+      </div>
     </ng-template>
   </p-dialog>
 
