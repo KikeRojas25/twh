@@ -1,2 +1,74 @@
-/* Estilos específicos del componente si son necesarios */
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #374151 !important;
+}
 
+::ng-deep .p-datatable .p-datatable-thead > tr > th .p-sortable-column-icon {
+  color: #9ca3af !important;
+}
+
+::ng-deep .p-dropdown {
+  font-size: 0.875rem !important;
+  height: 2.25rem !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-label {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+}
+
+::ng-deep .p-dropdown .p-dropdown-trigger {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+}
+
+::ng-deep .p-calendar .p-inputtext {
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  height: 2rem !important;
+}
+
+::ng-deep .p-calendar .p-datepicker-trigger {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+::ng-deep .p-inputtext {
+  font-size: 0.875rem !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f9fafb !important;
+}
+
+::ng-deep .p-dialog .p-dialog-header {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  padding: 1rem 1.5rem !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .p-dialog .p-dialog-content {
+  padding: 1.5rem !important;
+}
+
+::ng-deep .p-paginator {
+  background-color: #ffffff !important;
+  border-top: 1px solid #e5e7eb !important;
+  padding: 0.75rem 1rem !important;
+}
+
+::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+  min-width: 2rem !important;
+  height: 2rem !important;
+  font-size: 0.875rem !important;
+}

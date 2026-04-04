@@ -1,0 +1,272 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700">Reportes</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700">Kardex por Producto</a>
+        </div>
+      </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Reporte de Kardex por Producto
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="bg-gray-700 text-white px-4 py-2.5 border-b border-gray-600">
+      <h3 class="text-base font-semibold text-gray-100">Filtro de búsqueda</h3>
+    </div>
+    <div class="p-4">
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+
+        <!-- Almacén -->
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Almacén :</label>
+          <p-dropdown
+            name="almacen"
+            [options]="almacenes"
+            [(ngModel)]="model.almacenId"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            placeholder="Todos"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <!-- Propietario -->
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Propietario :</label>
+          <p-dropdown
+            name="propietario"
+            [options]="propietarios"
+            [(ngModel)]="model.propietarioId"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            placeholder="Seleccione propietario"
+            styleClass="text-sm border-gray-300"
+            (onChange)="onPropietarioChange()">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <!-- Producto -->
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Producto :</label>
+          <p-dropdown
+            name="producto"
+            [options]="productos"
+            [(ngModel)]="model.productoId"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            [style]="{ width: '100%' }"
+            appendTo="body"
+            [placeholder]="model.propietarioId ? 'Seleccione producto' : 'Seleccione primero un propietario'"
+            [disabled]="!model.propietarioId"
+            styleClass="text-sm border-gray-300">
+            <ng-template let-item pTemplate="selectedItem">
+              <span>{{ item.label }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+
+        <!-- Fecha inicio -->
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Inicio:</label>
+          <p-calendar
+            [(ngModel)]="dateInicio"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            appendTo="body"
+            [style]="{ width: '100%' }">
+          </p-calendar>
+        </div>
+
+        <!-- Fecha fin -->
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">Fin:</label>
+          <p-calendar
+            [(ngModel)]="dateFin"
+            dateFormat="dd/mm/yy"
+            [showIcon]="true"
+            appendTo="body"
+            [style]="{ width: '100%' }">
+          </p-calendar>
+        </div>
+
+        <!-- NRO Guía / Lote -->
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">NRO GUIA / LOTE :</label>
+          <input
+            pInputText
+            [style]="{ width: '100%' }"
+            class="text-sm"
+            placeholder="Número de guía o lote..."
+            [(ngModel)]="nroGuia"
+            (keyup.enter)="buscar()" />
+        </div>
+
+        <!-- Botón buscar -->
+        <div>
+          <button
+            pButton
+            [style]="{ width: '100%' }"
+            class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm"
+            icon="fa fa-search"
+            label="Buscar"
+            [loading]="cargando"
+            (click)="buscar()">
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div #resultadosBlock *ngIf="buscado" class="flex flex-col lg:flex-row gap-4 mx-4 mb-4">
+
+    <!-- Tabla de movimientos -->
+    <div class="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="bg-gray-700 text-white px-4 py-2.5 border-b border-gray-600 flex items-center justify-between">
+        <h3 class="text-base font-semibold text-gray-100">Movimientos del período</h3>
+        <span class="text-xs text-amber-300">{{ movimientos.length }} registros</span>
+      </div>
+      <div class="p-3">
+        <p-table
+          [value]="movimientos"
+          [paginator]="true"
+          [rows]="20"
+          [scrollable]="true"
+          scrollHeight="480px"
+          [loading]="cargando"
+          styleClass="p-datatable-sm">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="background-color:#374151; color:#ffffff; text-align:left; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:150px;">GR</th>
+              <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:90px;">MOV.</th>
+              <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:110px;">CANTIDAD</th>
+              <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:110px;">STOCK</th>
+              <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:110px;">F. MOVIMIENTO</th>
+              <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:110px;">F. REGISTRO</th>
+              <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 12px; font-size:0.8rem; font-weight:600; border-bottom:1px solid #4B5563; min-width:120px;">ALMACÉN</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="px-3 py-2 text-gray-700 text-sm">{{ item.guiaRemision || '-' }}</td>
+              <td class="px-3 py-2 text-center">
+                <span [class]="item.movimiento === 'SALIDA'
+                  ? 'inline-block text-xs font-semibold text-red-700 bg-red-100 px-2 py-0.5 rounded-full'
+                  : 'inline-block text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full'">
+                  {{ item.movimiento }}
+                </span>
+              </td>
+              <td class="px-3 py-2 text-center">
+                <span [class]="getCantidadClass(item.cantidad)">{{ item.cantidad }}</span>
+              </td>
+              <td class="px-3 py-2 text-center text-sm text-gray-700 font-medium">
+                <i [class]="item.cantidad < 0 ? 'pi pi-arrow-down text-red-400' : 'pi pi-arrow-up text-green-500'"
+                   class="text-xs mr-1"></i>{{ item.saldo }}
+              </td>
+              <td class="px-3 py-2 text-center text-sm text-gray-600">{{ item.fechaMovimiento || '-' }}</td>
+              <td class="px-3 py-2 text-center text-sm text-gray-600">{{ item.fechaRegistro }}</td>
+              <td class="px-3 py-2 text-center text-sm text-gray-500">{{ item.almacen || '-' }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center p-8">
+                <div class="flex flex-col items-center">
+                  <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                  <span class="text-gray-500 text-sm">Sin movimientos en el período seleccionado</span>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+        </p-table>
+      </div>
+    </div>
+
+    <!-- Panel derecho -->
+    <div class="lg:w-64 flex flex-col gap-4">
+
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gray-700 text-white px-4 py-2.5">
+          <h3 class="text-sm font-semibold text-gray-100">Descripción:</h3>
+        </div>
+        <div class="p-4">
+          <p class="text-xs text-gray-400 mb-1">{{ codigo }}</p>
+          <div class="text-sm font-bold text-gray-900 bg-orange-100 px-2 py-1.5 rounded leading-snug">
+            {{ descripcion }}
+          </div>
+
+          <p class="text-xs text-gray-500 mt-4 mb-1">Stock Inventario:</p>
+          <div class="text-2xl font-bold text-gray-800 bg-orange-100 px-2 py-1 rounded">
+            {{ stockInventario }}
+          </div>
+
+          <p class="text-xs text-gray-500 mt-3 mb-1">Stock Separado:</p>
+          <div class="text-2xl font-bold text-gray-800 bg-orange-100 px-2 py-1 rounded">
+            {{ stockSeparado }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="movimientos.length > 0" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gray-700 text-white px-4 py-2.5">
+          <h3 class="text-sm font-semibold text-gray-100">Resumen del período:</h3>
+        </div>
+        <div class="p-4 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Total movimientos:</span>
+            <span class="font-semibold text-gray-800">{{ movimientos.length }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Saldo final:</span>
+            <span class="font-semibold text-gray-800">{{ movimientos[movimientos.length - 1]?.saldo ?? 0 }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Estado vacío inicial -->
+  <div *ngIf="!buscado && !cargando" class="flex flex-col items-center justify-center p-12 text-gray-400">
+    <i class="pi pi-chart-bar text-5xl mb-3"></i>
+    <span class="text-sm">Seleccione propietario, producto y fechas, luego presione Buscar</span>
+  </div>
+
+</div>

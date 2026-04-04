@@ -1,0 +1,31 @@
+<div *ngIf="cargando" class="flex justify-center p-8">
+  <i class="pi pi-spin pi-spinner text-3xl text-gray-500"></i>
+</div>
+
+<form [formGroup]="form" class="p-4 flex flex-col gap-4" *ngIf="!cargando">
+
+  <div class="flex flex-col gap-1">
+    <label class="text-xs font-medium text-gray-700">Nombre completo <span class="text-red-500">*</span></label>
+    <input pInputText formControlName="nombreCompleto" placeholder="Apellido Nombre" class="w-full text-sm" />
+    <small class="text-red-500" *ngIf="hasError('nombreCompleto','required')">El nombre completo es requerido.</small>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <label class="text-xs font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+    <input pInputText formControlName="email" placeholder="correo@empresa.com" class="w-full text-sm" />
+    <small class="text-red-500" *ngIf="hasError('email','required')">El email es requerido.</small>
+    <small class="text-red-500" *ngIf="hasError('email','email')">Ingrese un email válido.</small>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <label class="text-xs font-medium text-gray-700">DNI <span class="text-red-500">*</span></label>
+    <input pInputText formControlName="dni" placeholder="12345678" class="w-full text-sm" maxlength="8" />
+    <small class="text-red-500" *ngIf="hasError('dni','required')">El DNI es requerido.</small>
+  </div>
+
+  <div class="flex justify-end gap-2 pt-2 border-t border-gray-200">
+    <button pButton class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md" icon="pi pi-times" label="Cancelar" (click)="cancelar()"></button>
+    <button pButton class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md" icon="pi pi-check" label="Guardar cambios" [disabled]="guardando" (click)="guardar()"></button>
+  </div>
+
+</form>

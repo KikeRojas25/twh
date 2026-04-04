@@ -2,12 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
+import { MessageService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
-import { TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
-import { SelectItem } from 'primeng/api';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { FileUploadModule } from 'primeng/fileupload';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { TransporteService } from '../transporte.service';
 import { OrdenTransporteResult } from '../transporte.types';
 import { GeneralService } from '../../_services/general.service';
@@ -27,37 +32,59 @@ import { JwtHelperService } from '@auth0/angular-jwt';
     DropdownModule,
     TableModule,
     InputTextModule,
-    CalendarModule
-  ]
+    CalendarModule,
+    DialogModule,
+    FileUploadModule,
+    ToastModule,
+    ProgressBarModule,
+    TooltipModule
+  ],
+  providers: [MessageService]
 })
 export class ListordentransporteComponent implements OnInit {
-  
+
   @ViewChild('resultadosBlock') resultadosBlock!: ElementRef;
 
   cols: any[] = [];
   loading = false;
   ordenesTransporte: OrdenTransporteResult[] = [];
   ordenesFiltradas: OrdenTransporteResult[] = [];
-  
+
   remitentes: SelectItem[] = [];
   estados: SelectItem[] = [];
   model: any = {};
-  
+
   dateInicio: Date = new Date();
   dateFin: Date = new Date();
-  
+
   filtroGeneral: string = '';
-  
+
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
   usuarioId: number = 0;
 
   es: any;
 
+  // Subir fotos
+  displaySubirFoto = false;
+  subiendoFoto = false;
+  ordenSeleccionada: OrdenTransporteResult | null = null;
+  archivoSeleccionado: File | null = null;
+  errorArchivo: string = '';
+
+  // Ver fotos
+  displayVerFotos = false;
+  fotosOrden: any[] = [];
+  cargandoFotos = false;
+
+  readonly MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+  readonly TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/jpg'];
+
   constructor(
     private transporteService: TransporteService,
     private generalService: GeneralService,
-    private propietarioService: PropietarioService
+    private propietarioService: PropietarioService,
+    private messageService: MessageService
   ) { }
 
   ngOnInit() {
@@ -81,16 +108,12 @@ export class ListordentransporteComponent implements OnInit {
 
   inicializarColumnas(): void {
     this.cols = [
+      { header: 'ACCIONES', field: 'acciones', width: '90px' },
       { header: 'NÚMERO OT', field: 'numero_ot', width: '120px' },
-
-
       { header: 'NÚMERO MANIFIESTO', field: 'numero_manifiesto', width: '150px' },
       { header: 'ESTADO', field: 'Estado', width: '120px' },
-      
       { header: 'PLACA', field: 'Placa', width: '100px' },
-
       { header: 'CHOFER', field: 'Chofer', width: '150px' },
-
       { header: 'SHIPMENT', field: 'shipment', width: '120px' },
       { header: 'DELIVERY', field: 'delivery', width: '120px' },
       { header: 'REMITENTE', field: 'remitente', width: '180px' },
@@ -109,38 +132,33 @@ export class ListordentransporteComponent implements OnInit {
       { header: 'PROVINCIA ENTREGA', field: 'provincia_entrega', width: '150px' },
       { header: 'FECHA ENTREGA', field: 'fecha_entrega', width: '120px' },
       { header: 'HORA ENTREGA', field: 'hora_entrega', width: '100px' },
-
-      
       { header: 'POR ASIGNAR', field: 'por_asignar', width: '100px' }
     ];
   }
 
   cargarDatosIniciales(): void {
-    // Obtener usuario del token
     const token = localStorage.getItem('token');
     if (token) {
       this.decodedToken = this.jwtHelper.decodeToken(token);
       this.usuarioId = parseInt(this.decodedToken.nameid || '0');
     }
 
-    // Cargar remitentes (propietarios)
     this.propietarioService.getAllPropietarios().subscribe(resp => {
       this.remitentes.push({ label: 'Todos', value: undefined });
       resp.forEach(element => {
-        this.remitentes.push({ 
-          label: element.razonSocial.toUpperCase(), 
-          value: element.id 
+        this.remitentes.push({
+          label: element.razonSocial.toUpperCase(),
+          value: element.id
         });
       });
     });
 
-    // Cargar estados
     this.generalService.getAll(3).subscribe(resp => {
       this.estados.push({ label: 'Todos', value: undefined });
       resp.forEach(element => {
-        this.estados.push({ 
-          value: element.id, 
-          label: element.nombreEstado 
+        this.estados.push({
+          value: element.id,
+          label: element.nombreEstado
         });
       });
     });
@@ -148,10 +166,10 @@ export class ListordentransporteComponent implements OnInit {
 
   buscar(): void {
     this.loading = true;
-    
+
     const fec_ini = this.dateInicio ? this.formatearFecha(this.dateInicio) : '';
     const fec_fin = this.dateFin ? this.formatearFecha(this.dateFin) : '';
-    
+
     this.transporteService.getAllOrder(
       this.model.remitente_id,
       this.model.estado_id,
@@ -164,19 +182,92 @@ export class ListordentransporteComponent implements OnInit {
         this.ordenesTransporte = resp;
         this.aplicarFiltro();
         this.loading = false;
-        
-        // Scroll hasta el bloque de resultados
-        setTimeout(() => {
-          this.scrollToResultados();
-        }, 100);
+        setTimeout(() => this.scrollToResultados(), 100);
       },
       error: (err) => {
         console.error('Error al cargar órdenes de transporte:', err);
         this.loading = false;
-        alert('Error al cargar las órdenes de transporte');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar las órdenes de transporte' });
       }
     });
   }
+
+  // --- SUBIR FOTO ---
+
+  abrirSubirFoto(orden: OrdenTransporteResult): void {
+    this.ordenSeleccionada = orden;
+    this.archivoSeleccionado = null;
+    this.errorArchivo = '';
+    this.displaySubirFoto = true;
+  }
+
+  onFotoSelect(event: any): void {
+    this.errorArchivo = '';
+    const file: File = event.files?.[0] ?? event.currentFiles?.[0];
+    if (!file) return;
+
+    if (!this.TIPOS_PERMITIDOS.includes(file.type)) {
+      this.errorArchivo = 'Solo se permiten imágenes JPG o PNG.';
+      return;
+    }
+    if (file.size > this.MAX_SIZE_BYTES) {
+      this.errorArchivo = `El archivo excede el límite de 5 MB (${(file.size / 1024 / 1024).toFixed(2)} MB).`;
+      return;
+    }
+    this.archivoSeleccionado = file;
+  }
+
+  subirFoto(event: any): void {
+    const file: File = event.files?.[0];
+    if (!file || !this.ordenSeleccionada) return;
+
+    if (!this.TIPOS_PERMITIDOS.includes(file.type)) {
+      this.messageService.add({ severity: 'warn', summary: 'Archivo inválido', detail: 'Solo se permiten imágenes JPG o PNG.' });
+      return;
+    }
+    if (file.size > this.MAX_SIZE_BYTES) {
+      this.messageService.add({ severity: 'warn', summary: 'Archivo muy grande', detail: `Máximo 5 MB. Este archivo pesa ${(file.size / 1024 / 1024).toFixed(2)} MB.` });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    this.subiendoFoto = true;
+    this.transporteService.subirFoto(this.ordenSeleccionada.id, formData).subscribe({
+      next: () => {
+        this.subiendoFoto = false;
+        this.displaySubirFoto = false;
+        this.messageService.add({ severity: 'success', summary: 'Foto subida', detail: 'La imagen se guardó correctamente.' });
+      },
+      error: (err) => {
+        this.subiendoFoto = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message ?? 'No se pudo subir la foto.' });
+      }
+    });
+  }
+
+  // --- VER FOTOS ---
+
+  abrirVerFotos(orden: OrdenTransporteResult): void {
+    this.ordenSeleccionada = orden;
+    this.fotosOrden = [];
+    this.cargandoFotos = true;
+    this.displayVerFotos = true;
+
+    this.transporteService.getFotos(orden.id).subscribe({
+      next: (fotos) => {
+        this.fotosOrden = fotos;
+        this.cargandoFotos = false;
+      },
+      error: () => {
+        this.cargandoFotos = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las fotos.' });
+      }
+    });
+  }
+
+  // --- Helpers ---
 
   formatearFecha(fecha: Date): string {
     if (!fecha) return '';
@@ -188,10 +279,7 @@ export class ListordentransporteComponent implements OnInit {
 
   scrollToResultados(): void {
     if (this.resultadosBlock) {
-      this.resultadosBlock.nativeElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
+      this.resultadosBlock.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
@@ -201,23 +289,14 @@ export class ListordentransporteComponent implements OnInit {
     } else {
       const filtro = this.filtroGeneral.toLowerCase().trim();
       this.ordenesFiltradas = this.ordenesTransporte.filter(item => {
-        const numeroOt = (item.numero_ot || '').toLowerCase();
-        const shipment = (item.shipment || '').toLowerCase();
-        const delivery = (item.delivery || '').toLowerCase();
-        const remitente = (item.remitente || '').toLowerCase();
-        const destinatario = (item.destinatario || '').toLowerCase();
-        const factura = (item.factura || '').toLowerCase();
-        const oc = (item.oc || '').toLowerCase();
-        const guias = (item.guias || '').toLowerCase();
-        
-        return numeroOt.includes(filtro) || 
-               shipment.includes(filtro) || 
-               delivery.includes(filtro) ||
-               remitente.includes(filtro) ||
-               destinatario.includes(filtro) ||
-               factura.includes(filtro) ||
-               oc.includes(filtro) ||
-               guias.includes(filtro);
+        return (item.numero_ot || '').toLowerCase().includes(filtro) ||
+               (item.shipment || '').toLowerCase().includes(filtro) ||
+               (item.delivery || '').toLowerCase().includes(filtro) ||
+               (item.remitente || '').toLowerCase().includes(filtro) ||
+               (item.destinatario || '').toLowerCase().includes(filtro) ||
+               (item.factura || '').toLowerCase().includes(filtro) ||
+               (item.oc || '').toLowerCase().includes(filtro) ||
+               (item.guias || '').toLowerCase().includes(filtro);
       });
     }
   }
@@ -235,4 +314,3 @@ export class ListordentransporteComponent implements OnInit {
     this.ordenesFiltradas = [];
   }
 }
-

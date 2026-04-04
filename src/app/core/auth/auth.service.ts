@@ -200,6 +200,13 @@ export class AuthService {
     }
 
     /**
+     * Verifica si el usuario sigue activo en el backend
+     */
+    checkStatus(): Observable<any> {
+        return this._httpClient.get(this.baseUrl + 'checkstatus');
+    }
+
+    /**
      * Check the authentication status
      */
     check(): Observable<boolean> {

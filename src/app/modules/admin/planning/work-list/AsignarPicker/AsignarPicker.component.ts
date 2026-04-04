@@ -31,7 +31,7 @@ export class AsignarPickerComponent implements OnInit {
 
   ngOnInit() {
 
- this.userService.getUsersForRol([6]).subscribe({
+ this.userService.getUsersForRol([30]).subscribe({
       next: (res) => (this.usuarios = res),
       error: (err) => console.error('Error al cargar usuarios', err)
     });

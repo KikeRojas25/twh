@@ -127,6 +127,16 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/despachos/newors/newors.component')
                                           .then(m => m.NeworsComponent)
                   },
+                     {
+                    path: 'planificardespachos',
+                    loadComponent: () => import('./modules/admin/planning/planificar-despachos/planificar-despachos.component')
+                                          .then(m => m.PlanificarDespachosComponent)
+                  },
+                  {
+                    path: 'despachosplanificados',
+                    loadComponent: () => import('./modules/admin/transporte/listmanifiestos/listmanifiestos.component')
+                                          .then(m => m.ListmanifiestosComponent)
+                  },
                 ]
               },
               {
@@ -159,16 +169,7 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/planning/pending-picking-orders/pending-picking-orders.component')
                                           .then(m => m.PendingPickingOrdersComponent)
                   },
-                  {
-                    path: 'planificardespachos',
-                    loadComponent: () => import('./modules/admin/planning/planificar-despachos/planificar-despachos.component')
-                                          .then(m => m.PlanificarDespachosComponent)
-                  },
-                  {
-                    path: 'despachosplanificados',
-                    loadComponent: () => import('./modules/admin/planning/pedidos-planificados/pedidos-planificados.component')
-                                          .then(m => m.PedidosPlanificadosComponent)
-                  },
+               
                   {
                     path: 'listadotrabajopendiente',
                     loadComponent: () => import('./modules/admin/planning/work-list/work-list.component')
@@ -216,7 +217,12 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/reportes/movimientoubicaciones/movimientoubicaciones.component')
                                           .then(m => m.MovimientoubicacionesComponent)
                   },
-               
+                  {
+                    path: 'kardexproductos',
+                    loadComponent: () => import('./modules/admin/reportes/kardexproductos/kardexproductos.component')
+                                          .then(m => m.KardexproductosComponent)
+                  },
+
                 ]
               },
               
@@ -409,6 +415,18 @@ export const appRoutes: Route[] = [
               ]
            },
                     
+            {
+              path: 'seguridad',
+              loadComponent: () => import('./modules/admin/seguridad/seguridad.component')
+                                        .then(m => m.SeguridadComponent),
+              children: [
+                {
+                  path: 'listausuarios',
+                  loadComponent: () => import('./modules/admin/seguridad/listusers/list.component')
+                                            .then(m => m.ListUsersComponent)
+                }
+              ]
+            },
         {
           path: '**',
           redirectTo: 'inicio'

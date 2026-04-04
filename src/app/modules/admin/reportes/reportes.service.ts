@@ -264,6 +264,16 @@ buildInventarioGeneralLegacyUrl(params: { clienteid?: number; grupoid?: number }
   return `${this.reportesBaseUrl}/Rep_Inventario.aspx${q}`;
 }
 
+getKardexPorProducto(propietarioId: number, productoId: string, fecini: string, fecfin: string, almacenId?: number): Observable<any> {
+  let params = new HttpParams()
+    .set('propietarioId', propietarioId.toString())
+    .set('productoId', productoId)
+    .set('fecini', fecini)
+    .set('fecfin', fecfin);
+  if (almacenId) params = params.set('almacenId', almacenId.toString());
+  return this._httpClient.get<any>(`${this.baseUrlInventario}GetKardexPorProducto`, { params, headers: httpOptions.headers });
+}
+
 buildKardexGeneralLegacyUrl(params: {
   Grupoid?: number;
   PropietarioId?: number;

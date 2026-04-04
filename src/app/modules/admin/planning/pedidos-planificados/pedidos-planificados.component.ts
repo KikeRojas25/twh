@@ -152,8 +152,8 @@ export class PedidosPlanificadosComponent implements OnInit {
  
  
  
-     if (!this.model.PropietarioId || !this.model.AlmacenId) {
-       alert('Debe seleccionar un propietario y un almacén.');
+     if (!this.model.AlmacenId) {
+       alert('Debe seleccionar un almacén.');
        return;
      }
  

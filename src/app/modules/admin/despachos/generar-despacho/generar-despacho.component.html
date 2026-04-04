@@ -31,8 +31,8 @@
           <p-dropdown [options]="almacenes" [(ngModel)]="model.AlmacenId" placeholder="SELECCIONE UN ALMACÉN" class="w-180 mt-2"></p-dropdown>
         </div>
         <div class="flex-1">
-          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario</label>
-          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="SELECCIONE UN PROPIETARIO" class="w-180 mt-2"></p-dropdown>
+          <label class="block text-lg font-semibold text-gray-800 dark:text-gray-200">Propietario <span class="text-sm font-normal text-gray-500">(opcional)</span></label>
+          <p-dropdown [options]="propietarios" [(ngModel)]="model.PropietarioId" placeholder="TODOS LOS PROPIETARIOS" [showClear]="true" class="w-180 mt-2"></p-dropdown>
         </div>
         <div>
           <button pButton label="Buscar" class="p-button-primary mt-6 w-full" (click)="buscar()"></button>

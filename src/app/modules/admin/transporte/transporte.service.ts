@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { catchError, Observable, throwError } from 'rxjs';
@@ -99,6 +99,62 @@ getAllOrder(
   return this._httpClient.get<OrdenTransporteResult[]>(`${this.baseUrlOrdenTransporte}GetAllOrder?${params}`, httpOptions).pipe(
     catchError(err => {
       console.error('Error desde el servicio:', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+actualizarTarifas(manifiestoId: number, data: { valorizado: number, adicionales_tarifa: number, sobreestadia_tarifa: number }): Observable<any> {
+  return this._httpClient.patch<any>(
+    `${this.baseUrlOrdenTransporte}${manifiestoId}/tarifas`,
+    { Valorizado: data.valorizado, AdicionalesTarifa: data.adicionales_tarifa, SobreEstadiaTarifa: data.sobreestadia_tarifa },
+    httpOptions
+  ).pipe(catchError(err => throwError(() => err)));
+}
+
+cambiarEstadoManifiesto(manifiestoId: number, nuevoEstadoId: number): Observable<any> {
+  return this._httpClient.patch<any>(
+    `${this.baseUrlOrdenTransporte}${manifiestoId}/estado`,
+    nuevoEstadoId,
+    httpOptions
+  ).pipe(catchError(err => throwError(() => err)));
+}
+
+subirFoto(idOrden: number, formData: FormData): Observable<any> {
+  const headers = new HttpHeaders({
+    Authorization: 'Bearer ' + localStorage.getItem('token')
+  });
+  return this._httpClient.post<any>(
+    `${this.baseUrlOrdenTransporte}UploadPhoto?idOrden=${idOrden}`,
+    formData,
+    { headers }
+  ).pipe(
+    catchError(err => {
+      console.error('Error al subir foto:', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+getFotos(idOrden: number): Observable<any[]> {
+  return this._httpClient.get<any[]>(
+    `${this.baseUrlOrdenTransporte}GetFotos?idOrden=${idOrden}`,
+    httpOptions
+  ).pipe(
+    catchError(err => {
+      console.error('Error al obtener fotos:', err);
+      return throwError(() => err);
+    })
+  );
+}
+
+listarOrdenesPorManifiesto(manifiestoId: number): Observable<any[]> {
+  return this._httpClient.get<any[]>(
+    `${this.baseUrlOrdenTransporte}${manifiestoId}/ordenes`,
+    httpOptions
+  ).pipe(
+    catchError(err => {
+      console.error('Error al obtener órdenes del manifiesto:', err);
       return throwError(() => err);
     })
   );

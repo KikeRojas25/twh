@@ -8,12 +8,12 @@
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
           <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-gray-700 hover:text-gray-900">Transporte</a>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Despacho</a>
         </div>
       </div>
       <div class="mt-1">
         <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
-          Listado de Manifiestos
+          Despachos Planificados — Manifiestos
         </h2>
       </div>
     </div>
@@ -28,7 +28,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <!-- Remitente -->
         <div class="flex flex-col">
-          <label for="remitente" class="text-xs font-medium text-gray-700 mb-1">Remitente:</label>
+          <label for="remitente" class="text-xs font-medium text-gray-700 mb-1">Remitente <span class="text-gray-400 font-normal">(opcional)</span>:</label>
           <p-dropdown
             name="remitente"
             [options]="remitentes"
@@ -41,42 +41,12 @@
             [resetFilterOnHide]="false"
             [hideTransitionOptions]="'0ms'"
             [showTransitionOptions]="'0ms'"
-            placeholder="Seleccione un remitente"
+            placeholder="Todos los remitentes"
             styleClass="text-sm border-gray-300">
             <ng-template let-item pTemplate="selectedItem">
               <span style="vertical-align: left">{{ item.label }}</span>
             </ng-template>
           </p-dropdown>
-        </div>
-
-        <!-- Fecha Inicio -->
-        <div class="flex flex-col">
-          <label for="fechaInicio" class="text-xs font-medium text-gray-700 mb-1">Fecha Inicio:</label>
-          <p-calendar
-            [(ngModel)]="dateInicio"
-            [locale]="es"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            [style]="{ width: '100%' }"
-            inputStyleClass="text-sm border-gray-300"
-            placeholder="Seleccione fecha inicio"
-            [showClear]="true">
-          </p-calendar>
-        </div>
-
-        <!-- Fecha Fin -->
-        <div class="flex flex-col">
-          <label for="fechaFin" class="text-xs font-medium text-gray-700 mb-1">Fecha Fin:</label>
-          <p-calendar
-            [(ngModel)]="dateFin"
-            [locale]="es"
-            dateFormat="dd/mm/yy"
-            [showIcon]="true"
-            [style]="{ width: '100%' }"
-            inputStyleClass="text-sm border-gray-300"
-            placeholder="Seleccione fecha fin"
-            [showClear]="true">
-          </p-calendar>
         </div>
 
         <!-- Número Manifiesto -->
@@ -92,6 +62,38 @@
             placeholder="Ingrese número de manifiesto"
             class="w-full text-sm border-gray-300"
           />
+        </div>
+
+        <!-- Fecha Inicio -->
+        <div class="flex flex-col">
+          <label for="fechaInicio" class="text-xs font-medium text-gray-700 mb-1">Fecha Inicio:</label>
+          <p-calendar
+            [(ngModel)]="dateInicio"
+            [locale]="es"
+            dateFormat="dd/mm/yy"
+            appendTo="body"
+            [showIcon]="true"
+            [style]="{ width: '100%' }"
+            inputStyleClass="text-sm border-gray-300"
+            placeholder="Seleccione fecha inicio"
+            [showClear]="true">
+          </p-calendar>
+        </div>
+
+        <!-- Fecha Fin -->
+        <div class="flex flex-col">
+          <label for="fechaFin" class="text-xs font-medium text-gray-700 mb-1">Fecha Fin:</label>
+          <p-calendar
+            [(ngModel)]="dateFin"
+            [locale]="es"
+            dateFormat="dd/mm/yy"
+            appendTo="body"
+            [showIcon]="true"
+            [style]="{ width: '100%' }"
+            inputStyleClass="text-sm border-gray-300"
+            placeholder="Seleccione fecha fin"
+            [showClear]="true">
+          </p-calendar>
         </div>
 
         <!-- Botones de Acción -->
@@ -123,12 +125,12 @@
     <div class="bg-gray-800 text-white px-4 py-2 border-b border-gray-700">
       <h3 class="text-sm font-semibold text-gray-100">Listado de Manifiestos</h3>
       <p class="text-xs text-amber-300 mt-0.5">
-        Total de registros: {{ manifiestosFiltrados.length }} 
+        Total de registros: {{ manifiestosFiltrados.length }}
         <span *ngIf="filtroGeneral">(filtrados de {{ manifiestos.length }})</span>
       </p>
     </div>
 
-    <!-- Filtro General - Cerca de la grilla -->
+    <!-- Filtro General -->
     <div class="px-4 pt-4 pb-2 border-b border-gray-200 bg-gray-50">
       <div class="flex flex-col">
         <label for="filtroGeneral" class="text-xs font-medium text-gray-700 mb-1">
@@ -164,16 +166,14 @@
         [tableStyle]="{ 'table-layout': 'fixed', width: '100%' }"
         styleClass="p-datatable-sm"
       >
-        <!-- Encabezados -->
+        <!-- Colgroup -->
         <ng-template pTemplate="colgroup" let-columns>
           <colgroup>
-            <col
-              *ngFor="let col of columns"
-              [ngStyle]="{ width: col.width }"
-            />
+            <col *ngFor="let col of columns" [ngStyle]="{ width: col.width }" />
           </colgroup>
         </ng-template>
-        
+
+        <!-- Header -->
         <ng-template pTemplate="header" let-columns>
           <tr class="bg-gray-800 text-white">
             <th
@@ -181,30 +181,54 @@
               [ngStyle]="{ width: col.width }"
               pResizableColumn
               pReorderableColumn
-              [pSortableColumn]="col.field"
+              [pSortableColumn]="col.field !== 'acciones' ? col.field : null"
               class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700"
             >
               {{ col.header }}
-              <p-sortIcon [field]="col.field"></p-sortIcon>
+              <p-sortIcon *ngIf="col.field !== 'acciones'" [field]="col.field"></p-sortIcon>
             </th>
           </tr>
         </ng-template>
 
-        <!-- Cuerpo -->
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <!-- Body -->
+        <ng-template pTemplate="body" let-rowData>
           <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+
+            <!-- ACCIONES -->
+            <td class="text-center px-2 py-2">
+              <button pButton icon="pi pi-list"
+                pTooltip="Ver órdenes" tooltipPosition="top"
+                (click)="abrirDetalle(rowData)"
+                class="p-button-sm p-button-text text-indigo-600 mr-1">
+              </button>
+              <button pButton icon="pi pi-dollar"
+                pTooltip="Editar tarifas" tooltipPosition="top"
+                (click)="abrirEditarTarifas(rowData)"
+                class="p-button-sm p-button-text text-green-600 mr-1">
+              </button>
+              <button pButton icon="pi pi-pencil"
+                pTooltip="Cambiar estado" tooltipPosition="top"
+                (click)="abrirCambioEstado(rowData)"
+                class="p-button-sm p-button-text text-blue-600">
+              </button>
+            </td>
+
             <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.numero_manifiesto }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.shipment }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.estado }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.Placa }}</td>
-            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.Chofer }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.valorizado | number:'1.2-2' }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.sobreestadia_tarifa | number:'1.2-2' }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.adicionales_tarifa | number:'1.2-2' }}</td>
+
+            <!-- Estado con badge -->
+            <td class="text-center px-4 py-2 text-sm">
+              <span [class]="getEstadoBadgeClass(rowData.estado_id)">{{ rowData.estado }}</span>
+            </td>
+
+            <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.placa }}</td>
+            <td class="px-4 py-2 text-sm text-gray-700">{{ rowData.chofer }}</td>
+            <td class="text-right px-4 py-2 text-sm text-gray-700">{{ rowData.valorizado | number:'1.2-2' }}</td>
+            <td class="text-right px-4 py-2 text-sm text-gray-700">{{ rowData.sobreestadia_tarifa | number:'1.2-2' }}</td>
+            <td class="text-right px-4 py-2 text-sm text-gray-700">{{ rowData.adicionales_tarifa | number:'1.2-2' }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.fecha_salida | date:'dd/MM/yyyy' }}</td>
             <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.fecha_registro | date:'dd/MM/yyyy' }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.capacidadMaxima | number:'1.2-2' }}</td>
-            <td class="text-center px-4 py-2 text-sm text-gray-700">{{ rowData.capacidadUtilizada | number:'1.2-2' }}</td>
+         
           </tr>
         </ng-template>
 
@@ -224,3 +248,138 @@
   </div>
 </div>
 
+<!-- Modal: Cambio de Estado -->
+<p-dialog
+  header="Cambiar Estado del Manifiesto"
+  [(visible)]="displayCambioEstado"
+  [modal]="true"
+  [style]="{ width: '420px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div *ngIf="manifiestoSeleccionado" class="mb-4">
+    <p class="text-xs text-gray-500 mb-3">
+      Manifiesto: <strong class="text-gray-800">{{ manifiestoSeleccionado.numero_manifiesto }}</strong>
+      <span *ngIf="manifiestoSeleccionado.Placa"> — Placa: <strong>{{ manifiestoSeleccionado.Placa }}</strong></span>
+    </p>
+
+    <label class="text-xs font-medium text-gray-700 mb-1 block">Nuevo Estado:</label>
+    <p-dropdown
+      [options]="estadosModal"
+      [(ngModel)]="nuevoEstadoId"
+      [style]="{ width: '100%' }"
+      appendTo="body"
+      placeholder="Seleccione un estado"
+      styleClass="text-sm border-gray-300">
+    </p-dropdown>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton
+      label="Cancelar"
+      icon="pi pi-times"
+      class="p-button-text p-button-sm"
+      (click)="displayCambioEstado = false"
+      [disabled]="guardando">
+    </button>
+    <button pButton
+      label="Confirmar"
+      icon="pi pi-check"
+      class="p-button-sm p-button-success"
+      (click)="confirmarCambioEstado()"
+      [loading]="guardando"
+      [disabled]="nuevoEstadoId == null">
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal: Detalle de órdenes del manifiesto -->
+<p-dialog
+  [header]="'Órdenes — ' + (manifiestoSeleccionado?.numero_manifiesto ?? '')"
+  [(visible)]="displayDetalle"
+  [modal]="true"
+  [style]="{ width: '860px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div *ngIf="cargandoDetalle" class="flex justify-center items-center py-10">
+    <i class="pi pi-spin pi-spinner text-3xl text-gray-400"></i>
+  </div>
+
+  <div *ngIf="!cargandoDetalle && ordenesDetalle.length === 0" class="flex flex-col items-center py-8 text-gray-400">
+    <i class="pi pi-inbox text-4xl mb-2"></i>
+    <span class="text-sm">No hay órdenes registradas para este manifiesto.</span>
+  </div>
+
+  <div *ngIf="!cargandoDetalle && ordenesDetalle.length > 0">
+    <p class="text-xs text-gray-500 mb-3">Total: <strong>{{ ordenesDetalle.length }}</strong> orden(es)</p>
+    <p-table
+      [value]="ordenesDetalle"
+      styleClass="p-datatable-sm"
+      [scrollable]="true"
+      scrollHeight="400px"
+      [tableStyle]="{ 'min-width': '700px' }">
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-800 text-white">
+          <th class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700" style="width:110px">N° ORDEN</th>
+          <th class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700" style="width:120px">GUÍA</th>
+          <th class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700" style="width:120px">SHIPMENT</th>
+          <th class="px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700">REMITENTE</th>
+          <th class="px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700" style="width:150px">DISTRITO DESTINO</th>
+          <th class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700" style="width:130px">F. ENTREGA</th>
+          <th class="text-center px-3 py-1.5 text-xs font-semibold text-white border-b border-gray-700" style="width:100px">ESTADO</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-o>
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+          <td class="text-center px-3 py-2 text-sm text-gray-700 font-medium">{{ o.numOrden }}</td>
+          <td class="text-center px-3 py-2 text-sm text-gray-700">{{ o.guiaRemision }}</td>
+          <td class="text-center px-3 py-2 text-sm text-gray-700">{{ o.shipment }}</td>
+          <td class="px-3 py-2 text-sm text-gray-700">{{ o.remitente }}</td>
+          <td class="px-3 py-2 text-sm text-gray-700">{{ o.destino }}</td>
+          <td class="text-center px-3 py-2 text-sm text-gray-700">{{ o.fecha_entrega | date:'dd/MM/yyyy' }}</td>
+          <td class="text-center px-3 py-2 text-sm">
+            <span [class]="getEstadoBadgeClass(o.estado_id)">{{ o.estado }}</span>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</p-dialog>
+
+<!-- Modal: Editar Tarifas -->
+<p-dialog
+  header="Editar Tarifas"
+  [(visible)]="displayEditarTarifas"
+  [modal]="true"
+  [style]="{ width: '360px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div *ngIf="manifiestoSeleccionado" class="flex flex-col gap-4 pt-1">
+    <p class="text-xs text-gray-500">Manifiesto: <strong class="text-gray-800">{{ manifiestoSeleccionado.numero_manifiesto }}</strong></p>
+
+    <div class="flex flex-col">
+      <label class="text-xs font-medium text-gray-700 mb-1">Valorizado</label>
+      <input pInputText type="number" step="0.01" [(ngModel)]="editTarifas.valorizado" class="w-full text-sm" />
+    </div>
+    <div class="flex flex-col">
+      <label class="text-xs font-medium text-gray-700 mb-1">Adicionales</label>
+      <input pInputText type="number" step="0.01" [(ngModel)]="editTarifas.adicionales_tarifa" class="w-full text-sm" />
+    </div>
+    <div class="flex flex-col">
+      <label class="text-xs font-medium text-gray-700 mb-1">Sobreestadía</label>
+      <input pInputText type="number" step="0.01" [(ngModel)]="editTarifas.sobreestadia_tarifa" class="w-full text-sm" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-sm"
+      (click)="displayEditarTarifas = false" [disabled]="guardandoTarifas"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="p-button-sm p-button-success"
+      (click)="guardarTarifas()" [loading]="guardandoTarifas"></button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+<p-toast></p-toast>

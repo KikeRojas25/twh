@@ -41,6 +41,13 @@ export const authInterceptor = (
                 }
             }
 
+            if (error instanceof HttpErrorResponse && error.status === 403) {
+                if (!isServicio2) {
+                    authService.signOut();
+                    location.reload();
+                }
+            }
+
             return throwError(() => error);
         })
     );

@@ -141,10 +141,13 @@ export class GenerarDespachoComponent implements OnInit {
   }
   cargarPropietarios() {
     this.propietarioService.getAllPropietarios().subscribe((resp) => {
-      this.propietarios = resp.map((propietario) => ({
-        label: propietario.razonSocial,
-        value: propietario.id
-      }));
+      this.propietarios = [
+        { label: 'Todos', value: null },
+        ...resp.map((propietario) => ({
+          label: propietario.razonSocial,
+          value: propietario.id
+        }))
+      ];
     });
   }
 
@@ -222,11 +225,11 @@ export class GenerarDespachoComponent implements OnInit {
 
 
 
-    if (!this.model.PropietarioId || !this.model.AlmacenId) {
+    if (!this.model.AlmacenId) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
-        detail: 'Debe seleccionar un propietario y un almacén.'
+        detail: 'Debe seleccionar un almacén.'
       });
       return;
     }

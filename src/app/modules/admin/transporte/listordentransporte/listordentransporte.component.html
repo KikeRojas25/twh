@@ -218,6 +218,18 @@
         <!-- Cuerpo -->
         <ng-template pTemplate="body" let-rowData let-columns="columns">
           <tr [pSelectableRow]="rowData" class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-2 py-2">
+              <button pButton icon="pi pi-camera"
+                pTooltip="Subir foto" tooltipPosition="top"
+                (click)="abrirSubirFoto(rowData)"
+                class="p-button-sm p-button-text text-blue-600 mr-1">
+              </button>
+              <button pButton icon="pi pi-images"
+                pTooltip="Ver fotos" tooltipPosition="top"
+                (click)="abrirVerFotos(rowData)"
+                class="p-button-sm p-button-text text-green-600">
+              </button>
+            </td>
             <td class="text-center px-4 py-2 text-sm text-gray-700 font-medium">{{ rowData.numero_ot }}</td>
 
 
@@ -274,3 +286,71 @@
   </div>
 </div>
 
+<!-- Modal: Subir Foto -->
+<p-dialog
+  header="Subir Foto"
+  [(visible)]="displaySubirFoto"
+  [modal]="true"
+  [style]="{ width: '480px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div class="mb-3" *ngIf="ordenSeleccionada">
+    <p class="text-xs text-gray-500">OT: <strong class="text-gray-800">{{ ordenSeleccionada.numero_ot }}</strong> — {{ ordenSeleccionada.destinatario }}</p>
+  </div>
+
+  <p-fileUpload
+    mode="advanced"
+    [customUpload]="true"
+    (uploadHandler)="subirFoto($event)"
+    (onSelect)="onFotoSelect($event)"
+    [maxFileSize]="5242880"
+    accept="image/jpeg,image/png,image/jpg"
+    [fileLimit]="1"
+    chooseLabel="Seleccionar imagen"
+    uploadLabel="Subir"
+    cancelLabel="Cancelar"
+    [disabled]="subiendoFoto">
+    <ng-template pTemplate="content">
+      <p class="text-xs text-gray-400 mt-1">Formatos permitidos: JPG, PNG · Máximo 5 MB</p>
+    </ng-template>
+  </p-fileUpload>
+
+  <div *ngIf="errorArchivo" class="mt-2 text-xs text-red-600">
+    <i class="pi pi-exclamation-circle mr-1"></i>{{ errorArchivo }}
+  </div>
+
+  <p-progressBar *ngIf="subiendoFoto" mode="indeterminate" [style]="{ height: '4px', marginTop: '12px' }"></p-progressBar>
+</p-dialog>
+
+<!-- Modal: Ver Fotos -->
+<p-dialog
+  [header]="'Fotos — ' + (ordenSeleccionada?.numero_ot ?? '')"
+  [(visible)]="displayVerFotos"
+  [modal]="true"
+  [style]="{ width: '720px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <div *ngIf="cargandoFotos" class="flex justify-center items-center py-10">
+    <i class="pi pi-spin pi-spinner text-3xl text-gray-400"></i>
+  </div>
+
+  <div *ngIf="!cargandoFotos && fotosOrden.length === 0" class="flex flex-col items-center py-10 text-gray-400">
+    <i class="pi pi-images text-5xl mb-3"></i>
+    <span class="text-sm">No hay fotos cargadas para esta orden.</span>
+  </div>
+
+  <div *ngIf="!cargandoFotos && fotosOrden.length > 0" class="grid grid-cols-3 gap-3 p-2">
+    <div *ngFor="let foto of fotosOrden" class="flex flex-col items-center">
+      <a [href]="foto.url" target="_blank" class="block w-full">
+        <img [src]="foto.url" [alt]="foto.nombrearchivo"
+          class="w-full h-36 object-cover rounded shadow hover:opacity-90 transition-opacity"
+          onerror="this.src='assets/images/no-image.png'" />
+      </a>
+      <span class="text-xs text-gray-500 mt-1 truncate w-full text-center">{{ foto.nombrearchivo }}</span>
+    </div>
+  </div>
+</p-dialog>
+
+<p-toast></p-toast>
