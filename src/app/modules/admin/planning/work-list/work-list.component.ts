@@ -134,7 +134,7 @@ export class WorkListComponent {
         let baseUrl = 'http://104.36.166.65/reptwh';
 
         // Para propietarios 125 y 129, el PDF se descarga por API (evita mixed-content).
-        if (tipo === 'pdf' && [125, 129,130].includes(Number(pid))) {
+        if (tipo === 'pdf' && [125, 129,130, 106, 130, 1].includes(Number(pid))) {
             this.reportesService.hojaPickingPdf(id).subscribe({
                 next: (res) => {
                     const contentDisposition =
