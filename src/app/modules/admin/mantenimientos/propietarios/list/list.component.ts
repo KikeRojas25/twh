@@ -138,22 +138,23 @@ export class ListPropietariosComponent implements OnInit {
 
   eliminar(id: number): void {
     this.confirmationService.confirm({
-      message: '¿Está seguro que desea eliminar el propietario?',
-      header: 'Eliminar',
-      icon: 'pi pi-exclamation-triangle',
+      message: '¿Está seguro que desea inactivar el propietario?',
+      header: 'Inactivar',
+      icon: 'pi pi-ban',
+      acceptLabel: 'Sí, inactivar',
       accept: () => {
         this.propietarioService.eliminarPropietario(id).subscribe({
           next: (res) => {
             this.messageService.add({
-              severity: 'success',
-              summary: 'Eliminación exitosa',
-              detail: res?.message || 'El propietario se ha eliminado correctamente'
+              severity: 'info',
+              summary: 'Propietario inactivado',
+              detail: res?.message || 'El propietario ha sido inactivado correctamente'
             });
             this.buscar();
           },
           error: (err) => {
-            console.error('Error al eliminar propietario:', err);
-            const mensaje = err.error?.message || err.error?.error || 'Error al eliminar propietario';
+            console.error('Error al inactivar propietario:', err);
+            const mensaje = err.error?.message || err.error?.error || 'Error al inactivar propietario';
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
