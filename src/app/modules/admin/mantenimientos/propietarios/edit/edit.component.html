@@ -1,0 +1,78 @@
+<div class="p-fluid">
+
+  <div class="p-field mb-4">
+    <label for="nombre" class="font-bold mb-1 block">Nombre / Razón Social *</label>
+    <input
+      type="text"
+      pInputText
+      id="nombre"
+      [(ngModel)]="model.nombre"
+      placeholder="Ingrese la razón social"
+      class="w-full"
+      required />
+  </div>
+
+  <div class="p-field mb-4">
+    <label for="nombreCorto" class="font-bold mb-1 block">Nombre Corto</label>
+    <input
+      type="text"
+      pInputText
+      id="nombreCorto"
+      [(ngModel)]="model.nombreCorto"
+      placeholder="Ingrese el nombre corto"
+      class="w-full" />
+  </div>
+
+  <div class="p-field mb-4">
+    <label for="tipoDocumento" class="font-bold mb-1 block">Tipo de Documento</label>
+    <p-dropdown
+      id="tipoDocumento"
+      [options]="tiposDocumento"
+      [(ngModel)]="model.tipoDocumentoId"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Seleccione tipo de documento"
+      class="w-full"></p-dropdown>
+  </div>
+
+  <div class="p-field mb-4">
+    <label for="documento" class="font-bold mb-1 block">Número de Documento *</label>
+    <input
+      type="text"
+      pInputText
+      id="documento"
+      [(ngModel)]="model.documento"
+      placeholder="Ingrese el número de documento"
+      class="w-full"
+      maxlength="20"
+      required />
+  </div>
+
+  <div class="p-field mb-4">
+    <label for="direccion" class="font-bold mb-1 block">Dirección</label>
+    <input
+      type="text"
+      pInputText
+      id="direccion"
+      [(ngModel)]="model.direccion"
+      placeholder="Ingrese la dirección"
+      class="w-full" />
+  </div>
+
+</div>
+
+<div class="flex gap-2 mt-4">
+  <p-button
+    label="Actualizar"
+    icon="pi pi-check"
+    (onClick)="actualizar()"
+    severity="success"></p-button>
+  <p-button
+    label="Cancelar"
+    icon="pi pi-times"
+    (onClick)="cerrarModal()"
+    severity="secondary"></p-button>
+</div>
+
+<p-confirmDialog />
+<p-toast />

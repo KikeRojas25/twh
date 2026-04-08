@@ -93,4 +93,46 @@ export class PropietarioService {
     const url = `${environment.baseUrl}/api/grupos`;
     return this._httpClient.get<Grupo[]>(url, httpOptions);
   }
+
+  /**
+   * 🔹 Obtener propietarios inactivos
+   * Endpoint: GET /api/propietarios/inactivos
+   */
+  getInactivosPropietarios(): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.baseUrl}/inactivos`, httpOptions);
+  }
+
+  /**
+   * 🔹 Reactivar un propietario
+   * Endpoint: PUT /api/propietarios/{id}/reactivar
+   */
+  reactivarPropietario(id: number): Observable<any> {
+    return this._httpClient.put<any>(`${this.baseUrl}/${id}/reactivar`, {}, httpOptions);
+  }
+
+  /**
+   * 🔹 Registrar un nuevo propietario
+   * Endpoint: POST /api/propietarios
+   */
+  registrarPropietario(model: any): Observable<any> {
+    return this._httpClient.post<any>(this.baseUrl, model, httpOptions);
+  }
+
+  /**
+   * 🔹 Actualizar un propietario existente
+   * Endpoint: PUT /api/propietarios/{id}
+   */
+  actualizarPropietario(id: number, model: any): Observable<any> {
+    const url = `${this.baseUrl}/${id}`;
+    return this._httpClient.put<any>(url, model, httpOptions);
+  }
+
+  /**
+   * 🔹 Eliminar un propietario
+   * Endpoint: DELETE /api/propietarios/{id}
+   */
+  eliminarPropietario(id: number): Observable<any> {
+    const url = `${this.baseUrl}/${id}`;
+    return this._httpClient.delete<any>(url, httpOptions);
+  }
 }
