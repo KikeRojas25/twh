@@ -61,6 +61,9 @@ export class InicioComponent implements OnInit {
   datos: OcupabilidadItem[] = [];
   almacenes: AlmacenResumen[] = [];
   cargando = true;
+  mostrarDashboard = true;
+
+  private readonly ROLES_SIN_DASHBOARD = [5, 25, 26];
 
   // KPIs globales
   totalUbicaciones = 0;
@@ -77,6 +80,13 @@ export class InicioComponent implements OnInit {
   constructor(private reportesService: ReportesService) {}
 
   ngOnInit(): void {
+    this.mostrarDashboard = !this._usuarioTieneRolRestringido();
+
+    if (!this.mostrarDashboard) {
+      this.cargando = false;
+      return;
+    }
+
     this.reportesService.getOcupabilidadDashboard().subscribe({
       next: (data) => {
         this.datos = data;
@@ -87,6 +97,22 @@ export class InicioComponent implements OnInit {
         this.cargando = false;
       },
     });
+  }
+
+  private _usuarioTieneRolRestringido(): boolean {
+    try {
+      const userString = localStorage.getItem('user');
+      if (!userString) return false;
+      const user = JSON.parse(userString);
+      const roles: any[] = Array.isArray(user.roles)
+        ? user.roles
+        : typeof user.roles === 'string'
+        ? user.roles.split(',').map((r: string) => Number(r.trim()))
+        : [];
+      return roles.some(r => this.ROLES_SIN_DASHBOARD.includes(Number(r)));
+    } catch {
+      return false;
+    }
   }
 
   private _procesarDatos(): void {
