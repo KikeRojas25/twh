@@ -1,10 +1,209 @@
-<div class="flex min-w-0 flex-auto flex-col">
-    <!-- Main -->
-    <div class="flex-auto p-6 sm:p-10">
-        <!-- CONTENT GOES HERE -->
-        <div
-            class="h-400 max-h-400 min-h-400 rounded-2xl border-2 border-dashed border-gray-300"
-        ></div>
-    </div>
-</div>
+<div class="flex min-w-0 flex-auto flex-col bg-gray-50 min-h-screen">
+  <div class="p-6 sm:p-8 space-y-6">
 
+    <!-- Título -->
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600">
+        <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 3h18v4H3zM3 10h18v4H3zM3 17h18v4H3z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-gray-900">Dashboard de Ocupabilidad</h1>
+        <p class="text-sm text-gray-500">Disponibilidad de ubicaciones por almacén en tiempo real</p>
+      </div>
+      <div class="ml-auto">
+        <span *ngIf="cargando"
+          class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-indigo-500"></span>
+          Cargando...
+        </span>
+        <span *ngIf="!cargando"
+          class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600">
+          <span class="h-2 w-2 rounded-full bg-green-500"></span>
+          Actualizado
+        </span>
+      </div>
+    </div>
+
+    <!-- Skeleton loader -->
+    <ng-container *ngIf="cargando">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div *ngFor="let i of [1,2,3,4]"
+          class="h-24 animate-pulse rounded-2xl bg-gray-200"></div>
+      </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div *ngFor="let i of [1,2,3]"
+          class="h-52 animate-pulse rounded-2xl bg-gray-200"></div>
+      </div>
+      <div class="h-80 animate-pulse rounded-2xl bg-gray-200"></div>
+    </ng-container>
+
+    <ng-container *ngIf="!cargando">
+
+      <!-- ── KPI Cards ─────────────────────────────────────────────────────── -->
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+
+        <!-- Total -->
+        <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Total</p>
+          <p class="mt-1 text-3xl font-bold text-gray-900">{{ totalUbicaciones | number }}</p>
+          <p class="mt-1 text-xs text-gray-400">ubicaciones</p>
+        </div>
+
+        <!-- Ocupadas -->
+        <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Ocupadas</p>
+          <p class="mt-1 text-3xl font-bold text-indigo-600">{{ totalOcupadas | number }}</p>
+          <p class="mt-1 text-xs text-gray-400">ubicaciones</p>
+        </div>
+
+        <!-- Libres -->
+        <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Libres</p>
+          <p class="mt-1 text-3xl font-bold text-emerald-500">{{ totalLibres | number }}</p>
+          <p class="mt-1 text-xs text-gray-400">ubicaciones</p>
+        </div>
+
+        <!-- % Global -->
+        <div class="rounded-2xl p-5 shadow-sm ring-1 ring-gray-100"
+          [class.bg-red-50]="pctGlobal >= 80"
+          [class.bg-amber-50]="pctGlobal >= 50 && pctGlobal < 80"
+          [class.bg-emerald-50]="pctGlobal < 50">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-400">Ocupación global</p>
+          <p class="mt-1 text-3xl font-bold"
+            [class.text-red-600]="pctGlobal >= 80"
+            [class.text-amber-600]="pctGlobal >= 50 && pctGlobal < 80"
+            [class.text-emerald-600]="pctGlobal < 50">
+            {{ pctGlobal }}%
+          </p>
+          <!-- mini barra -->
+          <div class="mt-2 h-1.5 w-full rounded-full bg-gray-200">
+            <div class="h-1.5 rounded-full transition-all duration-700"
+              [style.width.%]="pctGlobal"
+              [class.bg-red-500]="pctGlobal >= 80"
+              [class.bg-amber-500]="pctGlobal >= 50 && pctGlobal < 80"
+              [class.bg-emerald-500]="pctGlobal < 50">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Gauges por almacén ────────────────────────────────────────────── -->
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div *ngFor="let a of almacenes; let i = index"
+          class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
+
+          <!-- Gauge -->
+          <apx-chart
+            [series]="gaugeOptions[i].series"
+            [chart]="gaugeOptions[i].chart"
+            [plotOptions]="gaugeOptions[i].plotOptions"
+            [fill]="gaugeOptions[i].fill"
+            [stroke]="gaugeOptions[i].stroke"
+            [labels]="gaugeOptions[i].labels"
+            [dataLabels]="gaugeOptions[i].dataLabels">
+          </apx-chart>
+
+          <!-- Detalle numérico -->
+          <div class="mt-2 grid grid-cols-3 divide-x divide-gray-100 text-center">
+            <div class="px-2">
+              <p class="text-xs text-gray-400">Total</p>
+              <p class="font-semibold text-gray-800 text-sm">{{ a.total | number }}</p>
+            </div>
+            <div class="px-2">
+              <p class="text-xs text-gray-400">Ocupadas</p>
+              <p class="font-semibold text-indigo-600 text-sm">{{ a.ocupadas | number }}</p>
+            </div>
+            <div class="px-2">
+              <p class="text-xs text-gray-400">Libres</p>
+              <p class="font-semibold text-emerald-500 text-sm">{{ a.libres | number }}</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Stacked Bar 100% ──────────────────────────────────────────────── -->
+      <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-800">Ocupabilidad por Tipo de Ubicación</h2>
+            <p class="text-xs text-gray-400 mt-0.5">Distribución porcentual ocupadas vs libres</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            <span class="flex items-center gap-1">
+              <span class="inline-block h-2.5 w-2.5 rounded-sm bg-indigo-500"></span> Ocupadas
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="inline-block h-2.5 w-2.5 rounded-sm bg-gray-200"></span> Libres
+            </span>
+          </div>
+        </div>
+        <apx-chart
+          [series]="barOptions.series"
+          [chart]="barOptions.chart"
+          [xaxis]="barOptions.xaxis"
+          [yaxis]="barOptions.yaxis"
+          [plotOptions]="barOptions.plotOptions"
+          [dataLabels]="barOptions.dataLabels"
+          [fill]="barOptions.fill"
+          [colors]="barOptions.colors"
+          [legend]="barOptions.legend"
+          [tooltip]="barOptions.tooltip">
+        </apx-chart>
+      </div>
+
+      <!-- ── Tabla detalle ─────────────────────────────────────────────────── -->
+      <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h2 class="text-sm font-semibold text-gray-800">Detalle por Almacén y Tipo</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-100 text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Almacén</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tipo</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Total</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Ocupadas</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Libres</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 w-40">% Ocupación</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+              <tr *ngFor="let d of datos" class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 font-medium text-gray-800">{{ d.almacen }}</td>
+                <td class="px-4 py-3 text-gray-500">{{ d.tipoUbicacion }}</td>
+                <td class="px-4 py-3 text-right text-gray-700">{{ d.totalUbicaciones | number }}</td>
+                <td class="px-4 py-3 text-right font-semibold text-indigo-600">{{ d.ubicacionesOcupadas | number }}</td>
+                <td class="px-4 py-3 text-right font-semibold text-emerald-500">{{ d.ubicacionesLibres | number }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 rounded-full bg-gray-100">
+                      <div class="h-2 rounded-full transition-all duration-500"
+                        [style.width.%]="d.pctOcupacion"
+                        [class.bg-red-500]="d.pctOcupacion >= 80"
+                        [class.bg-amber-500]="d.pctOcupacion >= 50 && d.pctOcupacion < 80"
+                        [class.bg-indigo-500]="d.pctOcupacion < 50">
+                      </div>
+                    </div>
+                    <span class="text-xs font-semibold w-10 text-right"
+                      [class.text-red-600]="d.pctOcupacion >= 80"
+                      [class.text-amber-600]="d.pctOcupacion >= 50 && d.pctOcupacion < 80"
+                      [class.text-indigo-600]="d.pctOcupacion < 50">
+                      {{ d.pctOcupacion }}%
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+</div>

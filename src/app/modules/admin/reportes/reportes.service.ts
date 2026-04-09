@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { InventarioGeneral } from '../_models/inventariogeneral';
 import { Observable } from 'rxjs';
-import { OrderSummary, ReporteAjusteInventario } from './reportes.types';
+import { OcupabilidadItem, OrderSummary, ReporteAjusteInventario } from './reportes.types';
 
 
 
@@ -272,6 +272,13 @@ getKardexPorProducto(propietarioId: number, productoId: string, fecini: string, 
     .set('fecfin', fecfin);
   if (almacenId) params = params.set('almacenId', almacenId.toString());
   return this._httpClient.get<any>(`${this.baseUrlInventario}GetKardexPorProducto`, { params, headers: httpOptions.headers });
+}
+
+getOcupabilidadDashboard(): Observable<OcupabilidadItem[]> {
+  return this._httpClient.get<OcupabilidadItem[]>(
+    `${this.baseUrl}dashboard/ocupabilidad`,
+    { headers: httpOptions.headers }
+  );
 }
 
 buildKardexGeneralLegacyUrl(params: {

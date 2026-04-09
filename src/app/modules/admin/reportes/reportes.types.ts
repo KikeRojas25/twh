@@ -19,7 +19,17 @@ export interface OrderSummary {
     entregado: number;
   }
   
-  export interface ReporteAjusteInventario {
+export interface OcupabilidadItem {
+  almacenId: number;
+  almacen: string;
+  tipoUbicacion: string;
+  totalUbicaciones: number;
+  ubicacionesOcupadas: number;
+  ubicacionesLibres: number;
+  pctOcupacion: number;
+}
+
+export interface ReporteAjusteInventario {
   lodNum: string;
   propietarioId: number;
   nueva: string;
