@@ -337,6 +337,21 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/mantenimientos/propietarios/list/list.component')
                                           .then(m => m.ListPropietariosComponent)
                   },
+                  {
+                    path: 'areas',
+                    loadComponent: () => import('./modules/admin/mantenimientos/areas/list/list.component')
+                                          .then(m => m.ListAreasComponent)
+                  },
+                  {
+                    path: 'listadoubicaciones',
+                    loadComponent: () => import('./modules/admin/mantenimientos/ubicaciones/list/list.component')
+                                          .then(m => m.ListUbicacionesComponent)
+                  },
+                  {
+                    path: 'listadocliente',
+                    loadComponent: () => import('./modules/admin/mantenimientos/clientes/list/list.component')
+                                          .then(m => m.ListClientesComponent)
+                  },
 
                   {
                     path: 'vehiculos',

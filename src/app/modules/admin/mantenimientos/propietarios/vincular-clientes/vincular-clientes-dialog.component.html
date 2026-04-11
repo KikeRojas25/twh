@@ -1,0 +1,88 @@
+<div class="flex flex-col gap-5 p-2">
+  <p-toast />
+  <p-confirmDialog />
+
+  <!-- Sección: Vincular nuevo cliente -->
+  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border">
+    <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+      Vincular nuevo cliente
+    </h3>
+    <div class="flex gap-3 items-end flex-wrap">
+      <div class="flex-1 flex flex-col min-w-[220px]">
+        <label class="font-semibold text-gray-600 dark:text-gray-400 mb-1 text-sm">Buscar cliente:</label>
+        <p-autoComplete
+          [(ngModel)]="clienteSeleccionado"
+          [suggestions]="sugerencias"
+          (completeMethod)="buscarClientes($event)"
+          field="label"
+          [minLength]="1"
+          [delay]="400"
+          placeholder="Escriba nombre o documento..."
+          [style]="{'width': '100%'}"
+          styleClass="w-full"
+          appendTo="body">
+        </p-autoComplete>
+      </div>
+      <p-button
+        icon="pi pi-link"
+        label="Vincular"
+        severity="primary"
+        [loading]="vinculando"
+        (click)="vincular()">
+      </p-button>
+    </div>
+  </div>
+
+  <!-- Sección: Clientes vinculados -->
+  <div>
+    <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+      Clientes vinculados
+    </h3>
+    <p-table
+      [value]="clientesVinculados"
+      [loading]="cargandoVinculados"
+      [scrollable]="true"
+      scrollHeight="280px"
+      styleClass="p-datatable-sm">
+
+      <ng-template pTemplate="header">
+        <tr class="bg-gray-50">
+          <th>RAZÓN SOCIAL</th>
+          <th>DOCUMENTO</th>
+          <th class="text-center" style="width: 80px">ACCIÓN</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-cliente>
+        <tr>
+          <td>{{ cliente.razonSocial || '-' }}</td>
+          <td>{{ cliente.documento || '-' }}</td>
+          <td class="text-center">
+            <p-button
+              icon="pi pi-times"
+              severity="danger"
+              [text]="true"
+              pTooltip="Desvincular"
+              tooltipPosition="left"
+              (click)="confirmarDesvincular(cliente.id)">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" class="text-center p-4 text-gray-500 text-sm">
+            No hay clientes vinculados a este propietario
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+  <!-- Pie del modal -->
+  <div class="flex justify-end border-t pt-3">
+    <p-button label="Cerrar" severity="secondary" (click)="cerrar()"></p-button>
+  </div>
+</div>

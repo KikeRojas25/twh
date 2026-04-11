@@ -1,0 +1,41 @@
+<div class="flex flex-col gap-5 p-2">
+  <p-toast />
+
+  <div class="grid grid-cols-1 gap-4">
+
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">NOMBRE <span class="text-red-500">*</span></label>
+      <input type="text" pInputText [(ngModel)]="model.nombre" placeholder="Nombre del área" maxlength="20" class="w-full" />
+    </div>
+
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">TIPO DE ÁREA <span class="text-red-500">*</span></label>
+      <p-dropdown
+        [options]="tiposArea"
+        [(ngModel)]="model.tipoAreaId"
+        placeholder="Seleccione tipo"
+        [filter]="true"
+        [showClear]="true"
+        class="w-full">
+      </p-dropdown>
+    </div>
+
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">ALMACÉN <span class="text-red-500">*</span></label>
+      <p-dropdown
+        [options]="almacenes"
+        [(ngModel)]="model.almacenId"
+        placeholder="Seleccione almacén"
+        [filter]="true"
+        [showClear]="true"
+        class="w-full">
+      </p-dropdown>
+    </div>
+
+  </div>
+
+  <div class="flex justify-end gap-3 border-t pt-4">
+    <p-button label="Cancelar" severity="secondary" (click)="cerrar()"></p-button>
+    <p-button label="Guardar" icon="pi pi-save" (click)="guardar()" [loading]="guardando"></p-button>
+  </div>
+</div>

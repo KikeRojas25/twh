@@ -111,9 +111,13 @@
                   pTooltip="Editar"
                   (click)="editar(propietario.id)"></p-button>
                 <p-button
+                  severity="info"
+                  icon="pi pi-users"
+                  pTooltip="Vincular clientes"
+                  (click)="vincularClientes(propietario)"></p-button>
+                <p-button
                   severity="danger"
                   icon="pi pi-ban"
-                  
                   pTooltip="Inactivar propietario"
                   (click)="eliminar(propietario.id)"></p-button>
               </ng-container>

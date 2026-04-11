@@ -1,0 +1,80 @@
+<div class="flex flex-col gap-5 p-2">
+
+  <!-- Fila 1: Nombre -->
+  <div class="flex flex-col gap-1">
+    <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+      Nombre / Razón Social <span class="text-red-500">*</span>
+    </label>
+    <input pInputText [(ngModel)]="model.nombre" placeholder="Ingrese nombre o razón social"
+      class="w-full" [class.ng-invalid]="!model.nombre?.trim()" />
+  </div>
+
+  <!-- Fila 2: Tipo doc + Documento -->
+  <div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+        Tipo Documento <span class="text-red-500">*</span>
+      </label>
+      <p-dropdown
+        [options]="tiposDocumento"
+        [(ngModel)]="model.tipoDocumentoId"
+        placeholder="Seleccione..."
+        [showClear]="true"
+        class="w-full">
+      </p-dropdown>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+        Nro. Documento <span class="text-red-500">*</span>
+      </label>
+      <input pInputText [(ngModel)]="model.documento" placeholder="Ej: 20123456789"
+        class="w-full" />
+    </div>
+  </div>
+
+  <!-- Fila 3: Correo + Teléfono -->
+  <div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Correo</label>
+      <input pInputText [(ngModel)]="model.correo" placeholder="correo@ejemplo.com"
+        type="email" class="w-full" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Teléfono</label>
+      <input pInputText [(ngModel)]="model.telefono" placeholder="+51 999 999 999"
+        class="w-full" />
+    </div>
+  </div>
+
+  <!-- Fila 4: Contacto + Etiquetado -->
+  <div class="grid grid-cols-2 gap-4 items-end">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Contacto</label>
+      <input pInputText [(ngModel)]="model.contacto" placeholder="Nombre del contacto"
+        class="w-full" />
+    </div>
+    <div class="flex items-center gap-3 pb-1">
+      <p-checkbox [(ngModel)]="model.etiquetado" [binary]="true" inputId="etiq"></p-checkbox>
+      <label for="etiq" class="text-sm text-gray-600 cursor-pointer select-none">
+        Requiere etiquetado
+      </label>
+    </div>
+  </div>
+
+  <!-- Separador -->
+  <div class="border-t border-gray-100"></div>
+
+  <!-- Botones -->
+  <div class="flex justify-end gap-2">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true"
+      (click)="cerrar()"></p-button>
+    <p-button [label]="esEdicion ? 'Actualizar' : 'Crear Cliente'"
+      [icon]="guardando ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+      [disabled]="guardando"
+      (click)="guardar()"></p-button>
+  </div>
+
+</div>
+
+<p-toast position="top-right" />
+<p-confirmDialog />

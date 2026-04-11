@@ -16,6 +16,7 @@ import {
 } from 'ng-apexcharts';
 import { ReportesService } from '../reportes/reportes.service';
 import { OcupabilidadItem } from '../reportes/reportes.types';
+import { UbicacionService } from '../_services/ubicacion.service';
 
 export type GaugeOptions = {
   series: number[];
@@ -77,7 +78,15 @@ export class InicioComponent implements OnInit {
   // Stacked Bar
   barOptions!: BarOptions;
 
-  constructor(private reportesService: ReportesService) {}
+  // ── Detalle por área ─────────────────────────────────────────────────────
+  almacenSeleccionado: AlmacenResumen | null = null;
+  pasillos: any[] = [];
+  cargandoPasillos = false;
+
+  constructor(
+    private reportesService: ReportesService,
+    private ubicacionService: UbicacionService
+  ) {}
 
   ngOnInit(): void {
     this.mostrarDashboard = !this._usuarioTieneRolRestringido();
@@ -97,6 +106,39 @@ export class InicioComponent implements OnInit {
         this.cargando = false;
       },
     });
+  }
+
+  seleccionarAlmacen(a: AlmacenResumen): void {
+    // Toggle: click en el mismo deselecciona
+    if (this.almacenSeleccionado?.almacenId === a.almacenId) {
+      this.almacenSeleccionado = null;
+      this.pasillos = [];
+      return;
+    }
+
+    this.almacenSeleccionado = a;
+    this.pasillos = [];
+    this.cargandoPasillos = true;
+
+    this.ubicacionService.getOcupabilidadPorArea(a.almacenId).subscribe({
+      next: (data) => {
+        this.pasillos = data;
+        this.cargandoPasillos = false;
+      },
+      error: () => { this.cargandoPasillos = false; }
+    });
+  }
+
+  colorPasillo(pct: number): string {
+    if (pct >= 80) return 'bg-red-500';
+    if (pct >= 50) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  }
+
+  colorTextPasillo(pct: number): string {
+    if (pct >= 80) return 'text-red-600';
+    if (pct >= 50) return 'text-amber-600';
+    return 'text-emerald-600';
   }
 
   private _usuarioTieneRolRestringido(): boolean {
@@ -150,15 +192,15 @@ export class InicioComponent implements OnInit {
   }
 
   private _colorGauge(pct: number): string[] {
-    if (pct >= 80) return ['#ef4444'];       // rojo
-    if (pct >= 50) return ['#f59e0b'];       // naranja
-    return ['#22c55e'];                       // verde
+    if (pct >= 80) return ['#ef4444'];
+    if (pct >= 50) return ['#f59e0b'];
+    return ['#22c55e'];
   }
 
   private _buildGauge(a: AlmacenResumen): GaugeOptions {
     return {
       series: [a.pct],
-      chart: { type: 'radialBar', height: 220, sparkline: { enabled: true } },
+      chart: { type: 'radialBar', height: 200, sparkline: { enabled: true } },
       plotOptions: {
         radialBar: {
           startAngle: -135,
@@ -169,7 +211,7 @@ export class InicioComponent implements OnInit {
             name: { show: true, fontSize: '11px', offsetY: -10 },
             value: {
               show: true,
-              fontSize: '22px',
+              fontSize: '20px',
               fontWeight: 700,
               offsetY: 5,
               formatter: (val: number) => `${val}%`,
@@ -185,19 +227,12 @@ export class InicioComponent implements OnInit {
   }
 
   private _buildBar(): void {
-    // Categorías: "Almacen · TipoUbicacion"
     const categorias = this.datos.map(d => `${d.almacen.trim()} · ${d.tipoUbicacion}`);
 
     this.barOptions = {
       series: [
-        {
-          name: 'Ocupadas',
-          data: this.datos.map(d => d.ubicacionesOcupadas),
-        },
-        {
-          name: 'Libres',
-          data: this.datos.map(d => d.ubicacionesLibres),
-        },
+        { name: 'Ocupadas', data: this.datos.map(d => d.ubicacionesOcupadas) },
+        { name: 'Libres',   data: this.datos.map(d => d.ubicacionesLibres) },
       ],
       chart: {
         type: 'bar',
@@ -208,11 +243,7 @@ export class InicioComponent implements OnInit {
         fontFamily: 'Inter, sans-serif',
       },
       plotOptions: {
-        bar: {
-          horizontal: true,
-          barHeight: '60%',
-          borderRadius: 4,
-        },
+        bar: { horizontal: true, barHeight: '60%', borderRadius: 4 },
       },
       xaxis: {
         categories: categorias,
@@ -226,16 +257,8 @@ export class InicioComponent implements OnInit {
         formatter: (val: number) => `${Math.round(val)}%`,
         style: { fontSize: '11px', fontWeight: 600 },
       },
-      legend: {
-        position: 'top',
-        horizontalAlign: 'left',
-        fontSize: '12px',
-      },
-      tooltip: {
-        y: {
-          formatter: (val: number) => `${val.toLocaleString()} ubic.`,
-        },
-      },
+      legend: { position: 'top', horizontalAlign: 'left', fontSize: '12px' },
+      tooltip: { y: { formatter: (val: number) => `${val.toLocaleString()} ubic.` } },
     };
   }
 }

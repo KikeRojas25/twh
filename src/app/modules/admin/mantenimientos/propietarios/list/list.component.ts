@@ -17,6 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { PropietarioService } from '../../../_services/propietario.service';
 import { NewPropietarioComponent } from '../new/new.component';
 import { EditPropietarioComponent } from '../edit/edit.component';
+import { VincularClientesDialogComponent } from '../vincular-clientes/vincular-clientes-dialog.component';
 
 @Component({
   selector: 'app-list-propietarios',
@@ -162,6 +163,17 @@ export class ListPropietariosComponent implements OnInit {
             });
           }
         });
+      }
+    });
+  }
+
+  vincularClientes(propietario: any) {
+    this.ref = this.dialogService.open(VincularClientesDialogComponent, {
+      header: `Vincular Clientes — ${propietario.razonSocial || propietario.nombreCorto || ''}`,
+      width: '700px',
+      data: {
+        propietarioId: propietario.id,
+        propietarioNombre: propietario.razonSocial || propietario.nombreCorto
       }
     });
   }

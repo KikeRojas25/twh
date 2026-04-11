@@ -1,0 +1,77 @@
+<div class="flex flex-col gap-4 p-2">
+  <p-toast />
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <!-- Nombre -->
+    <div class="flex flex-col sm:col-span-2">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">NOMBRE <span class="text-red-500">*</span></label>
+      <input type="text" pInputText [(ngModel)]="model.nombre" placeholder="Nombre de la ubicación" maxlength="20" class="w-full" />
+    </div>
+
+    <!-- Almacén -->
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">ALMACÉN <span class="text-red-500">*</span></label>
+      <p-dropdown
+        [options]="almacenes"
+        [(ngModel)]="model.almacenId"
+        placeholder="Seleccione almacén"
+        [filter]="true"
+        [showClear]="true"
+        (onChange)="onAlmacenChange()"
+        class="w-full">
+      </p-dropdown>
+    </div>
+
+    <!-- Área -->
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">ÁREA</label>
+      <p-dropdown
+        [options]="areas"
+        [(ngModel)]="model.areaId"
+        placeholder="Seleccione área"
+        [filter]="true"
+        [showClear]="true"
+        [disabled]="!model.almacenId"
+        class="w-full">
+      </p-dropdown>
+    </div>
+
+    <!-- Dimensiones -->
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">ALTO (Height)</label>
+      <p-inputNumber [(ngModel)]="model.height" [minFractionDigits]="2" [maxFractionDigits]="4"
+        placeholder="0.00" class="w-full"></p-inputNumber>
+    </div>
+
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">LARGO (Length)</label>
+      <p-inputNumber [(ngModel)]="model.length" [minFractionDigits]="2" [maxFractionDigits]="4"
+        placeholder="0.00" class="w-full"></p-inputNumber>
+    </div>
+
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">ANCHO (Width)</label>
+      <p-inputNumber [(ngModel)]="model.width" [minFractionDigits]="2" [maxFractionDigits]="4"
+        placeholder="0.00" class="w-full"></p-inputNumber>
+    </div>
+
+    <!-- Nivel -->
+    <div class="flex flex-col">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">NIVEL</label>
+      <input type="text" pInputText [(ngModel)]="model.nivelId" placeholder="Ej: A1" maxlength="2" class="w-full" />
+    </div>
+
+    <!-- Activo -->
+    <div class="flex items-center gap-3 sm:col-span-2 mt-1">
+      <p-checkbox [(ngModel)]="model.activo" [binary]="true" inputId="chkActivo"></p-checkbox>
+      <label for="chkActivo" class="font-semibold text-gray-700 dark:text-gray-300 cursor-pointer select-none">Activo</label>
+    </div>
+
+  </div>
+
+  <div class="flex justify-end gap-3 border-t pt-4">
+    <p-button label="Cancelar" severity="secondary" (click)="cerrar()"></p-button>
+    <p-button label="Guardar" icon="pi pi-save" (click)="guardar()" [loading]="guardando"></p-button>
+  </div>
+</div>

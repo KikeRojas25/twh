@@ -67,4 +67,39 @@ getPropietariosByUsuario(idUsuario: number): Observable<Cliente[]> {
     return this._httpClient.get<any>(`${this.baseUrl}document/${documento}`, httpOptions);
   }
 
+  getAllClientes(criterio: string): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.baseUrl}GetAllClientes?criterio=${encodeURIComponent(criterio)}`, httpOptions);
+  }
+
+  vincularClientePropietario(model: { clienteId: number; propietarioId: number }): Observable<any> {
+    return this._httpClient.post<any>(`${this.baseUrl}MatchOwnerClient`, model, httpOptions);
+  }
+
+  desvincularClientePropietario(propietarioId: number, clienteId: number): Observable<any> {
+    return this._httpClient.post<any>(
+      `${this.baseUrl}DeleteCliente?propietarioId=${propietarioId}&clienteId=${clienteId}`,
+      {},
+      httpOptions
+    );
+  }
+
+  // ─── CRUD Clientes ──────────────────────────────────────────────────────────
+
+  getClientes(criterio?: string): Observable<any[]> {
+    const qs = criterio?.trim() ? `?criterio=${encodeURIComponent(criterio.trim())}` : '';
+    return this._httpClient.get<any[]>(`${this.baseUrl}clientes${qs}`, httpOptions);
+  }
+
+  crearCliente(dto: any): Observable<any> {
+    return this._httpClient.post<any>(`${this.baseUrl}clientes`, dto, httpOptions);
+  }
+
+  actualizarCliente(id: number, dto: any): Observable<any> {
+    return this._httpClient.put<any>(`${this.baseUrl}clientes/${id}`, dto, httpOptions);
+  }
+
+  eliminarCliente(id: number): Observable<any> {
+    return this._httpClient.delete<any>(`${this.baseUrl}clientes/${id}`, httpOptions);
+  }
+
 }

@@ -107,10 +107,26 @@
 
       </div>
 
-      <!-- ── Gauges por almacén ────────────────────────────────────────────── -->
+      <!-- ── Gauges por almacén (clickables) ─────────────────────────────── -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div *ngFor="let a of almacenes; let i = index"
-          class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
+          (click)="seleccionarAlmacen(a)"
+          class="rounded-2xl bg-white p-4 shadow-sm ring-1 cursor-pointer transition-all duration-200 select-none"
+          [class.ring-indigo-400]="almacenSeleccionado?.almacenId === a.almacenId"
+          [class.ring-2]="almacenSeleccionado?.almacenId === a.almacenId"
+          [class.shadow-md]="almacenSeleccionado?.almacenId === a.almacenId"
+          [class.ring-gray-100]="almacenSeleccionado?.almacenId !== a.almacenId">
+
+          <!-- Badge "seleccionado" -->
+          <div class="flex justify-end mb-1 h-5">
+            <span *ngIf="almacenSeleccionado?.almacenId === a.almacenId"
+              class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+              Ver detalle
+            </span>
+            <span *ngIf="almacenSeleccionado?.almacenId !== a.almacenId"
+              class="text-[10px] text-gray-300">Clic para ver áreas</span>
+          </div>
 
           <!-- Gauge -->
           <apx-chart
@@ -139,6 +155,94 @@
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- ── Panel detalle por área/pasillo ────────────────────────────────── -->
+      <div *ngIf="almacenSeleccionado"
+        class="rounded-2xl bg-white shadow-sm ring-1 ring-indigo-100 overflow-hidden border-t-4 border-indigo-500">
+
+        <!-- Header del panel -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
+              <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-gray-800">
+                Ocupabilidad por Área — {{ almacenSeleccionado.almacen }}
+              </h2>
+              <p class="text-xs text-gray-400">{{ pasillos.length }} área(s) encontrada(s)</p>
+            </div>
+          </div>
+          <button (click)="seleccionarAlmacen(almacenSeleccionado)"
+            class="flex h-7 w-7 items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Skeleton -->
+        <div *ngIf="cargandoPasillos" class="p-6 space-y-3">
+          <div *ngFor="let i of [1,2,3,4,5]"
+            class="h-10 animate-pulse rounded-lg bg-gray-100"></div>
+        </div>
+
+        <!-- Listado de áreas -->
+        <div *ngIf="!cargandoPasillos" class="p-6 space-y-2">
+
+          <!-- Sin datos -->
+          <div *ngIf="pasillos.length === 0"
+            class="text-center py-8 text-gray-400 text-sm">
+            No se encontraron áreas para este almacén.
+          </div>
+
+          <div *ngFor="let p of pasillos"
+            class="flex items-center gap-4 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors group">
+
+            <!-- Nombre del área -->
+            <div class="w-40 shrink-0">
+              <p class="text-sm font-semibold text-gray-700 truncate">{{ p.areaNombre }}</p>
+              <p class="text-xs text-gray-400">{{ p.totalUbicaciones }} ubicaciones</p>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div class="flex-1 min-w-0">
+              <div class="relative h-4 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700"
+                  [class]="colorPasillo(p.pctOcupacion)"
+                  [style.width.%]="p.pctOcupacion">
+                </div>
+                <!-- Texto dentro de la barra si hay espacio -->
+                <span *ngIf="p.pctOcupacion > 20"
+                  class="absolute inset-0 flex items-center pl-3 text-[10px] font-bold text-white">
+                  {{ p.ocupadas }} ocup.
+                </span>
+              </div>
+            </div>
+
+            <!-- Métricas -->
+            <div class="flex items-center gap-4 shrink-0 text-right">
+              <div class="w-16">
+                <p class="text-xs text-gray-400">Ocupadas</p>
+                <p class="text-sm font-bold text-indigo-600">{{ p.ocupadas | number }}</p>
+              </div>
+              <div class="w-14">
+                <p class="text-xs text-gray-400">Libres</p>
+                <p class="text-sm font-bold text-emerald-500">{{ p.libres | number }}</p>
+              </div>
+              <div class="w-14 text-center">
+                <p class="text-lg font-extrabold" [class]="colorTextPasillo(p.pctOcupacion)">
+                  {{ p.pctOcupacion }}%
+                </p>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
