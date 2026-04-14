@@ -222,6 +222,16 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/reportes/kardexproductos/kardexproductos.component')
                                           .then(m => m.KardexproductosComponent)
                   },
+                  {
+                    path: 'capacidadalmacen',
+                    loadComponent: () => import('./modules/admin/reportes/capacidadalmacen/capacidadalmacen.component')
+                                          .then(m => m.CapacidadalmacenComponent)
+                  },
+                  {
+                    path: 'reporteubicaciones',
+                    loadComponent: () => import('./modules/admin/reportes/reporteubicaciones/reporteubicaciones.component')
+                                          .then(m => m.ReporteubicacionesComponent)
+                  },
 
                 ]
               },

@@ -78,4 +78,12 @@ export class UbicacionService {
   getOcupabilidadPorArea(almacenId: number): Observable<any[]> {
     return this._http.get<any[]>(`${this.baseUrl}/dashboard/ocupabilidad?almacenId=${almacenId}`, httpOptions);
   }
+
+  getOcupabilidadPorPropietario(almacenId: number): Observable<any[]> {
+    return this._http.get<any[]>(`${this.baseUrl}/dashboard/ocupabilidad-propietario?almacenId=${almacenId}`, httpOptions);
+  }
+
+  getOcupabilidadPorTipoUbicacion(almacenId: number): Observable<any[]> {
+    return this._http.get<any[]>(`${this.baseUrl}/dashboard/ocupabilidad-tipo?almacenId=${almacenId}`, httpOptions);
+  }
 }
