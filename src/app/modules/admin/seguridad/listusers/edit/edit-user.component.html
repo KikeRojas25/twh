@@ -12,7 +12,7 @@
 
   <div class="flex flex-col gap-1">
     <label class="text-xs font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
-    <input pInputText formControlName="email" placeholder="correo@empresa.com" class="w-full text-sm" />
+    <input pInputText formControlName="email" placeholder="username" class="w-full text-sm" />
     <small class="text-red-500" *ngIf="hasError('email','required')">El email es requerido.</small>
     <small class="text-red-500" *ngIf="hasError('email','email')">Ingrese un email válido.</small>
   </div>

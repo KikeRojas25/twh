@@ -22,7 +22,8 @@ export interface OrderSummary {
 export interface OcupabilidadItem {
   almacenId: number;
   almacen: string;
-  tipoUbicacion: string;
+  /** Solo presente si el endpoint que se invoca devuelve granularidad por tipo. */
+  tipoUbicacion?: string;
   totalUbicaciones: number;
   ubicacionesOcupadas: number;
   ubicacionesLibres: number;

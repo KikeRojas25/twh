@@ -275,8 +275,10 @@ getKardexPorProducto(propietarioId: number, productoId: string, fecini: string, 
 }
 
 getOcupabilidadDashboard(): Observable<OcupabilidadItem[]> {
+  // Mismo endpoint que consume stockapp (WPF). Devuelve 1 fila por almacén
+  // ya consolidada (suma todos los tipos de ubicación, recalcula % ocupación).
   return this._httpClient.get<OcupabilidadItem[]>(
-    `${this.baseUrl}dashboard/ocupabilidad`,
+    `${environment.baseUrl}/api/Ubicacion/dashboard/ocupabilidad-global`,
     { headers: httpOptions.headers }
   );
 }
