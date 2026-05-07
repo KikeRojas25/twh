@@ -10,6 +10,7 @@ import { DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { PropietarioService } from '../../../_services/propietario.service';
+import { GeneralService } from '../../../_services/general.service';
 
 @Component({
   selector: 'app-new-propietario',
@@ -36,15 +37,12 @@ export class NewPropietarioComponent implements OnInit {
 
   model: any = {};
 
-  tiposDocumento = [
-    { id: 1, nombre: 'DNI' },
-    { id: 2, nombre: 'RUC' },
-    { id: 3, nombre: 'Pasaporte' },
-    { id: 4, nombre: 'Carnet de Extranjería' }
-  ];
+  // Tipos de documento — se cargan desde Mantenimiento.ValorTabla (TablaId = 15).
+  tiposDocumento: { id: number; nombre: string }[] = [];
 
   constructor(
     private propietarioService: PropietarioService,
+    private generalService: GeneralService,
     private ref: DynamicDialogRef,
     private confirmationService: ConfirmationService,
     private messageService: MessageService
@@ -58,6 +56,26 @@ export class NewPropietarioComponent implements OnInit {
       documento: '',
       direccion: ''
     };
+
+    this.cargarTiposDocumento();
+  }
+
+  cargarTiposDocumento() {
+    this.generalService.getValorTabla(15).subscribe({
+      next: (data) => {
+        this.tiposDocumento = (data || []).map((v: any) => ({
+          id: v.id,
+          nombre: v.valorPrincipal
+        }));
+      },
+      error: () => {
+        // Fallback mínimo si el endpoint falla — IDs reales de la BD.
+        this.tiposDocumento = [
+          { id: 142, nombre: 'DNI' },
+          { id: 145, nombre: 'RUC' }
+        ];
+      }
+    });
   }
 
   guardar() {
