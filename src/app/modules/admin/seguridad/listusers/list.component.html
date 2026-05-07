@@ -63,7 +63,7 @@
 
   <!-- Tabla -->
   <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
-    <div class="bg-gray-700 text-white px-4 py-2.5 border-b border-gray-600">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
       <h3 class="text-base font-semibold text-gray-100">Listado de Usuarios</h3>
       <p class="text-xs text-amber-300 mt-1">Total: {{ usuarios.length }} usuarios</p>
     </div>
@@ -79,12 +79,12 @@
 
         <ng-template pTemplate="header">
           <tr>
-            <th style="width:165px; background-color:#374151; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #4B5563;">ACCIONES</th>
-            <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #4B5563;">NOMBRE COMPLETO</th>
-            <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #4B5563;">USUARIO</th>
-            <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #4B5563;">EMAIL</th>
-            <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #4B5563;">DNI</th>
-            <th style="background-color:#374151; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #4B5563;">ESTADO</th>
+            <th style="width:165px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">NOMBRE COMPLETO</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">USUARIO</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">EMAIL</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">DNI</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ESTADO</th>
           </tr>
         </ng-template>
 
@@ -92,16 +92,16 @@
           <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
             <td class="text-center px-4 py-2">
               <div class="flex justify-center gap-1">
-                <p-button icon="fa fa-edit" severity="primary" [raised]="true" [size]="'small'"
+                <p-button icon="fa fa-edit" severity="primary" [raised]="true"
                   pTooltip="Editar" (click)="editar(usuario.id || usuario.Id)"></p-button>
-                <p-button icon="pi pi-key" severity="warn" [raised]="true" [size]="'small'"
+                <p-button icon="pi pi-key" severity="warn" [raised]="true"
                   pTooltip="Cambiar contraseña" (click)="cambiarPassword(usuario)"></p-button>
-                <p-button icon="pi pi-shield" severity="info" [raised]="true" [size]="'small'"
+                <p-button icon="pi pi-shield" severity="info" [raised]="true"
                   pTooltip="Gestionar roles" (click)="gestionarRoles(usuario)"></p-button>
                 <p-button
                   [severity]="(usuario.estadoId || usuario.EstadoId) === 1 ? 'danger' : 'success'"
                   [icon]="(usuario.estadoId || usuario.EstadoId) === 1 ? 'pi pi-lock' : 'pi pi-unlock'"
-                  [raised]="true" [size]="'small'"
+                  [raised]="true"
                   [pTooltip]="(usuario.estadoId || usuario.EstadoId) === 1 ? 'Bloquear' : 'Activar'"
                   (click)="toggleEstado(usuario)"></p-button>
               </div>

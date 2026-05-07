@@ -5,12 +5,13 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button'; 
 import { HuellaDetalle } from 'app/modules/admin/_models/huella';
 import { ProductoService } from '../../../_services/producto.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DynamicDialogRef, DialogService } from 'primeng/dynamicdialog';
 import { NewhuelladetalleComponent } from '../newhuelladetalle/newhuelladetalle.component';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-huelladetalle',
@@ -21,7 +22,9 @@ import { ToastModule } from 'primeng/toast';
         CommonModule,
         ButtonModule,
         ConfirmDialogModule,
-        ToastModule
+        ToastModule,
+        TooltipModule,
+        RouterLink
   ],
   providers: [
     DialogService,

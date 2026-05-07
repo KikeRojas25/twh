@@ -1,89 +1,117 @@
-<div class="flex flex-col flex-auto min-w-0">
-  <!-- Encabezado -->
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
     <div class="flex-1 min-w-0">
-      <div class="flex flex-wrap items-center font-medium">
-        <a class="whitespace-nowrap text-primary-500">TWH</a>
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
         <div class="flex items-center ml-1 whitespace-nowrap">
-          <mat-icon class="fuse-horizontal-navigation-item-icon" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-primary-500">Mantenimiento</a>
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Mantenimiento</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Áreas</a>
         </div>
       </div>
-      <div class="mt-2">
-        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Áreas</h2>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Áreas
+        </h2>
       </div>
     </div>
   </div>
 
-  <div class="flex flex-col flex-auto min-w-0 space-y-6 p-6 sm:px-10">
-    <!-- Filtros -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border">
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
-
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="flex flex-col">
-          <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">ALMACÉN:</label>
+          <label class="text-xs font-medium text-gray-700 mb-1">ALMACÉN:</label>
           <p-dropdown
             [options]="almacenes"
             [(ngModel)]="model.almacenId"
             placeholder="Todos los almacenes"
             [showClear]="true"
             [filter]="true"
-            class="w-full">
+            appendTo="body"
+            [style]="{'width':'100%'}"
+            styleClass="text-sm border-gray-300">
           </p-dropdown>
         </div>
+      </div>
 
-        <div class="flex items-end">
-          <p-button icon="pi pi-search" label="Buscar" (click)="buscar()" class="w-full"
-            severity="success" [loading]="cargando"></p-button>
-        </div>
-
-        <div class="flex items-end">
-          <p-button icon="pi pi-plus" label="Nueva Área" (click)="nuevo()" class="w-full"
-            severity="primary"></p-button>
-        </div>
-
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50"
+          pButton icon="fa fa-search" label="Buscar" iconPos="left"
+          [loading]="cargando" (click)="buscar()">
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-all duration-150"
+          pButton icon="fa fa-plus" label="Nueva Área" iconPos="left"
+          (click)="nuevo()">
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Tabla -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border">
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Listado de Áreas</h3>
+      <p class="text-xs text-amber-300 mt-1">Total: {{ areas?.length || 0 }} área(s)</p>
+    </div>
+
+    <div class="p-4">
       <p-table
-        class="w-full"
         [value]="areas"
         [paginator]="true"
         [rows]="15"
-        [resizableColumns]="true"
-        responsiveLayout="scroll"
+        [rowsPerPageOptions]="[10, 15, 25, 50]"
         [scrollable]="true"
-        [loading]="cargando">
+        scrollHeight="600px"
+        [loading]="cargando"
+        styleClass="p-datatable-sm">
 
         <ng-template pTemplate="header">
-          <tr class="bg-gray-50">
-            <th class="text-center" style="width:120px">ACCIONES</th>
-            <th class="text-left">NOMBRE</th>
-            <th class="text-center">TIPO ÁREA</th>
-            <th class="text-center">ALMACÉN ID</th>
+          <tr>
+            <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">NOMBRE</th>
+            <th style="width:160px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">TIPO ÁREA</th>
+            <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ALMACÉN ID</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-area>
-          <tr>
-            <td class="text-center space-x-2">
-              <p-button severity="success" icon="fa fa-edit" pTooltip="Editar" (click)="editar(area)"></p-button>
-              <p-button severity="danger" icon="pi pi-trash" pTooltip="Eliminar" (click)="eliminar(area.id)"></p-button>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2">
+              <div class="flex justify-center gap-1">
+                <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                  pTooltip="Editar" tooltipPosition="top"
+                  (click)="editar(area)"></p-button>
+                <p-button severity="danger" icon="pi pi-trash" [raised]="true"
+                  pTooltip="Eliminar" tooltipPosition="top"
+                  (click)="eliminar(area.id)"></p-button>
+              </div>
             </td>
-            <td class="text-left">{{ area.nombre || '-' }}</td>
-            <td class="text-center">{{ area.tipoAreaId || '-' }}</td>
-            <td class="text-center">{{ area.almacenId || '-' }}</td>
+            <td class="px-4 py-2 text-gray-700 text-sm font-medium">{{ area.nombre || '—' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ area.tipoAreaId || '—' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ area.almacenId || '—' }}</td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="4" class="text-center p-4">No se encontraron áreas. Seleccione un almacén y haga clic en Buscar.</td>
+            <td colspan="4" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No se encontraron áreas</span>
+                <span class="text-gray-400 text-xs mt-1">Seleccione un almacén y presione "Buscar"</span>
+              </div>
+            </td>
           </tr>
         </ng-template>
-
       </p-table>
     </div>
   </div>

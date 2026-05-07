@@ -1,28 +1,33 @@
-<div class="flex flex-col flex-auto min-w-0">
-  <!-- Encabezado -->
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
     <div class="flex-1 min-w-0">
-      <div class="flex flex-wrap items-center font-medium">
-        <a class="whitespace-nowrap text-primary-500">TWH</a>
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
         <div class="flex items-center ml-1 whitespace-nowrap">
-          <mat-icon class="fuse-horizontal-navigation-item-icon" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-primary-500">Mantenimiento</a>
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Mantenimiento</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Ubicaciones</a>
         </div>
       </div>
-      <div class="mt-2">
-        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Ubicaciones</h2>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Ubicaciones
+        </h2>
       </div>
     </div>
   </div>
 
-  <div class="flex flex-col flex-auto min-w-0 space-y-6 p-6 sm:px-10">
-
-    <!-- Panel de filtros -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border">
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
-
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="flex flex-col">
-          <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">ALMACÉN:</label>
+          <label class="text-xs font-medium text-gray-700 mb-1">ALMACÉN:</label>
           <p-dropdown
             [options]="almacenes"
             [(ngModel)]="model.almacenId"
@@ -30,12 +35,13 @@
             [showClear]="true"
             [filter]="true"
             (onChange)="onAlmacenChange()"
-            class="w-full">
+            appendTo="body"
+            [style]="{'width':'100%'}"
+            styleClass="text-sm border-gray-300">
           </p-dropdown>
         </div>
-
         <div class="flex flex-col">
-          <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">ÁREA:</label>
+          <label class="text-xs font-medium text-gray-700 mb-1">ÁREA:</label>
           <p-dropdown
             [options]="areas"
             [(ngModel)]="model.areaId"
@@ -43,165 +49,169 @@
             [showClear]="true"
             [filter]="true"
             [disabled]="!model.almacenId"
-            class="w-full">
+            appendTo="body"
+            [style]="{'width':'100%'}"
+            styleClass="text-sm border-gray-300">
           </p-dropdown>
         </div>
-
         <div class="flex flex-col">
-          <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">NOMBRE:</label>
-          <input type="text" pInputText [(ngModel)]="model.nombre"
-            placeholder="Buscar por nombre..." class="w-full" />
+          <label class="text-xs font-medium text-gray-700 mb-1">NOMBRE:</label>
+          <input pInputText [(ngModel)]="model.nombre"
+            placeholder="Buscar por nombre..."
+            class="w-full text-sm border-gray-300"
+            (keyup.enter)="buscar()" />
         </div>
-
-        <div class="flex items-end">
-          <p-button icon="pi pi-search" label="Buscar" (click)="buscar()"
-            class="w-full" severity="success" [loading]="cargando"></p-button>
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">TIPO:</label>
+          <p-dropdown
+            [options]="tiposUbicacion"
+            [(ngModel)]="model.tipoUbicacionId"
+            placeholder="Todos"
+            [showClear]="true"
+            [filter]="true"
+            appendTo="body"
+            [style]="{'width':'100%'}"
+            styleClass="text-sm border-gray-300">
+          </p-dropdown>
         </div>
+      </div>
 
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50"
+          pButton icon="fa fa-search" label="Buscar" iconPos="left"
+          [loading]="cargando" (click)="buscar()">
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-all duration-150"
+          pButton icon="fa fa-plus" label="Nueva Ubicación" iconPos="left"
+          (click)="nuevo()">
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Tabla -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border">
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Listado de Ubicaciones</h3>
+      <p class="text-xs text-amber-300 mt-1">Total: {{ ubicaciones.length }} ubicación(es)</p>
+    </div>
 
-      <!-- Toolbar -->
-      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <span class="p-input-icon-left flex-1 min-w-[200px] max-w-sm">
-          <i class="pi pi-search"></i>
-          <input pInputText type="text" placeholder="Filtrar en la tabla..."
-            class="w-full" (input)="filtrarTabla($event)" />
-        </span>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ ubicaciones.length }} ubicación(es)</span>
-          <p-button icon="pi pi-plus" label="Nueva Ubicación" (click)="nuevo()" severity="primary"></p-button>
-        </div>
-      </div>
-
+    <div class="p-4">
       <p-table
         #dt
-        class="w-full"
         [value]="ubicaciones"
         [paginator]="true"
         [rows]="15"
         [rowsPerPageOptions]="[15, 30, 50]"
-        [globalFilterFields]="['nombre','nivelId','areaId','areaNombre','estadoOcupacion','propietarioNombre']"
-        [resizableColumns]="true"
-        responsiveLayout="scroll"
+        [globalFilterFields]="['nombre','nivelId','areaId','areaNombre','tipoUbicacionNombre','estadoOcupacion','propietarioNombre']"
         [scrollable]="true"
+        scrollHeight="600px"
         [loading]="cargando"
-        styleClass="p-datatable-sm p-datatable-striped p-datatable-hoverable-rows"
-        [rowHover]="true">
+        [rowHover]="true"
+        styleClass="p-datatable-sm">
 
         <ng-template pTemplate="header">
-          <tr class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-            <th class="text-center" style="width:100px">ACCIONES</th>
-            <th pSortableColumn="nombre" class="text-left">
-              NOMBRE <p-sortIcon field="nombre"></p-sortIcon>
-            </th>
-            <th pSortableColumn="areaNombre" class="text-left">
-              ÁREA <p-sortIcon field="areaNombre"></p-sortIcon>
-            </th>
-            <th pSortableColumn="nivelId" class="text-center" style="width:70px">
-              NIVEL <p-sortIcon field="nivelId"></p-sortIcon>
-            </th>
-            <th pSortableColumn="posicionId" class="text-center" style="width:80px">
-              POS. <p-sortIcon field="posicionId"></p-sortIcon>
-            </th>
-            <th pSortableColumn="totalLods" class="text-center" style="width:80px">
-              PALLETS <p-sortIcon field="totalLods"></p-sortIcon>
-            </th>
-            <th pSortableColumn="totalUnidades" class="text-center" style="width:90px">
-              UNIDS. <p-sortIcon field="totalUnidades"></p-sortIcon>
-            </th>
-            <th class="text-center" style="width:65px">ALTO</th>
-            <th class="text-center" style="width:65px">LARGO</th>
-            <th class="text-center" style="width:65px">ANCHO</th>
-            <th pSortableColumn="estadoOcupacion" class="text-left" style="min-width:175px">
-              OCUPACIÓN <p-sortIcon field="estadoOcupacion"></p-sortIcon>
-            </th>
-            <th pSortableColumn="activo" class="text-center" style="width:70px">
-              ACTIVO <p-sortIcon field="activo"></p-sortIcon>
-            </th>
+          <tr>
+            <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th pSortableColumn="nombre" style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">NOMBRE <p-sortIcon field="nombre"></p-sortIcon></th>
+            <th pSortableColumn="areaNombre" style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ÁREA <p-sortIcon field="areaNombre"></p-sortIcon></th>
+            <th pSortableColumn="tipoUbicacionNombre" style="width:130px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">TIPO <p-sortIcon field="tipoUbicacionNombre"></p-sortIcon></th>
+            <th pSortableColumn="nivelId" style="width:80px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">NIVEL <p-sortIcon field="nivelId"></p-sortIcon></th>
+            <th pSortableColumn="posicionId" style="width:80px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">POS. <p-sortIcon field="posicionId"></p-sortIcon></th>
+            <th pSortableColumn="totalLods" style="width:90px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">PALLETS <p-sortIcon field="totalLods"></p-sortIcon></th>
+            <th pSortableColumn="totalUnidades" style="width:100px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">UNIDS. <p-sortIcon field="totalUnidades"></p-sortIcon></th>
+            <th style="width:70px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ALTO</th>
+            <th style="width:70px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">LARGO</th>
+            <th style="width:70px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ANCHO</th>
+            <th pSortableColumn="estadoOcupacion" style="min-width:175px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">OCUPACIÓN <p-sortIcon field="estadoOcupacion"></p-sortIcon></th>
+            <th pSortableColumn="activo" style="width:90px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACTIVO <p-sortIcon field="activo"></p-sortIcon></th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-ub>
-          <tr>
-            <td class="text-center">
-              <div class="flex items-center justify-center gap-0.5">
-                <p-button severity="info" icon="pi pi-eye" [text]="true" [rounded]="true" size="small"
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2">
+              <div class="flex justify-center gap-1">
+                <p-button severity="info" icon="pi pi-eye" [raised]="true"
                   pTooltip="Ver contenido" tooltipPosition="top"
                   [disabled]="ub.estadoOcupacion === 'Libre'"
                   (click)="verInventario(ub)"></p-button>
-                <p-button severity="success" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small"
+                <p-button severity="primary" icon="pi pi-pencil" [raised]="true"
                   pTooltip="Editar" tooltipPosition="top"
                   (click)="editar(ub)"></p-button>
-                <p-button severity="danger" icon="pi pi-trash" [text]="true" [rounded]="true" size="small"
+                <p-button severity="danger" icon="pi pi-trash" [raised]="true"
                   pTooltip="Eliminar" tooltipPosition="top"
                   (click)="eliminar(ub.id)"></p-button>
               </div>
             </td>
-            <td class="text-left text-xs font-medium">{{ ub.nombre }}</td>
-            <td class="text-left text-xs text-gray-500 dark:text-gray-400">{{ ub.areaNombre || '-' }}</td>
-            <td class="text-center">
+            <td class="px-4 py-2 text-gray-700 text-sm font-medium">{{ ub.nombre }}</td>
+            <td class="px-4 py-2 text-gray-600 text-sm">{{ ub.areaNombre || '—' }}</td>
+            <td class="text-center px-4 py-2">
+              <span *ngIf="ub.tipoUbicacionNombre"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                {{ ub.tipoUbicacionNombre }}
+              </span>
+              <span *ngIf="!ub.tipoUbicacionNombre" class="text-gray-300 text-xs">—</span>
+            </td>
+            <td class="text-center px-4 py-2">
               <span *ngIf="ub.nivelId"
-                class="inline-block px-1.5 py-0 rounded bg-gray-100 dark:bg-gray-700 text-xs font-mono font-bold">
+                    class="inline-block px-2 py-0.5 rounded bg-gray-100 text-xs font-mono font-bold text-gray-700">
                 {{ ub.nivelId }}
               </span>
-              <span *ngIf="!ub.nivelId" class="text-gray-300 text-xs">-</span>
+              <span *ngIf="!ub.nivelId" class="text-gray-300 text-xs">—</span>
             </td>
-            <td class="text-center text-xs text-gray-600">{{ ub.posicionId || '-' }}</td>
-            <td class="text-center">
+            <td class="text-center px-4 py-2 text-gray-600 text-sm">{{ ub.posicionId || '—' }}</td>
+            <td class="text-center px-4 py-2">
               <span *ngIf="ub.totalLods > 0"
-                class="inline-block px-1.5 py-0 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs font-bold">
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
                 {{ ub.totalLods }}
               </span>
-              <span *ngIf="ub.totalLods === 0" class="text-gray-300 text-xs">—</span>
+              <span *ngIf="!ub.totalLods" class="text-gray-300 text-xs">—</span>
             </td>
-            <td class="text-center text-xs font-medium">
+            <td class="text-center px-4 py-2 text-gray-700 text-sm font-medium">
               {{ ub.totalUnidades > 0 ? (ub.totalUnidades | number:'1.0-0') : '—' }}
             </td>
-            <td class="text-center text-xs text-gray-500">{{ ub.height | number:'1.2-2' }}</td>
-            <td class="text-center text-xs text-gray-500">{{ ub.length | number:'1.2-2' }}</td>
-            <td class="text-center text-xs text-gray-500">{{ ub.width | number:'1.2-2' }}</td>
-            <!-- Ocupación unificada -->
-            <td class="py-1">
+            <td class="text-center px-4 py-2 text-gray-500 text-xs">{{ ub.height | number:'1.2-2' }}</td>
+            <td class="text-center px-4 py-2 text-gray-500 text-xs">{{ ub.length | number:'1.2-2' }}</td>
+            <td class="text-center px-4 py-2 text-gray-500 text-xs">{{ ub.width | number:'1.2-2' }}</td>
+            <td class="px-4 py-2">
               <div *ngIf="ub.estadoOcupacion === 'Libre'"
-                class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border
-                       bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
-                <i class="pi pi-check-circle text-green-500 text-xs"></i>
-                <span class="text-xs font-semibold text-green-700 dark:text-green-300">Libre</span>
+                   class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+                <i class="pi pi-check-circle text-xs"></i>
+                <span>Libre</span>
               </div>
               <div *ngIf="ub.estadoOcupacion === 'Ocupada'"
-                class="flex flex-col gap-0 px-2 py-1 rounded-md border
-                       bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800">
-                <div class="flex items-center gap-1">
-                  <i class="pi pi-box text-orange-500 text-xs"></i>
-                  <span class="text-xs font-semibold text-orange-700 dark:text-orange-300">Ocupada</span>
-                </div>
-                <div *ngIf="ub.propietarioNombre" class="flex items-center gap-1">
-                  <i class="pi pi-building text-[9px] text-orange-400"></i>
-                  <span class="text-[10px] font-medium text-orange-600 dark:text-orange-400 leading-tight truncate max-w-[140px]">
-                    {{ ub.propietarioNombre }}
-                  </span>
-                </div>
+                   class="flex flex-col gap-0.5">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 text-xs font-medium w-fit">
+                  <i class="pi pi-box text-xs"></i> Ocupada
+                </span>
+                <span *ngIf="ub.propietarioNombre" class="text-[10px] text-orange-700 truncate max-w-[180px] pl-1">
+                  {{ ub.propietarioNombre }}
+                </span>
               </div>
             </td>
-            <td class="text-center">
-              <p-tag [severity]="ub.activo ? 'success' : 'danger'"
-                [value]="ub.activo ? 'Sí' : 'No'" styleClass="text-xs"></p-tag>
+            <td class="text-center px-4 py-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [ngClass]="ub.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                {{ ub.activo ? 'Sí' : 'No' }}
+              </span>
             </td>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="12" class="text-center p-6 text-gray-500">
-              No se encontraron ubicaciones. Aplique filtros y haga clic en Buscar.
+            <td colspan="13" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No se encontraron ubicaciones</span>
+                <span class="text-gray-400 text-xs mt-1">Aplique filtros y presione "Buscar"</span>
+              </div>
             </td>
           </tr>
         </ng-template>
-
       </p-table>
     </div>
   </div>

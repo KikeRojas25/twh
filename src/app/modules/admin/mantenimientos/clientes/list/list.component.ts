@@ -15,6 +15,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { ClienteService } from '../../../_services/cliente.service';
 import { ClienteDialogComponent } from '../cliente-dialog/cliente-dialog.component';
+import { DireccionesDialogComponent } from '../direcciones-dialog/direcciones-dialog.component';
 
 @Component({
   selector: 'app-list-clientes',
@@ -83,6 +84,17 @@ export class ListClientesComponent implements OnInit {
       data: { cliente },
     });
     this.ref.onClose.subscribe((guardado) => { if (guardado) this.buscar(); });
+  }
+
+  direcciones(cliente: any) {
+    this.ref = this.dialogService.open(DireccionesDialogComponent, {
+      header: `Direcciones — ${cliente.nombre || cliente.razonSocial || ''}`,
+      width: '900px',
+      data: {
+        clienteId: cliente.id,
+        clienteNombre: cliente.nombre || cliente.razonSocial,
+      },
+    });
   }
 
   eliminar(id: number, nombre: string) {

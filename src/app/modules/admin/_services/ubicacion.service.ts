@@ -29,6 +29,12 @@ export class UbicacionService {
     return this._http.get<any[]>(`${this.baseUrl}/tiposareas`, httpOptions);
   }
 
+  // ─── TipoUbicacion ───────────────────────────────────────────────────────────
+
+  getTiposUbicacion(): Observable<any[]> {
+    return this._http.get<any[]>(`${this.baseUrl}/tiposubicacion`, httpOptions);
+  }
+
   // ─── Areas ───────────────────────────────────────────────────────────────────
 
   getAreas(almacenId?: number): Observable<any[]> {

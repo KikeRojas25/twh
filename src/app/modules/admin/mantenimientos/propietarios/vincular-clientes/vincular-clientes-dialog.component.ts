@@ -56,10 +56,20 @@ export class VincularClientesDialogComponent implements OnInit {
     const criterio = event.query ?? '';
     this.clienteService.getAllClientes(criterio).subscribe({
       next: (data) => {
-        this.sugerencias = (data || []).map((c: any) => ({
-          ...c,
-          label: `${c.razonSocial || c.nombre || ''} - ${c.documento || ''}`
-        }));
+        this.sugerencias = (data || []).map((c: any) => {
+          // pa_listar_clientes devuelve "nombre"; otros SPs devuelven "razonSocial".
+          // Soportamos ambos para que el dialog funcione con cualquiera.
+          const razon = c.nombre || c.razonSocial || c.RazonSocial || c.Nombre || c.nombreCorto || '';
+          const doc   = c.documento || c.Documento || '';
+          const id    = c.id ?? c.Id;
+          return {
+            ...c,
+            id,
+            razonSocial: razon,
+            documento: doc,
+            label: doc ? `${razon} — ${doc}` : razon
+          };
+        });
       },
       error: () => {
         this.sugerencias = [];

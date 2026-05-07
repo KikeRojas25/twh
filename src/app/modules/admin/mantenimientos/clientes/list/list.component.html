@@ -1,150 +1,143 @@
-<div class="flex flex-col flex-auto min-w-0">
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
 
-  <!-- Encabezado -->
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
     <div class="flex-1 min-w-0">
-      <div class="flex flex-wrap items-center font-medium">
-        <a class="whitespace-nowrap text-primary-500">TWH</a>
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
         <div class="flex items-center ml-1 whitespace-nowrap">
-          <mat-icon class="fuse-horizontal-navigation-item-icon" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-primary-500">Mantenimiento</a>
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Mantenimiento</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Clientes</a>
         </div>
       </div>
-      <div class="mt-2">
-        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Clientes</h2>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Clientes
+        </h2>
       </div>
     </div>
   </div>
 
-  <div class="flex flex-col flex-auto min-w-0 space-y-6 p-6 sm:px-10">
-
-    <!-- Panel de búsqueda -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border">
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="flex flex-col sm:col-span-2">
-          <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">BUSCAR:</label>
-          <input type="text" pInputText [(ngModel)]="criterio"
+          <label class="text-xs font-medium text-gray-700 mb-1">BÚSQUEDA:</label>
+          <input
+            pInputText
+            class="w-full text-sm border-gray-300"
             placeholder="Nombre o número de documento..."
-            class="w-full"
+            [(ngModel)]="criterio"
             (keyup.enter)="buscar()" />
         </div>
-        <div class="flex items-end">
-          <p-button icon="pi pi-search" label="Buscar" (click)="buscar()"
-            class="w-full" severity="success" [loading]="cargando"></p-button>
-        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50"
+          pButton
+          icon="fa fa-search"
+          label="Buscar"
+          iconPos="left"
+          [loading]="cargando"
+          (click)="buscar()">
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-all duration-150"
+          pButton
+          icon="fa fa-plus"
+          label="Nuevo Cliente"
+          iconPos="left"
+          (click)="nuevo()">
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Tabla -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border">
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Listado de Clientes</h3>
+      <p class="text-xs text-amber-300 mt-1">Total: {{ clientes.length }} cliente(s)</p>
+    </div>
 
-      <!-- Toolbar -->
-      <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <span class="p-input-icon-left flex-1 min-w-[200px] max-w-sm">
-          <i class="pi pi-search"></i>
-          <input pInputText type="text" placeholder="Filtrar en la tabla..."
-            class="w-full" (input)="filtrarTabla($event)" />
-        </span>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ clientes.length }} cliente(s)</span>
-          <p-button icon="pi pi-plus" label="Nuevo Cliente" (click)="nuevo()" severity="primary"></p-button>
-        </div>
-      </div>
-
+    <div class="p-4">
       <p-table
         #dt
-        class="w-full"
         [value]="clientes"
         [paginator]="true"
         [rows]="20"
         [rowsPerPageOptions]="[20, 50, 100]"
         [globalFilterFields]="['nombre','documento','correo','telefono','contacto']"
-        [resizableColumns]="true"
-        responsiveLayout="scroll"
         [scrollable]="true"
+        scrollHeight="600px"
         [loading]="cargando"
         [rowHover]="true"
-        styleClass="p-datatable-sm p-datatable-striped p-datatable-hoverable-rows">
+        styleClass="p-datatable-sm">
 
         <ng-template pTemplate="header">
-          <tr class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-            <th class="text-center" style="width:100px">ACCIONES</th>
-            <th pSortableColumn="nombre" class="text-left">
+          <tr>
+            <th style="width:170px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th pSortableColumn="nombre" style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">
               NOMBRE / RAZÓN SOCIAL <p-sortIcon field="nombre"></p-sortIcon>
             </th>
-            <th pSortableColumn="tipoDocumentoId" class="text-center" style="width:110px">
+            <th pSortableColumn="tipoDocumentoId" style="width:110px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">
               TIPO DOC. <p-sortIcon field="tipoDocumentoId"></p-sortIcon>
             </th>
-            <th pSortableColumn="documento" class="text-left" style="width:150px">
+            <th pSortableColumn="documento" style="width:150px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">
               DOCUMENTO <p-sortIcon field="documento"></p-sortIcon>
             </th>
-            <th pSortableColumn="correo" class="text-left">
+            <th pSortableColumn="correo" style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">
               CORREO <p-sortIcon field="correo"></p-sortIcon>
             </th>
-            <th pSortableColumn="telefono" class="text-left" style="width:140px">
+            <th pSortableColumn="telefono" style="width:140px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">
               TELÉFONO <p-sortIcon field="telefono"></p-sortIcon>
             </th>
-            <th pSortableColumn="contacto" class="text-left" style="width:150px">
+            <th pSortableColumn="contacto" style="width:150px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">
               CONTACTO <p-sortIcon field="contacto"></p-sortIcon>
             </th>
-            <th class="text-center" style="width:90px">ETIQUETADO</th>
+            <th style="width:100px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ETIQUETADO</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-cli>
-          <tr>
-            <!-- Acciones -->
-            <td class="text-center">
-              <div class="flex items-center justify-center gap-0.5">
-                <p-button severity="success" icon="pi pi-pencil" [text]="true" [rounded]="true" size="small"
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2">
+              <div class="flex justify-center gap-1">
+                <p-button severity="primary" icon="fa fa-edit" [raised]="true"
                   pTooltip="Editar" tooltipPosition="top"
                   (click)="editar(cli)"></p-button>
-                <p-button severity="danger" icon="pi pi-trash" [text]="true" [rounded]="true" size="small"
+                <p-button severity="info" icon="pi pi-map-marker" [raised]="true"
+                  pTooltip="Direcciones" tooltipPosition="top"
+                  (click)="direcciones(cli)"></p-button>
+                <p-button severity="danger" icon="fa fa-trash" [raised]="true"
                   pTooltip="Eliminar" tooltipPosition="top"
                   (click)="eliminar(cli.id, cli.nombre)"></p-button>
               </div>
             </td>
-
-            <!-- Nombre -->
-            <td class="text-left text-xs font-semibold text-gray-800 dark:text-gray-100">
-              {{ cli.nombre }}
-            </td>
-
-            <!-- Tipo doc -->
-            <td class="text-center">
-              <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold
-                           bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+            <td class="px-4 py-2 text-gray-700 text-sm font-medium">{{ cli.nombre }}</td>
+            <td class="text-center px-4 py-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-gray-100 text-gray-700">
                 {{ cli.tipoDocumentoNombre || tipoDocLabel[cli.tipoDocumentoId] || '-' }}
               </span>
             </td>
-
-            <!-- Documento -->
-            <td class="text-left text-xs font-mono text-gray-700 dark:text-gray-300">
-              {{ cli.documento || '—' }}
-            </td>
-
-            <!-- Correo -->
-            <td class="text-left text-xs text-gray-600 dark:text-gray-400">
-              <a *ngIf="cli.correo" [href]="'mailto:' + cli.correo"
-                class="hover:underline text-indigo-600 dark:text-indigo-400">
+            <td class="px-4 py-2 text-gray-700 text-sm font-mono">{{ cli.documento || '—' }}</td>
+            <td class="px-4 py-2 text-gray-600 text-sm">
+              <a *ngIf="cli.correo" [href]="'mailto:' + cli.correo" class="text-indigo-600 hover:underline">
                 {{ cli.correo }}
               </a>
               <span *ngIf="!cli.correo" class="text-gray-300">—</span>
             </td>
-
-            <!-- Teléfono -->
-            <td class="text-left text-xs text-gray-600 dark:text-gray-400">
-              {{ cli.telefono || '—' }}
-            </td>
-
-            <!-- Contacto -->
-            <td class="text-left text-xs text-gray-600 dark:text-gray-400">
-              {{ cli.contacto || '—' }}
-            </td>
-
-            <!-- Etiquetado -->
-            <td class="text-center">
-              <p-tag *ngIf="cli.etiquetado" severity="info" value="Sí" styleClass="text-xs"></p-tag>
+            <td class="px-4 py-2 text-gray-600 text-sm">{{ cli.telefono || '—' }}</td>
+            <td class="px-4 py-2 text-gray-600 text-sm">{{ cli.contacto || '—' }}</td>
+            <td class="text-center px-4 py-2">
+              <span *ngIf="cli.etiquetado" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Sí</span>
               <span *ngIf="!cli.etiquetado" class="text-gray-300 text-xs">—</span>
             </td>
           </tr>
@@ -152,19 +145,19 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="8" class="text-center p-8 text-gray-500">
-              <div class="flex flex-col items-center gap-2">
-                <i class="pi pi-users text-4xl text-gray-300"></i>
-                <p class="font-medium">No se encontraron clientes.</p>
-                <p class="text-xs text-gray-400">Ingrese un criterio de búsqueda o cree un nuevo cliente.</p>
+            <td colspan="8" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No se encontraron clientes</span>
+                <span class="text-gray-400 text-xs mt-1">Ingrese un criterio de búsqueda o cree un nuevo cliente</span>
               </div>
             </td>
           </tr>
         </ng-template>
-
       </p-table>
     </div>
   </div>
+
 </div>
 
 <p-confirmDialog>

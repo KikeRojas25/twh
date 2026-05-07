@@ -36,6 +36,7 @@ export class ListUbicacionesComponent implements OnInit {
   ubicaciones: any[] = [];
   almacenes: any[] = [];
   areas: any[] = [];
+  tiposUbicacion: any[] = [];
   model: any = {};
   cargando = false;
   ref: DynamicDialogRef | undefined;
@@ -49,6 +50,7 @@ export class ListUbicacionesComponent implements OnInit {
 
   ngOnInit() {
     this.cargarAlmacenes();
+    this.cargarTiposUbicacion();
   }
 
   cargarAlmacenes() {
@@ -58,6 +60,14 @@ export class ListUbicacionesComponent implements OnInit {
           label: a.descripcion || a.nombre,
           value: a.id
         }));
+      }
+    });
+  }
+
+  cargarTiposUbicacion() {
+    this.ubicacionService.getTiposUbicacion().subscribe({
+      next: (data) => {
+        this.tiposUbicacion = (data || []).map((t: any) => ({ label: t.nombre, value: t.id }));
       }
     });
   }
@@ -78,8 +88,12 @@ export class ListUbicacionesComponent implements OnInit {
     this.cargando = true;
     this.ubicacionService.getUbicaciones(this.model.almacenId, this.model.areaId, this.model.nombre).subscribe({
       next: (data) => {
-        this.ubicaciones = data || [];
-        // Limpiar filtro de columna al recargar
+        let lista = data || [];
+        // Filtro client-side por tipo (mientras el SP no lo soporte como param)
+        if (this.model.tipoUbicacionId) {
+          lista = lista.filter((u: any) => u.tipoUbicacionId === this.model.tipoUbicacionId);
+        }
+        this.ubicaciones = lista;
         if (this.dt) this.dt.clear();
       },
       error: () => {

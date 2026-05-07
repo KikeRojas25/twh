@@ -338,6 +338,16 @@ export const appRoutes: Route[] = [
                                           .then(m => m.ListadoproductoComponent)
                   },
                   {
+                    path: 'verproducto/:id',
+                    loadComponent: () => import('./modules/admin/mantenimientos/producto/verproducto/verproducto.component')
+                                          .then(m => m.VerproductoComponent)
+                  },
+                  {
+                    path: 'huelladetalle/:id/:uid',
+                    loadComponent: () => import('./modules/admin/mantenimientos/producto/huelladetalle/huelladetalle.component')
+                                          .then(m => m.HuelladetalleComponent)
+                  },
+                  {
                     path: 'listadoconductores',
                     loadComponent: () => import('./modules/admin/mantenimientos/conductores/list/list.component')
                                           .then(m => m.ListConductoresComponent)
@@ -361,6 +371,11 @@ export const appRoutes: Route[] = [
                     path: 'listadocliente',
                     loadComponent: () => import('./modules/admin/mantenimientos/clientes/list/list.component')
                                           .then(m => m.ListClientesComponent)
+                  },
+                  {
+                    path: 'almacenes',
+                    loadComponent: () => import('./modules/admin/mantenimientos/almacenes/almacenes.component')
+                                          .then(m => m.AlmacenesComponent)
                   },
 
                   {
@@ -454,6 +469,11 @@ export const appRoutes: Route[] = [
                   path: 'listausuarios',
                   loadComponent: () => import('./modules/admin/seguridad/listusers/list.component')
                                             .then(m => m.ListUsersComponent)
+                },
+                {
+                  path: 'listaroles',
+                  loadComponent: () => import('./modules/admin/seguridad/listaroles/listaroles.component')
+                                            .then(m => m.ListaRolesComponent)
                 }
               ]
             },

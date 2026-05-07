@@ -1,110 +1,105 @@
-<div class="flex flex-col flex-auto min-w-0">
-  <!-- Encabezado -->
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
     <div class="flex-1 min-w-0">
-      <div class="flex flex-wrap items-center font-medium">
-        <div>
-          <a class="whitespace-nowrap text-primary-500">TWH</a>
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Mantenimiento</a>
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
-          <mat-icon
-            class="fuse-horizontal-navigation-item-icon"
-            [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-primary-500">Mantenimiento</a>
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Conductores</a>
         </div>
       </div>
-      <div class="mt-2">
-        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Conductores</h2>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Conductores
+        </h2>
       </div>
     </div>
   </div>
 
-  <div class="flex flex-col flex-auto min-w-0 space-y-6">
-    <!-- Filtro de Búsqueda -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 sm:px-10 border">
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        <!-- Filtro de Búsqueda General -->
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="flex flex-col">
-          <label class="font-bold text-gray-700 dark:text-gray-300 mb-2">BÚSQUEDA:</label>
-          <input 
-            type="text" 
-            class="p-inputtext p-component w-full" 
-            placeholder="Nombre, DNI, Brevete..." 
-            [(ngModel)]="model.busqueda">
+          <label class="text-xs font-medium text-gray-700 mb-1">BÚSQUEDA:</label>
+          <input
+            pInputText
+            class="w-full text-sm border-gray-300"
+            placeholder="Nombre, DNI, brevete..."
+            [(ngModel)]="model.busqueda"
+            (keyup.enter)="buscar()" />
         </div>
+      </div>
 
-        <!-- Botón Buscar -->
-        <div class="flex items-end">
-          <p-button 
-            icon="pi pi-search" 
-            label="Buscar" 
-            (click)="buscar()" 
-            class="w-full" 
-            severity="success"
-            [loading]="cargandoConductores"></p-button>
-        </div>
-
-        <!-- Botón Nuevo -->
-        <div class="flex items-end">
-          <p-button 
-            icon="pi pi-plus" 
-            label="Nuevo" 
-            (click)="nuevo()" 
-            class="w-full" 
-            severity="primary"></p-button>
-        </div>
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50"
+          pButton icon="fa fa-search" label="Buscar" iconPos="left"
+          [loading]="cargandoConductores" (click)="buscar()">
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-all duration-150"
+          pButton icon="fa fa-plus" label="Nuevo Conductor" iconPos="left"
+          (click)="nuevo()">
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Tabla de Conductores -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 sm:px-10 border">
-      <div class="flex justify-between items-center mb-4">
-        <p-button 
-          icon="pi pi-file-excel" 
-          label="Export to Excel" 
-          (click)="exportarExcel()" 
-          class="p-button-outlined"></p-button>
-      </div>
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Listado de Conductores</h3>
+      <p class="text-xs text-amber-300 mt-1">Total: {{ conductores.length }} conductor(es)</p>
+    </div>
 
+    <div class="p-4">
       <p-table
-        class="w-full"
         [value]="conductores"
         [paginator]="true"
         [rows]="15"
-        [resizableColumns]="true"
-        responsiveLayout="scroll"
+        [rowsPerPageOptions]="[10, 15, 25, 50]"
         [scrollable]="true"
-        [loading]="cargandoConductores">
+        scrollHeight="600px"
+        [loading]="cargandoConductores"
+        styleClass="p-datatable-sm">
 
         <ng-template pTemplate="header">
-          <tr class="bg-gray-50">
-            <th class="text-center">Acciones</th>
-            <th class="text-center">NOMBRE COMPLETO</th>
-            <th class="text-center">DNI</th>
-            <th class="text-center">BREVETE</th>
-            <th class="text-center">TELÉFONO</th>
-            <th class="text-center">ESTADO</th>
+          <tr>
+            <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">NOMBRE COMPLETO</th>
+            <th style="width:120px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">DNI</th>
+            <th style="width:120px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">BREVETE</th>
+            <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">TELÉFONO</th>
+            <th style="width:120px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ESTADO</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-conductor>
-          <tr>
-            <td class="text-center space-x-2">
-              <p-button 
-                severity="success" 
-                icon="fa fa-edit" 
-                (click)="editar(conductor.id || conductor.Id)"></p-button>
-              <p-button 
-                severity="danger" 
-                icon="fa fa-trash" 
-                (click)="eliminar(conductor.id || conductor.Id)"></p-button>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2">
+              <div class="flex justify-center gap-1">
+                <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                  pTooltip="Editar" tooltipPosition="top"
+                  (click)="editar(conductor.id || conductor.Id)"></p-button>
+                <p-button severity="danger" icon="fa fa-trash" [raised]="true"
+                  pTooltip="Eliminar" tooltipPosition="top"
+                  (click)="eliminar(conductor.id || conductor.Id)"></p-button>
+              </div>
             </td>
-            <td class="text-left">{{ conductor.nombreCompleto || conductor.NombreCompleto || '-' }}</td>
-            <td class="text-center">{{ conductor.dni || conductor.Dni || '-' }}</td>
-            <td class="text-center">{{ conductor.brevete || conductor.Brevete || '-' }}</td>
-            <td class="text-center">{{ conductor.telefono || conductor.Telefono || '-' }}</td>
-            <td class="text-center">
-              <span [class]="(conductor.activo || conductor.Activo) ? 'badge badge-success' : 'badge badge-danger'">
+            <td class="px-4 py-2 text-gray-700 text-sm font-medium">{{ conductor.nombreCompleto || conductor.NombreCompleto || '—' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">{{ conductor.dni || conductor.Dni || '—' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">{{ conductor.brevete || conductor.Brevete || '—' }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ conductor.telefono || conductor.Telefono || '—' }}</td>
+            <td class="text-center px-4 py-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [ngClass]="(conductor.activo || conductor.Activo) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                 {{ (conductor.activo || conductor.Activo) ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
@@ -113,12 +108,15 @@
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="6" class="text-center p-4">
-              No se encontraron conductores
+            <td colspan="6" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No se encontraron conductores</span>
+                <span class="text-gray-400 text-xs mt-1">Use el buscador o cree un nuevo conductor</span>
+              </div>
             </td>
           </tr>
         </ng-template>
-
       </p-table>
     </div>
   </div>
@@ -126,4 +124,3 @@
 
 <p-confirmDialog />
 <p-toast />
-

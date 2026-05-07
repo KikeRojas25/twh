@@ -15,12 +15,32 @@
           [suggestions]="sugerencias"
           (completeMethod)="buscarClientes($event)"
           field="label"
-          [minLength]="1"
-          [delay]="400"
-          placeholder="Escriba nombre o documento..."
+          [minLength]="2"
+          [delay]="500"
+          [forceSelection]="true"
+          [virtualScroll]="true"
+          [virtualScrollItemSize]="48"
+          scrollHeight="280px"
+          placeholder="Escriba al menos 2 caracteres del nombre o documento..."
           [style]="{'width': '100%'}"
           styleClass="w-full"
+          panelStyleClass="cliente-autocomplete-panel"
           appendTo="body">
+          <ng-template let-cli pTemplate="item">
+            <div class="flex flex-col py-1" style="height: 40px;">
+              <span class="text-sm font-semibold text-gray-800 truncate">{{ cli.razonSocial || '(sin razón social)' }}</span>
+              <span class="text-xs text-gray-500 font-mono">{{ cli.documento || '—' }}</span>
+            </div>
+          </ng-template>
+          <ng-template let-cli pTemplate="selectedItem">
+            <span>{{ cli.razonSocial }}<span *ngIf="cli.documento" class="text-gray-500"> — {{ cli.documento }}</span></span>
+          </ng-template>
+          <ng-template pTemplate="empty">
+            <div class="p-3 text-center text-sm text-gray-500">
+              <i class="pi pi-search-minus mr-1 text-gray-400"></i>
+              Sin coincidencias
+            </div>
+          </ng-template>
         </p-autoComplete>
       </div>
       <p-button
@@ -55,8 +75,8 @@
 
       <ng-template pTemplate="body" let-cliente>
         <tr>
-          <td>{{ cliente.razonSocial || '-' }}</td>
-          <td>{{ cliente.documento || '-' }}</td>
+          <td>{{ cliente.razonSocial || cliente.RazonSocial || cliente.nombre || cliente.Nombre || '—' }}</td>
+          <td>{{ cliente.documento || cliente.Documento || '—' }}</td>
           <td class="text-center">
             <p-button
               icon="pi pi-times"
@@ -64,7 +84,7 @@
               [text]="true"
               pTooltip="Desvincular"
               tooltipPosition="left"
-              (click)="confirmarDesvincular(cliente.id)">
+              (click)="confirmarDesvincular(cliente.id || cliente.Id)">
             </p-button>
           </td>
         </tr>

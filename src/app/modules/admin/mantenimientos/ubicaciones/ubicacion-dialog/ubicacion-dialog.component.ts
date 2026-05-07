@@ -27,6 +27,7 @@ export class UbicacionDialogComponent implements OnInit {
   model: any = { activo: true, height: 0, length: 0, width: 0 };
   almacenes: any[] = [];
   areas: any[] = [];
+  tiposUbicacion: any[] = [];
   guardando = false;
   esEdicion = false;
 
@@ -41,6 +42,8 @@ export class UbicacionDialogComponent implements OnInit {
     this.almacenes = this.config.data?.almacenes || [];
     this.esEdicion = !!this.config.data?.ubicacion;
 
+    this.cargarTiposUbicacion();
+
     if (this.esEdicion) {
       const u = this.config.data.ubicacion;
       this.model = {
@@ -53,6 +56,7 @@ export class UbicacionDialogComponent implements OnInit {
         width: u.width ?? 0,
         nivelId: u.nivelId,
         posicionId: u.posicionId,
+        tipoUbicacionId: u.tipoUbicacionId,
         grupoUbicacionId: u.grupoUbicacionId,
         subAreaId: u.subAreaId,
         activo: u.activo ?? true
@@ -62,6 +66,14 @@ export class UbicacionDialogComponent implements OnInit {
       this.model.almacenId = this.config.data.almacenIdDefecto;
       this.cargarAreas(this.model.almacenId);
     }
+  }
+
+  cargarTiposUbicacion() {
+    this.ubicacionService.getTiposUbicacion().subscribe({
+      next: (data) => {
+        this.tiposUbicacion = (data || []).map((t: any) => ({ label: t.nombre, value: t.id }));
+      }
+    });
   }
 
   onAlmacenChange() {
@@ -83,6 +95,10 @@ export class UbicacionDialogComponent implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Validación', detail: 'Nombre y Almacén son requeridos' });
       return;
     }
+    if (!this.model.tipoUbicacionId) {
+      this.messageService.add({ severity: 'warn', summary: 'Validación', detail: 'Tipo de ubicación es requerido' });
+      return;
+    }
 
     this.guardando = true;
     const payload = {
@@ -94,6 +110,7 @@ export class UbicacionDialogComponent implements OnInit {
       width: this.model.width || 0,
       nivelId: this.model.nivelId || null,
       posicionId: this.model.posicionId || null,
+      tipoUbicacionId: this.model.tipoUbicacionId,
       grupoUbicacionId: this.model.grupoUbicacionId || null,
       subAreaId: this.model.subAreaId || null,
       activo: this.model.activo ?? true

@@ -1,162 +1,186 @@
-<div class="flex flex-col flex-auto min-w-0">
-    <!-- Encabezado -->
-    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-        <div class="flex-1 min-w-0">
-        <div  class="flex flex-wrap items-center font-medium">
-            <div>
-            <a  class="whitespace-nowrap text-primary-500">TWH</a>
-            </div>
-            <div class="flex items-center ml-1 whitespace-nowrap">
-                <mat-icon
-                class="fuse-horizontal-navigation-item-icon"
-                [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-                <a  class="ml-1 text-primary-500">Mantenimiento de Productos del Sistema</a>
-            </div>
-        </div>
-            <div class="mt-2"><h2  class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">Listado de Productos</h2>
-        </div>
-    </div>
-    </div>
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
 
-    <!-- Filtro de búsqueda -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-      <div class="flex items-end sm:flex-nowrap gap-8">
-        <div class="flex-1">
-          <p-button severity="primary" label="Regresar" (onClick)="regresar()" styleClass="h-[50px]"></p-button>
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a [routerLink]="['/inicio']" class="whitespace-nowrap text-gray-700 hover:text-indigo-600 hover:underline cursor-pointer transition-colors">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a [routerLink]="['/mantenimiento/listadoproducto']" class="ml-1 text-gray-700 hover:text-indigo-600 hover:underline cursor-pointer transition-colors">Mantenimiento</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a [routerLink]="['/mantenimiento/listadoproducto']" class="ml-1 text-gray-700 hover:text-indigo-600 hover:underline cursor-pointer transition-colors">Productos</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <span class="ml-1 text-indigo-600 font-semibold">Detalle</span>
         </div>
       </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Detalle de Producto
+        </h2>
+      </div>
+    </div>
   </div>
 
-    <!-- Cards -->
-    <div class="p-4">
-        <div class="flex flex-col md:flex-row gap-4">
-          <!-- Card Producto -->
-          <div class="w-full md:w-1/3 bg-white rounded-lg shadow border px-4 py-0">
-            <div class="border-b border-gray-800 pb-2 mb-4">
-                <h5 class="text-lg font-semibold mb-0">Producto</h5>
-                <span class="text-sm text-gray-600 mb-0">Datos generales</span>
-            </div>
-            <form #f="ngForm" >
-                <div class="flex items-center gap-2 mb-4">                 
-                    <img class="w-10 h-10 rounded-full" src="images/Product_icon.png" alt="Avatar">
-                    <strong class="text-md">{{ model.descripcionLarga }}</strong>
-                    <span class="text-sm text-gray-500">{{ model.familia }}</span>
-                    <span class="ml-auto text-sm text-gray-400">SKU - {{ model.codigo }}</span>
-                </div>
-                <div class="mb-3">
-                    <p class="text-sm text-gray-600 mb-4">
-                        Puede editar los datos completos del producto en la sección de edición de la gestión del producto.
-                      </p>
-                    <label for="peso" class="block text-sm font-medium text-gray-700">Peso</label>
-                    <input
-                      type="text"
-                      id="peso"
-                      name="peso"
-                      [(ngModel)]="model.peso"
-                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                      disabled="true"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="unidadMedida" class="block text-sm font-medium text-gray-700">Unidad de Medida</label>
-                    <input
-                      type="text"
-                      id="unidadMedida"
-                      name="unidadMedida"
-                      [(ngModel)]="model.unidadMedida"
-                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                      disabled="true"
-                    />
-                  </div>
-            </form>   
+  <!-- Acciones rápidas -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4 flex flex-wrap gap-2">
+      <button
+        class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150"
+        pButton icon="pi pi-arrow-left" label="Regresar" iconPos="left"
+        (click)="regresar()">
+      </button>
+      <button
+        class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-all duration-150"
+        pButton icon="fa fa-plus" label="Nueva Huella" iconPos="left"
+        (click)="nuevaHuella(id)">
+      </button>
+    </div>
+  </div>
+
+  <!-- Datos del producto + KPIs -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mx-4 mb-4">
+
+    <!-- Card Datos del producto -->
+    <div class="lg:col-span-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+        <h3 class="text-base font-semibold text-gray-100">Producto</h3>
+        <p class="text-xs text-amber-300 mt-1">Datos generales</p>
+      </div>
+
+      <div *ngIf="cargandoProducto" class="p-5 space-y-3">
+        <div *ngFor="let i of [1,2,3,4]" class="h-10 bg-gray-100 rounded animate-pulse"></div>
+      </div>
+
+      <div *ngIf="!cargandoProducto" class="p-5">
+        <div class="flex items-start gap-3 pb-4 border-b border-gray-200 mb-4">
+          <div class="h-12 w-12 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 text-base font-bold flex-shrink-0">
+            {{ inicialesProducto() }}
           </div>
-      
-          <!-- Card Huellas -->
-          <div class="w-full md:w-2/3 bg-white rounded-lg shadow border px-4 py-0">
-            <div class="flex justify-between items-center mb-4">
-                <div class="border-b border-gray-800 pb-2 mb-0">
-                    <h5 class="text-lg font-semibold mb-0">Huellas</h5>
-                    <span class="text-sm text-gray-600 mb-0">Datos generales</span>
-                </div>  
-            </div>
-            <div>
-                <p-button severity="primary" label="Nueva Huella" (onClick)="nuevaHuella(id)" icon="pi pi-plus" styleClass="h-[40px]"></p-button>
-            </div>
-            <p class="text-sm text-gray-600 mb-2">Listado de Huellas registradas para el producto</p>
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-auto border border-gray-200 text-sm text-center">
-                    <thead class="bg-gray-100 text-gray-700">
-                      <tr>
-                        <th class="border px-4 py-2">Huella</th>
-                        <th class="border px-4 py-2">Cama</th>
-                        <th class="border px-4 py-2">% Uso</th>
-                        <th class="border px-4 py-2">Código Creación</th>
-                        <th class="border px-4 py-2">Creación</th>
-                        <th class="border px-4 py-2">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let item of huellas" class="hover:bg-gray-50">
-                        <td class="border px-4 py-2 text-left flex items-center gap-2">
-                          <img class="w-8 h-8 rounded" src="images/pallet.png" alt="Avatar" />
-                          <div>
-                            <div class="font-medium text-gray-800">{{ item.codigoHuella }}</div>
-                            <div class="text-xs text-gray-500">Huella</div>
-                          </div>
-                        </td>
-                  
-                        <td class="border px-4 py-2">
-                          <div class="font-medium">{{ item.caslvl }}</div>
-                          <div class="text-xs text-gray-500">Base de pallet</div>
-                        </td>
-                  
-                        <td class="border px-4 py-2">
-                            <div class="flex justify-between text-xs text-gray-400">
-                                <span class="text-xs text-gray-800">0</span>
-                                <span class="font-semibold text-green-600">{{ item.cantidad }} %</span>
-                            </div>
-                          <div class="w-full bg-gray-200 rounded h-2 mt-1">
-                            <div
-                              class="bg-blue-500 h-2 rounded"
-                              [style.width]="item.cantidad + '%'"
-                            ></div>
-                          </div>
-                        </td>
-                  
-                        <td class="border px-4 py-2">
-                          <div class="font-medium text-gray-800">master</div>
-                          <div class="text-xs text-gray-500">63e8ec3</div>
-                        </td>
-                  
-                        <td class="border px-4 py-2">
-                          <div class="font-medium">{{ item.fechaRegistro }}</div>
-                          <div class="text-xs text-gray-500">8:30</div>
-                        </td>
-                  
-                        <td class="border px-4 py-2 flex justify-center gap-2">
-                          <p-button
-                            severity="primary"
-                            icon="fa fa-edit"
-                            (click)="editarHuella(item.id)"
-                          ></p-button>
-                          <p-button
-                            severity="success"
-                            icon="pi pi-search"
-                            (click)="verHuella(item.id)"
-                          ></p-button>
-                        </td>
-                      </tr>
-                  
-                      <tr *ngIf="model.huella?.length === 0">
-                        <td colspan="6" class="text-gray-500 py-3 text-center">
-                          No hay huellas registradas.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>                
-            </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-gray-900 truncate" [title]="model.descripcionLarga">
+              {{ model.descripcionLarga || 'Sin descripción' }}
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5 font-mono">SKU · {{ model.codigo || '—' }}</p>
           </div>
         </div>
-    </div> 
+
+        <div class="space-y-3 text-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-500">Familia</span>
+            <span class="text-gray-800 font-medium">{{ model.familia || '—' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-500">Peso</span>
+            <span class="text-gray-800 font-mono font-medium">{{ model.peso ?? '—' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-500">Unidad de Medida</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-gray-100 text-gray-700">
+              {{ model.unidadMedida || '—' }}
+            </span>
+          </div>
+          <div *ngIf="model.canal" class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-500">Canal</span>
+            <span class="text-gray-800 font-medium">{{ model.canal }}</span>
+          </div>
+          <div *ngIf="model.volumen != null" class="flex items-center justify-between">
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-500">Volumen</span>
+            <span class="text-gray-800 font-mono font-medium">{{ model.volumen }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card KPIs -->
+    <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 content-start">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Huellas</p>
+        <p class="mt-2 text-3xl font-bold text-gray-900">{{ huellas.length }}</p>
+        <p class="text-xs text-gray-400 mt-1">registradas</p>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Cantidad total</p>
+        <p class="mt-2 text-3xl font-bold text-gray-900">{{ totalCantidadHuellas | number }}</p>
+        <p class="text-xs text-gray-400 mt-1">unidades acumuladas</p>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <p class="text-xs font-medium uppercase tracking-wider text-gray-500">SKU</p>
+        <p class="mt-2 text-base font-mono font-bold text-gray-900 truncate">{{ model.codigo || '—' }}</p>
+        <p class="text-xs text-gray-400 mt-1">{{ model.familia || 'Sin familia' }}</p>
+      </div>
+
+      <!-- Tabla de huellas -->
+      <div class="sm:col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+          <h3 class="text-base font-semibold text-gray-100">Huellas registradas</h3>
+          <p class="text-xs text-amber-300 mt-1">Total: {{ huellas.length }} huella(s)</p>
+        </div>
+
+        <!-- Skeleton -->
+        <div *ngIf="cargandoHuellas" class="p-4 space-y-2">
+          <div *ngFor="let i of [1,2,3]" class="h-12 bg-gray-100 rounded animate-pulse"></div>
+        </div>
+
+        <!-- Tabla -->
+        <div *ngIf="!cargandoHuellas" class="p-4">
+          <table class="min-w-full">
+            <thead>
+              <tr>
+                <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+                <th style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">HUELLA</th>
+                <th style="width:100px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">CAMA</th>
+                <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">% USO</th>
+                <th style="width:160px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">CREACIÓN</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of huellas" class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+                <td class="text-center px-4 py-2">
+                  <div class="flex justify-center gap-1">
+                    <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                      pTooltip="Editar huella" tooltipPosition="top"
+                      (click)="editarHuella(h.id)"></p-button>
+                    <p-button severity="success" icon="pi pi-search" [raised]="true"
+                      pTooltip="Ver detalles" tooltipPosition="top"
+                      (click)="verHuella(h.id)"></p-button>
+                  </div>
+                </td>
+                <td class="px-4 py-2 text-gray-700 text-sm font-mono font-semibold">{{ h.codigoHuella || '—' }}</td>
+                <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ h.caslvl ?? 0 }}</td>
+                <td class="px-4 py-2">
+                  <div class="flex items-center gap-3">
+                    <div class="relative h-2 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-700"
+                           [class]="colorPct(h.pctUso)"
+                           [style.width.%]="h.pctUso"></div>
+                    </div>
+                    <span class="text-xs font-bold w-12 text-right" [class]="colorPctText(h.pctUso)">{{ h.pctUso }}%</span>
+                  </div>
+                </td>
+                <td class="text-center px-4 py-2 text-gray-600 text-sm">{{ h.fechaRegistro || '—' }}</td>
+              </tr>
+              <tr *ngIf="huellas.length === 0">
+                <td colspan="5" class="text-center p-8">
+                  <div class="flex flex-col items-center">
+                    <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                    <span class="text-gray-500 text-sm">Sin huellas registradas</span>
+                    <span class="text-gray-400 text-xs mt-1">Crea la primera huella para este producto</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
+
 <p-toast></p-toast>

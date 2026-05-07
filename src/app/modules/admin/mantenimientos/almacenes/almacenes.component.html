@@ -1,0 +1,158 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Mantenimiento</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Almacenes</a>
+        </div>
+      </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Mantenimiento de Almacenes
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="flex flex-col sm:col-span-2">
+          <label class="text-xs font-medium text-gray-700 mb-1">BÚSQUEDA:</label>
+          <input
+            pInputText
+            class="w-full text-sm border-gray-300"
+            placeholder="Buscar por descripción..."
+            [(ngModel)]="filtro" />
+        </div>
+        <div class="flex items-end gap-4">
+          <div class="flex items-center gap-2">
+            <p-checkbox [(ngModel)]="incluirInactivos" [binary]="true" inputId="chkInactivos" (onChange)="cargar()"></p-checkbox>
+            <label for="chkInactivos" class="text-xs font-medium text-gray-700 cursor-pointer select-none">Incluir inactivos</label>
+          </div>
+          <button
+            pButton
+            class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm"
+            icon="pi pi-refresh"
+            label="Refrescar"
+            (click)="cargar()">
+          </button>
+        </div>
+        <div class="flex items-end">
+          <button
+            pButton
+            class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm w-full"
+            icon="fa fa-plus"
+            label="Nuevo almacén"
+            (click)="abrirNuevo()">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Listado de Almacenes</h3>
+      <p class="text-xs text-amber-300 mt-1">Total: {{ almacenesFiltrados.length }} almacenes</p>
+    </div>
+    <div class="p-4">
+      <p-table
+        [value]="almacenesFiltrados"
+        [paginator]="true"
+        [rows]="15"
+        [rowsPerPageOptions]="[10, 15, 25, 50]"
+        [scrollable]="true"
+        scrollHeight="550px"
+        [loading]="cargando"
+        styleClass="p-datatable-sm">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th style="width:80px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ID</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">DESCRIPCIÓN</th>
+            <th style="width:120px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ESTADO</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-a>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2">
+              <div class="flex justify-center gap-1">
+                <p-button icon="fa fa-edit" severity="primary" [raised]="true"
+                  pTooltip="Editar" (click)="abrirEditar(a)"></p-button>
+                <p-button
+                  [severity]="a.activo ? 'danger' : 'success'"
+                  [icon]="a.activo ? 'pi pi-ban' : 'pi pi-check-circle'"
+                  [raised]="true"
+                  [pTooltip]="a.activo ? 'Inactivar' : 'Reactivar'"
+                  (click)="toggleActivo(a, $event)"></p-button>
+              </div>
+            </td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ a.id }}</td>
+            <td class="px-4 py-2 text-gray-700 text-sm">{{ a.descripcion }}</td>
+            <td class="text-center px-4 py-2">
+              <span [class]="getEstadoClass(a.activo)">
+                {{ a.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-building text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No hay almacenes disponibles</span>
+                <span class="text-gray-400 text-xs mt-1">Use el buscador o cree un nuevo almacén</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Dialog crear/editar -->
+<p-dialog [(visible)]="mostrarDialog"
+          [header]="modoEdicion ? 'Editar almacén' : 'Nuevo almacén'"
+          [modal]="true" [style]="{ width: '420px' }"
+          [closable]="true" [closeOnEscape]="true">
+  <div class="flex flex-col gap-4 py-2">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Descripción</label>
+      <input pInputText type="text" class="w-full text-sm"
+             [(ngModel)]="almacenForm.descripcion"
+             placeholder="Ej. ACH 1H" maxlength="100" autofocus />
+    </div>
+    <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+      <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Activo</label>
+      <p-inputSwitch [(ngModel)]="almacenForm.activo"></p-inputSwitch>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" icon="pi pi-times"
+            class="p-button-text" (click)="cerrarDialog()"></button>
+    <button pButton type="button" label="Guardar" icon="pi pi-save"
+            class="bg-green-600 hover:bg-green-700 border-green-600"
+            [loading]="guardando" (click)="guardar()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog [closable]="false" rejectLabel="Cancelar" acceptLabel="Sí"></p-confirmDialog>
+<p-toast />

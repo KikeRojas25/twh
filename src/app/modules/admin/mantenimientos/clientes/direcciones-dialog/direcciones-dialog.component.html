@@ -1,0 +1,194 @@
+<p-toast></p-toast>
+<p-confirmDialog />
+
+<div class="flex flex-col gap-4">
+
+  <!-- Header con cliente -->
+  <div class="bg-gray-50 rounded-md border border-gray-200 px-4 py-2.5">
+    <p class="text-xs uppercase tracking-wider font-semibold text-gray-500">Cliente</p>
+    <p class="text-sm font-bold text-gray-900 truncate">{{ clienteNombre || '—' }}</p>
+  </div>
+
+  <!-- Acciones -->
+  <div class="flex justify-between items-center">
+    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">
+      Direcciones registradas <span class="text-gray-400">({{ direcciones.length }})</span>
+    </h3>
+    <button
+      class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm"
+      pButton icon="fa fa-plus" label="Nueva dirección" iconPos="left"
+      (click)="abrirNueva()">
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-md border border-gray-200 overflow-hidden">
+    <p-table
+      [value]="direcciones"
+      [loading]="cargando"
+      [scrollable]="true"
+      scrollHeight="300px"
+      styleClass="p-datatable-sm">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:140px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+          <th style="width:90px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">CÓDIGO</th>
+          <th style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">DIRECCIÓN</th>
+          <th style="width:160px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">DISTRITO</th>
+          <th style="width:90px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">PRINCIPAL</th>
+          <th style="width:90px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ESTADO</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-d>
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+          <td class="text-center px-4 py-2">
+            <div class="flex justify-center gap-1">
+              <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                pTooltip="Editar" tooltipPosition="top"
+                (click)="abrirEditar(d)"></p-button>
+              <p-button severity="danger" icon="fa fa-trash" [raised]="true"
+                pTooltip="Eliminar (soft)" tooltipPosition="top"
+                [disabled]="!d.activo"
+                (click)="eliminar(d)"></p-button>
+            </div>
+          </td>
+          <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">{{ d.codigo }}</td>
+          <td class="px-4 py-2 text-gray-700 text-sm">{{ d.direccion }}</td>
+          <td class="px-4 py-2 text-gray-600 text-sm">{{ d.distrito || '—' }}</td>
+          <td class="text-center px-4 py-2">
+            <span *ngIf="d.principal" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <i class="pi pi-star-fill text-[10px] mr-1"></i> Sí
+            </span>
+            <span *ngIf="!d.principal" class="text-gray-300 text-xs">—</span>
+          </td>
+          <td class="text-center px-4 py-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  [ngClass]="d.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+              {{ d.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center p-8">
+            <div class="flex flex-col items-center">
+              <i class="pi pi-map-marker text-4xl mb-3 text-gray-300"></i>
+              <span class="text-gray-500 text-sm">Sin direcciones registradas</span>
+              <span class="text-gray-400 text-xs mt-1">Agrega la primera dirección para este cliente</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex justify-end pt-2 border-t border-gray-200">
+    <button
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md"
+      pButton label="Cerrar" icon="pi pi-times" iconPos="left"
+      (click)="cerrar()">
+    </button>
+  </div>
+</div>
+
+<!-- Sub-dialog crear/editar -->
+<p-dialog [(visible)]="mostrarForm"
+          [header]="esEdicion ? 'Editar dirección' : 'Nueva dirección'"
+          [modal]="true"
+          [style]="{ width: '560px' }"
+          [closable]="true"
+          [closeOnEscape]="true">
+
+  <div class="flex flex-col gap-4 py-2">
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Código <span class="text-red-500">*</span></label>
+        <input pInputText type="text" class="w-full text-sm"
+               [(ngModel)]="form.codigo"
+               placeholder="Ej. 001"
+               maxlength="10" autofocus />
+      </div>
+      <div class="flex flex-col sm:col-span-2">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Dirección <span class="text-red-500">*</span></label>
+        <input pInputText type="text" class="w-full text-sm"
+               [(ngModel)]="form.direccion"
+               placeholder="Av. Principal 123, dpto 4B"
+               maxlength="50" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Departamento</label>
+        <p-dropdown
+          [options]="departamentos"
+          [(ngModel)]="form.departamentoId"
+          (onChange)="onDepartamentoChange()"
+          placeholder="Seleccione..."
+          [filter]="true" [showClear]="true"
+          appendTo="body"
+          [style]="{'width':'100%'}"
+          styleClass="text-sm border-gray-300">
+        </p-dropdown>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Provincia</label>
+        <p-dropdown
+          [options]="provincias"
+          [(ngModel)]="form.provinciaId"
+          (onChange)="onProvinciaChange()"
+          placeholder="Seleccione..."
+          [filter]="true" [showClear]="true"
+          [disabled]="!form.departamentoId"
+          appendTo="body"
+          [style]="{'width':'100%'}"
+          styleClass="text-sm border-gray-300">
+        </p-dropdown>
+      </div>
+      <div class="flex flex-col">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Distrito <span class="text-red-500">*</span></label>
+        <p-dropdown
+          [options]="distritos"
+          [(ngModel)]="form.idDistrito"
+          placeholder="Seleccione..."
+          [filter]="true"
+          [disabled]="!form.provinciaId"
+          appendTo="body"
+          [style]="{'width':'100%'}"
+          styleClass="text-sm border-gray-300">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-6 pt-2 border-t border-gray-100">
+      <div class="flex items-center justify-between flex-1">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Principal</label>
+        <p-inputSwitch [(ngModel)]="form.principal"></p-inputSwitch>
+      </div>
+      <div class="w-px bg-gray-200 self-stretch"></div>
+      <div class="flex items-center justify-between flex-1">
+        <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Activo</label>
+        <p-inputSwitch [(ngModel)]="form.activo"></p-inputSwitch>
+      </div>
+    </div>
+
+    <p *ngIf="esEdicion" class="text-xs text-amber-600">
+      <i class="pi pi-info-circle mr-1"></i>
+      Para cambiar el distrito, vuelve a seleccionar Departamento → Provincia → Distrito.
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton type="button" label="Cancelar" icon="pi pi-times"
+            class="p-button-text" (click)="cerrarForm()"></button>
+    <button pButton type="button" label="Guardar" icon="pi pi-save"
+            class="bg-green-600 hover:bg-green-700 border-green-600"
+            [loading]="guardando" (click)="guardar()"></button>
+  </ng-template>
+</p-dialog>

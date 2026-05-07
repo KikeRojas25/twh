@@ -37,6 +37,20 @@
       </p-dropdown>
     </div>
 
+    <!-- Tipo de ubicación (obligatorio) -->
+    <div class="flex flex-col sm:col-span-2">
+      <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">TIPO DE UBICACIÓN <span class="text-red-500">*</span></label>
+      <p-dropdown
+        [options]="tiposUbicacion"
+        [(ngModel)]="model.tipoUbicacionId"
+        placeholder="Seleccione tipo (Puerta, Stage, Rack, Rack Doble...)"
+        [filter]="true"
+        [showClear]="false"
+        appendTo="body"
+        class="w-full">
+      </p-dropdown>
+    </div>
+
     <!-- Dimensiones -->
     <div class="flex flex-col">
       <label class="font-bold text-gray-700 dark:text-gray-300 mb-1">ALTO (Height)</label>

@@ -102,4 +102,35 @@ getPropietariosByUsuario(idUsuario: number): Observable<Cliente[]> {
     return this._httpClient.delete<any>(`${this.baseUrl}clientes/${id}`, httpOptions);
   }
 
+  // ─── Direcciones del cliente ───────────────────────────────────────────────
+
+  getDireccionesCliente(clienteId: number): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.baseUrl}clientes/${clienteId}/direcciones`, httpOptions);
+  }
+
+  crearDireccion(clienteId: number, dto: any): Observable<any> {
+    return this._httpClient.post<any>(`${this.baseUrl}clientes/${clienteId}/direcciones`, dto, httpOptions);
+  }
+
+  actualizarDireccion(direccionId: number, dto: any): Observable<any> {
+    return this._httpClient.put<any>(`${this.baseUrl}direcciones/${direccionId}`, dto, httpOptions);
+  }
+
+  eliminarDireccion(direccionId: number): Observable<any> {
+    return this._httpClient.delete<any>(`${this.baseUrl}direcciones/${direccionId}`, httpOptions);
+  }
+
+  // ─── Catálogos de Ubigeo (Departamento → Provincia → Distrito) ─────────────
+
+  getDepartamentos(): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.baseUrl}GetAllDepartamentos`, httpOptions);
+  }
+
+  getProvincias(departamentoId: number): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.baseUrl}GetAllProvincias?DepartamentoId=${departamentoId}`, httpOptions);
+  }
+
+  getDistritos(provinciaId: number): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.baseUrl}GetAllDistritos?ProvinciaId=${provinciaId}`, httpOptions);
+  }
 }
