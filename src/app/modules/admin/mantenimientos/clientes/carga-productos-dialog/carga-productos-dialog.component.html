@@ -1,0 +1,105 @@
+<div class="carga-prod">
+    <header class="carga-prod__header">
+        <p class="carga-prod__cliente">
+            Cliente: <b>{{ clienteNombre || ('#' + clienteId) }}</b>
+        </p>
+        <p class="carga-prod__hint">
+            Sube un archivo Excel <code>.xlsx</code> con las columnas
+            <b>Familia</b>, <b>Código</b>, <b>Descripción</b>, <b>Medida</b> (obligatorias)
+            y opcionalmente <code>descripcion2</code>, <code>caslvl</code>, <code>Pallet</code>,
+            <code>Empaque</code>, <code>unidad</code>, <code>Peso</code>, <code>nombrehuella</code>, <code>EAN 13</code>.
+        </p>
+    </header>
+
+    <!-- File picker -->
+    <div class="carga-prod__file">
+        <label class="carga-prod__file-btn">
+            <i class="pi pi-file-excel mr-2"></i>
+            <span>{{ archivo()?.name || 'Seleccionar archivo Excel...' }}</span>
+            <input
+                type="file"
+                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                (change)="onArchivoSeleccionado($event)"
+                hidden />
+        </label>
+        @if (archivo()) {
+            <span class="carga-prod__size">{{ (archivo()!.size / 1024) | number: '1.0-0' }} KB</span>
+        }
+    </div>
+
+    <!-- Progress -->
+    @if (cargando()) {
+        <div class="carga-prod__progress">
+            <p-progressBar [value]="progreso()"></p-progressBar>
+            <p class="carga-prod__progress-label">Subiendo y procesando...</p>
+        </div>
+    }
+
+    <!-- Resultado -->
+    @if (resultado(); as r) {
+        <div class="carga-prod__resultado">
+            <div class="carga-prod__kpis">
+                <div class="kpi kpi--ok">
+                    <div class="kpi__num">{{ r.productosNuevos }}</div>
+                    <div class="kpi__lbl">Productos nuevos</div>
+                </div>
+                <div class="kpi kpi--info">
+                    <div class="kpi__num">{{ r.huellasReparadas }}</div>
+                    <div class="kpi__lbl">Huellas creadas</div>
+                </div>
+                <div class="kpi kpi--warn">
+                    <div class="kpi__num">{{ r.omitidos }}</div>
+                    <div class="kpi__lbl">Omitidos</div>
+                </div>
+                <div class="kpi" [class.kpi--err]="r.errores.length > 0">
+                    <div class="kpi__num">{{ r.errores.length }}</div>
+                    <div class="kpi__lbl">Errores</div>
+                </div>
+            </div>
+
+            @if (r.errores.length > 0) {
+                <h4 class="carga-prod__errores-titulo">Errores por fila</h4>
+                <p-table [value]="r.errores" [scrollable]="true" scrollHeight="280px" styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th style="width: 80px">Fila</th>
+                            <th style="width: 140px">Código</th>
+                            <th>Mensaje</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-e>
+                        <tr>
+                            <td class="text-center">{{ e.fila }}</td>
+                            <td class="font-mono">{{ e.codigo || '—' }}</td>
+                            <td class="text-red-700 text-sm">{{ e.mensaje }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            }
+        </div>
+    }
+
+    <!-- Actions -->
+    <div class="carga-prod__actions">
+        <button
+            pButton
+            type="button"
+            label="Subir"
+            icon="pi pi-upload"
+            class="p-button-primary"
+            [disabled]="!archivo() || cargando()"
+            (click)="subir()"
+        ></button>
+        <button
+            pButton
+            type="button"
+            label="Cerrar"
+            icon="pi pi-times"
+            class="p-button-secondary"
+            [disabled]="cargando()"
+            (click)="cerrar()"
+        ></button>
+    </div>
+</div>
+
+<p-toast></p-toast>

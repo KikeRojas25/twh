@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { Cliente, Grupo, Sucursal } from '../facturacion/cliente.type';
@@ -132,5 +132,29 @@ getPropietariosByUsuario(idUsuario: number): Observable<Cliente[]> {
 
   getDistritos(provinciaId: number): Observable<any[]> {
     return this._httpClient.get<any[]>(`${this.baseUrl}GetAllDistritos?ProvinciaId=${provinciaId}`, httpOptions);
+  }
+
+  // ─── Carga masiva de productos vía Excel ───────────────────────────────────
+  /**
+   * Sube un Excel (.xlsx) con productos para el cliente indicado.
+   * Devuelve eventos HTTP con progreso de subida; el evento Response trae
+   * { productosNuevos, huellasReparadas, omitidos, errores[] }.
+   */
+  subirProductosExcel(clienteId: number, file: File): Observable<HttpEvent<any>> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+
+    // ⚠ NO seteamos Content-Type: el browser lo arma con boundary correcto.
+    //    Solo Authorization (sin Content-Type para no romper multipart).
+    const headers = new HttpHeaders({
+      Authorization: 'Bearer ' + (localStorage.getItem('token') ?? ''),
+    });
+
+    const url = `${environment.baseUrl}/api/ProductosBatch/Upload?clienteId=${clienteId}`;
+    return this._httpClient.post(url, form, {
+      headers,
+      reportProgress: true,
+      observe: 'events',
+    });
   }
 }

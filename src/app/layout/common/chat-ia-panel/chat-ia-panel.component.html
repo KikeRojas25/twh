@@ -1,0 +1,146 @@
+@if (open) {
+    <div class="chat-ia-panel-backdrop" (click)="onClose()" aria-hidden="true"></div>
+
+    <aside class="chat-ia-panel" role="dialog" aria-label="Asistente IA">
+        <!-- HEADER -->
+        <header class="chat-ia-panel__header">
+            <div class="chat-ia-panel__title">
+                <div class="chat-ia-panel__icon-wrap">
+                    <mat-icon [svgIcon]="'heroicons_solid:sparkles'"></mat-icon>
+                </div>
+                <div class="chat-ia-panel__title-text">
+                    <h3>Asistente IA</h3>
+                    @if (propietarios().length > 1) {
+                        <select
+                            class="chat-ia-panel__select"
+                            [ngModel]="propietarioActivoId()"
+                            (ngModelChange)="cambiarPropietario($event)"
+                            aria-label="Propietario activo"
+                        >
+                            @for (p of propietarios(); track p.id) {
+                                <option [ngValue]="p.id">{{ p.nombreCorto || p.nombre }}</option>
+                            }
+                        </select>
+                    } @else if (propietarioActivo()) {
+                        <p class="chat-ia-panel__propietario-label">
+                            {{ propietarioActivo()!.nombreCorto || propietarioActivo()!.nombre }}
+                        </p>
+                    } @else {
+                        <p class="chat-ia-panel__propietario-label">Sin propietarios autorizados</p>
+                    }
+                </div>
+            </div>
+
+            <div class="chat-ia-panel__actions">
+                @if (mensajes().length > 0) {
+                    <button
+                        mat-icon-button
+                        class="chat-ia-panel__action"
+                        aria-label="Nueva conversación"
+                        title="Nueva conversación"
+                        (click)="nuevaConversacion()"
+                    >
+                        <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                    </button>
+                }
+                <button
+                    mat-icon-button
+                    class="chat-ia-panel__action"
+                    aria-label="Cerrar"
+                    (click)="onClose()"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                </button>
+            </div>
+        </header>
+
+        <!-- BODY -->
+        <div class="chat-ia-panel__body">
+            @if (mensajes().length === 0) {
+                <div class="chat-ia-panel__placeholder">
+                    <div class="chat-ia-panel__orb" aria-hidden="true"></div>
+                    <h4>¿En qué te ayudo?</h4>
+                    <p>Pregunta sobre stock, kardex, vencimientos, guías o despachos.</p>
+                    <ul class="chat-ia-panel__suggestions">
+                        <li (click)="inputTexto='¿Qué productos vencen en los próximos 30 días?'; enviar()">
+                            ¿Qué productos vencen en los próximos 30 días?
+                        </li>
+                        <li (click)="inputTexto='Top 10 productos con más rotación en el último mes'; enviar()">
+                            Top 10 productos con más rotación en el último mes
+                        </li>
+                        <li (click)="inputTexto='Productos sin movimiento desde hace 90 días'; enviar()">
+                            Productos sin movimiento desde hace 90 días
+                        </li>
+                    </ul>
+                </div>
+            } @else {
+                <div class="chat-ia-panel__messages">
+                    @for (msg of mensajes(); track $index) {
+                        <div class="msg msg--{{ msg.rol }}" [class.msg--error]="!!msg.error">
+                            <div class="msg__bubble">
+                                @if (msg.cargando) {
+                                    <span class="msg__dots"><span></span><span></span><span></span></span>
+                                } @else {
+                                    <pre class="msg__text">{{ msg.contenido }}</pre>
+                                    @if (msg.datos) {
+                                        <chat-ia-chart [datos]="msg.datos"></chat-ia-chart>
+                                    }
+                                    @if (msg.funciones && msg.funciones.length > 0) {
+                                        <div class="msg__funcs">
+                                            @for (f of msg.funciones; track f.nombre + $index) {
+                                                <span class="msg__func" [class.msg__func--err]="!f.ok">
+                                                    <mat-icon [svgIcon]="f.ok ? 'heroicons_outline:check-badge' : 'heroicons_outline:exclamation-triangle'"></mat-icon>
+                                                    {{ f.nombre }} · {{ f.duracionMs }}ms
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (funcionEjecutando(); as fn) {
+                        <div class="msg msg--system">
+                            <div class="msg__bubble msg__bubble--system">
+                                <mat-icon [svgIcon]="'heroicons_outline:bolt'"></mat-icon>
+                                Ejecutando <b>{{ fn }}</b>...
+                            </div>
+                        </div>
+                    }
+
+                    <div #messagesEnd></div>
+                </div>
+            }
+        </div>
+
+        <!-- ERROR / WARNING BANNER -->
+        @if (error(); as err) {
+            <div class="chat-ia-panel__error">{{ err }}</div>
+        }
+
+        <!-- FOOTER -->
+        <footer class="chat-ia-panel__footer">
+            <textarea
+                class="chat-ia-panel__input"
+                rows="1"
+                placeholder="Escribe tu pregunta... (Enter para enviar)"
+                [(ngModel)]="inputTexto"
+                (keydown)="onKeyDown($event)"
+                [disabled]="enviando() || !propietarioActivoId()"
+            ></textarea>
+            <button
+                class="chat-ia-panel__send"
+                aria-label="Enviar"
+                (click)="enviar()"
+                [disabled]="enviando() || !inputTexto.trim() || !propietarioActivoId()"
+            >
+                @if (enviando()) {
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path'" class="chat-ia-panel__send-spinner"></mat-icon>
+                } @else {
+                    <mat-icon [svgIcon]="'heroicons_solid:paper-airplane'"></mat-icon>
+                }
+            </button>
+        </footer>
+    </aside>
+}

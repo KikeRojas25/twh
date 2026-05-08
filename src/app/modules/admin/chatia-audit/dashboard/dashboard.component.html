@@ -1,0 +1,115 @@
+<div class="audit-dashboard">
+    <header class="audit-dashboard__header">
+        <h2>Auditoría · Chat IA</h2>
+        <a routerLink="/chatia/auditoria/conversaciones" class="audit-dashboard__link">
+            Ver conversaciones →
+        </a>
+    </header>
+
+    @if (cargando()) {
+        <p class="audit-dashboard__loading">Cargando...</p>
+    } @else if (error()) {
+        <p class="audit-dashboard__error">{{ error() }}</p>
+    } @else {
+        @if (data(); as d) {
+        <!-- KPI cards -->
+        <div class="audit-dashboard__kpis">
+            <div class="kpi">
+                <div class="kpi__label">Consumo del mes (global)</div>
+                <div class="kpi__value">USD {{ d.consumoMesGlobalUSD | number:'1.4-4' }}</div>
+                <div class="kpi__sub">de USD {{ d.limiteGlobalUSD | number:'1.2-2' }}</div>
+                <div class="kpi__bar">
+                    <div class="kpi__bar-fill"
+                         [style.width.%]="(d.porcentajeUsadoGlobal * 100) | number:'1.0-0'"
+                         [class.kpi__bar-fill--warn]="d.porcentajeUsadoGlobal >= 0.7"
+                         [class.kpi__bar-fill--danger]="d.porcentajeUsadoGlobal >= 0.95"></div>
+                </div>
+                <div class="kpi__sub">{{ d.porcentajeUsadoGlobal | percent:'1.1-1' }} usado</div>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi__label">Mensajes este mes</div>
+                <div class="kpi__value">{{ d.totalMensajesMes | number }}</div>
+            </div>
+
+            <div class="kpi">
+                <div class="kpi__label">Propietarios activos</div>
+                <div class="kpi__value">{{ d.propietariosActivosMes }}</div>
+            </div>
+        </div>
+
+        <!-- Chart consumo últimos 30 días -->
+        <section class="audit-dashboard__section">
+            <h3>Consumo últimos 30 días</h3>
+            <div class="audit-dashboard__chart">
+                <canvas #canvasConsumo></canvas>
+            </div>
+        </section>
+
+        <!-- Ranking propietarios -->
+        <section class="audit-dashboard__section">
+            <h3>Top propietarios del mes</h3>
+            @if (d.rankingPropietarios.length === 0) {
+                <p class="audit-dashboard__empty">Sin consumo este mes.</p>
+            } @else {
+                <table class="audit-dashboard__table">
+                    <thead>
+                        <tr>
+                            <th>Propietario</th>
+                            <th class="num">Mensajes</th>
+                            <th class="num">Costo USD</th>
+                            <th class="num">% del límite</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (r of d.rankingPropietarios; track r.idPropietario) {
+                            <tr>
+                                <td>{{ r.nombre || ('#' + r.idPropietario) }}</td>
+                                <td class="num">{{ r.numMensajes }}</td>
+                                <td class="num">{{ r.costoUSD | number:'1.4-4' }}</td>
+                                <td class="num">{{ r.porcentajeUsado | percent:'1.1-1' }}</td>
+                                <td>
+                                    <a [routerLink]="['/chatia/auditoria/conversaciones']"
+                                       [queryParams]="{ idPropietario: r.idPropietario }">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <!-- Ranking funciones -->
+        <section class="audit-dashboard__section">
+            <h3>Funciones más invocadas</h3>
+            @if (d.rankingFunciones.length === 0) {
+                <p class="audit-dashboard__empty">Sin invocaciones de funciones.</p>
+            } @else {
+                <table class="audit-dashboard__table">
+                    <thead>
+                        <tr>
+                            <th>Función</th>
+                            <th class="num">Llamadas</th>
+                            <th class="num">Errores</th>
+                            <th class="num">Duración prom. (ms)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (f of d.rankingFunciones; track f.funcion) {
+                            <tr>
+                                <td><code>{{ f.funcion }}</code></td>
+                                <td class="num">{{ f.llamadas }}</td>
+                                <td class="num" [class.danger]="f.errores > 0">{{ f.errores }}</td>
+                                <td class="num">{{ f.duracionPromedioMs }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+        }
+    }
+</div>

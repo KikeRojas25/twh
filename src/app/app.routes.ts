@@ -237,6 +237,10 @@ export const appRoutes: Route[] = [
               },
               
               {
+                path: 'chatia/auditoria',
+                loadChildren: () => import('./modules/admin/chatia-audit/chatia-audit.routes')
+              },
+              {
                 path: 'inventario',
                 loadComponent: () => import('./modules/admin/reportes/reportes.component')
                                       .then(m => m.ReportesComponent),

@@ -1,0 +1,79 @@
+.carga-prod {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-size: 13px;
+
+    &__header {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+
+    &__cliente { margin: 0 0 4px; color: #1e293b; }
+    &__hint    { margin: 0; color: #64748b; font-size: 12px; line-height: 1.4;
+                 code { background: #eef2ff; padding: 1px 4px; border-radius: 3px; font-size: 11px; } }
+
+    &__file {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    &__file-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: #fff;
+        border: 1px dashed #94a3b8;
+        border-radius: 8px;
+        cursor: pointer;
+        flex: 1;
+        font-size: 13px;
+        color: #1e293b;
+        transition: background 150ms ease, border-color 150ms ease;
+        &:hover { background: #f8fafc; border-color: #6366f1; color: #4338ca; }
+    }
+    &__size { font-size: 11px; color: #64748b; font-variant-numeric: tabular-nums; }
+
+    &__progress { display: flex; flex-direction: column; gap: 4px; }
+    &__progress-label { margin: 0; font-size: 11px; color: #64748b; text-align: center; }
+
+    &__resultado { display: flex; flex-direction: column; gap: 14px; }
+
+    &__kpis {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .kpi {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        &__num { font-size: 22px; font-weight: 700; color: #1e293b; }
+        &__lbl { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+        &--ok   { border-color: #bbf7d0; background: #f0fdf4; .kpi__num { color: #15803d; } }
+        &--info { border-color: #bfdbfe; background: #eff6ff; .kpi__num { color: #1d4ed8; } }
+        &--warn { border-color: #fed7aa; background: #fff7ed; .kpi__num { color: #9a3412; } }
+        &--err  { border-color: #fecaca; background: #fef2f2; .kpi__num { color: #b91c1c; } }
+    }
+
+    &__errores-titulo {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: #b91c1c;
+    }
+
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px solid #e2e8f0;
+    }
+}

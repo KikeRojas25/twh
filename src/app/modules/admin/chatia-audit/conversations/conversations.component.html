@@ -1,0 +1,55 @@
+<div class="audit-conv">
+    <header class="audit-conv__header">
+        <h2>Conversaciones</h2>
+        <a routerLink="/chatia/auditoria" class="audit-conv__link">← Dashboard</a>
+    </header>
+
+    <div class="audit-conv__filters">
+        <label>
+            IdPropietario
+            <input type="number"
+                   [(ngModel)]="idPropietarioFilter"
+                   (keyup.enter)="buscar()"
+                   placeholder="125" min="1">
+        </label>
+        <button class="audit-conv__btn" (click)="buscar()">Buscar</button>
+    </div>
+
+    @if (error(); as err) { <p class="audit-conv__error">{{ err }}</p> }
+    @if (cargando()) { <p class="audit-conv__loading">Cargando...</p> }
+
+    @if (rows().length === 0 && !cargando()) {
+        <p class="audit-conv__empty">Sin conversaciones para este propietario.</p>
+    } @else {
+        <table class="audit-conv__table">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Usuario</th>
+                    <th>Inicio</th>
+                    <th>Último mensaje</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (c of rows(); track c.id) {
+                    <tr>
+                        <td class="audit-conv__title">{{ c.tituloAuto || '(sin título)' }}</td>
+                        <td>#{{ c.idUsuario }}</td>
+                        <td>{{ c.fechaInicio | date:'short' }}</td>
+                        <td>{{ c.fechaUltimo | date:'short' }}</td>
+                        <td>
+                            <span class="badge" [class.badge--err]="c.estado === 9">
+                                {{ c.estado === 1 ? 'activa' : c.estado === 2 ? 'cerrada' : 'error' }}
+                            </span>
+                        </td>
+                        <td>
+                            <a [routerLink]="['/chatia/auditoria/conversaciones', c.id]">Ver</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

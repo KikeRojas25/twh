@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button'; 
 import { DropdownModule } from 'primeng/dropdown';
-import { DynamicDialogRef, DialogService } from 'primeng/dynamicdialog';
+import { DynamicDialogRef, DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { SelectItem } from 'primeng/api';
 import { ProductoService } from '../../../_services/producto.service';
 import { Producto } from '../../../_models/producto';
@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
+import { CargaProductosDialogComponent } from '../../clientes/carga-productos-dialog/carga-productos-dialog.component';
 
 
 @Component({
@@ -27,7 +28,8 @@ import { PropietarioService } from 'app/modules/admin/_services/propietario.serv
     CommonModule,
     ButtonModule,
     DropdownModule,
-    ToastModule
+    ToastModule,
+    DynamicDialogModule
   ],
   providers: [
     DialogService,MessageService ,
@@ -148,6 +150,35 @@ this.ref.onClose.subscribe((resultado) => {
 
   verHuellas(id) {
     this.router.navigate(['mantenimiento/verproducto', id]);
+  }
+
+  cargarMasivoExcel() {
+    const propietarioIdRaw = this.model?.PropietarioId;
+    const clienteId = propietarioIdRaw ? parseInt(propietarioIdRaw, 10) : 0;
+
+    if (!clienteId || clienteId <= 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Selecciona un cliente',
+        detail: 'Debes elegir un cliente / propietario antes de subir el Excel.'
+      });
+      return;
+    }
+
+    const sel = this.clientes.find(c => c.value === propietarioIdRaw);
+    const clienteNombre = sel?.label ?? `#${clienteId}`;
+
+    this.ref = this.dialogService.open(CargaProductosDialogComponent, {
+      header: `Carga masiva de productos — ${clienteNombre}`,
+      width: '760px',
+      data: { clienteId, clienteNombre }
+    });
+
+    this.ref.onClose.subscribe((resultado) => {
+      if (resultado && (resultado.productosNuevos > 0 || resultado.huellasReparadas > 0)) {
+        this.buscar();
+      }
+    });
   }
   filtroGeneral: string = '';
 

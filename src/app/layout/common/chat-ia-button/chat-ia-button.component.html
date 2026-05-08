@@ -1,0 +1,23 @@
+<button
+    type="button"
+    class="chat-ia-btn"
+    matRipple
+    [matRippleColor]="'rgba(255,255,255,0.18)'"
+    matTooltip="Asistente IA — pregunta sobre tu inventario"
+    matTooltipPosition="below"
+    (click)="onClick()"
+>
+    <span class="chat-ia-btn__halo" aria-hidden="true"></span>
+    <span class="chat-ia-btn__shimmer" aria-hidden="true"></span>
+    <span class="chat-ia-btn__content">
+        <span class="chat-ia-btn__icon-wrap">
+            <mat-icon
+                class="chat-ia-btn__icon"
+                [svgIcon]="'heroicons_solid:sparkles'"
+            ></mat-icon>
+            <span class="chat-ia-btn__dot" aria-hidden="true"></span>
+        </span>
+        <span class="chat-ia-btn__label">Chat IA</span>
+        <span class="chat-ia-btn__pill">Beta</span>
+    </span>
+</button>

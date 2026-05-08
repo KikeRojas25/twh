@@ -11,6 +11,8 @@ import {
 import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
 import { NavigationService } from 'app/core/navigation/navigation.service';
 import { Navigation } from 'app/core/navigation/navigation.types';
+import { ChatIaButtonComponent } from 'app/layout/common/chat-ia-button/chat-ia-button.component';
+import { ChatIaPanelComponent } from 'app/layout/common/chat-ia-panel/chat-ia-panel.component';
 import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
 import { MessagesComponent } from 'app/layout/common/messages/messages.component';
 import { NotificationsComponent } from 'app/layout/common/notifications/notifications.component';
@@ -39,11 +41,14 @@ import { Subject, takeUntil } from 'rxjs';
         RouterOutlet,
         QuickChatComponent,
         FuseVerticalNavigationComponent,
+        ChatIaButtonComponent,
+        ChatIaPanelComponent,
     ],
 })
 export class CompactLayoutComponent implements OnInit, OnDestroy {
     isScreenSmall: boolean;
     navigation: Navigation;
+    chatIaOpen = false;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**
@@ -121,5 +126,19 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
             // Toggle the opened status
             navigation.toggle();
         }
+    }
+
+    /**
+     * Open Chat IA panel
+     */
+    openChatIa(): void {
+        this.chatIaOpen = true;
+    }
+
+    /**
+     * Close Chat IA panel
+     */
+    closeChatIa(): void {
+        this.chatIaOpen = false;
     }
 }

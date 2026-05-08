@@ -1,0 +1,49 @@
+<div class="audit-cv">
+    <header class="audit-cv__header">
+        <h2>Conversación</h2>
+        <a routerLink="/chatia/auditoria/conversaciones" class="audit-cv__link">← Conversaciones</a>
+    </header>
+
+    @if (error(); as err) { <p class="audit-cv__error">{{ err }}</p> }
+    @if (cargando()) { <p class="audit-cv__loading">Cargando...</p> }
+
+    <div class="audit-cv__list">
+        @for (m of mensajes(); track m.id) {
+            <article class="audit-cv__msg" [attr.data-rol]="m.rol">
+                <header class="audit-cv__msg-header">
+                    <span class="audit-cv__rol">{{ m.rol }}</span>
+                    <span class="audit-cv__fecha">{{ m.fecha | date:'mediumTime' }} · {{ m.fecha | date:'shortDate' }}</span>
+                    @if (m.tokensInput || m.tokensOutput) {
+                        <span class="audit-cv__tokens">
+                            in {{ m.tokensInput }} · out {{ m.tokensOutput }} · USD {{ m.costoUSD | number:'1.4-6' }} · {{ m.duracionMs }}ms
+                        </span>
+                    }
+                </header>
+
+                @if (m.contenido) {
+                    <pre class="audit-cv__content">{{ m.contenido }}</pre>
+                }
+
+                @if (m.funcionLlamada) {
+                    <div class="audit-cv__func">
+                        <strong>{{ m.funcionLlamada }}</strong>
+                        @if (m.parametrosJson) {
+                            <details><summary>parámetros</summary>
+                                <pre>{{ formatearJson(m.parametrosJson) }}</pre>
+                            </details>
+                        }
+                        @if (m.resultadoJson) {
+                            <details><summary>resultado</summary>
+                                <pre>{{ formatearJson(m.resultadoJson) }}</pre>
+                            </details>
+                        }
+                    </div>
+                }
+
+                @if (m.error) {
+                    <div class="audit-cv__error">⚠ {{ m.error }}</div>
+                }
+            </article>
+        }
+    </div>
+</div>
