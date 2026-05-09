@@ -5,14 +5,16 @@ export interface Producto {
     FamiliaId: number;
     codigo: string;
     codigoTWH: string;
+    codigoEAN?: string;
     descripcionLarga: string;
     seriado: boolean;
     etiquetado: boolean;
     cliente: string;
-  canal?: string;
-  volumen?: number;
-  ancho?: number;
-  alto?: number;
-  largo?: number;
-  sobredimensionado?: number;
+    familia?: string;
+    canal?: string;
+    volumen?: number;
+    ancho?: number;
+    alto?: number;
+    largo?: number;
+    sobredimensionado?: number;
 }

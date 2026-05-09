@@ -14,6 +14,8 @@ import { NeweditComponent } from '../newedit/newedit.component';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
 import { CargaProductosDialogComponent } from '../../clientes/carga-productos-dialog/carga-productos-dialog.component';
 
@@ -29,7 +31,9 @@ import { CargaProductosDialogComponent } from '../../clientes/carga-productos-di
     ButtonModule,
     DropdownModule,
     ToastModule,
-    DynamicDialogModule
+    DynamicDialogModule,
+    InputTextModule,
+    TooltipModule
   ],
   providers: [
     DialogService,MessageService ,
@@ -63,6 +67,7 @@ export class ListadoproductoComponent implements OnInit{
   {header: 'ACCIONES', field: 'numOrden' , width: '40px' },
   {header: 'FAMILIA', field: 'familia' , width: '80px'  },
   {header: 'CODIGO', field: 'codigo' , width: '80px'  },
+  {header: 'EAN 13', field: 'codigoEAN' , width: '110px'  },
   {header: 'DESCRIPCION', field: 'descripcionLarga' , width: '160px'  },
   {header: 'CANAL', field: 'canal', width: '80px'},
   {header: 'VOLUMEN', field: 'volumen', width: '80px'},
@@ -183,13 +188,12 @@ this.ref.onClose.subscribe((resultado) => {
   filtroGeneral: string = '';
 
 filtrarTabla(dt: any) {
-  dt.filterGlobal(this.filtroGeneral, 'contains');
+  dt.filterGlobal((this.filtroGeneral ?? '').trim(), 'contains');
 }
 
 limpiarFiltro(dt: any) {
   this.filtroGeneral = '';
-  dt.clear();
-  this.buscar(); // recarga todos los productos
+  dt.filterGlobal('', 'contains');
 }
 
 

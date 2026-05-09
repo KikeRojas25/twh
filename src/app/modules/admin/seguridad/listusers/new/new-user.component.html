@@ -35,6 +35,23 @@
     <small class="text-red-500" *ngIf="hasError('dni','required')">El DNI es requerido.</small>
   </div>
 
+  <div class="flex flex-col gap-1">
+    <label class="text-xs font-medium text-gray-700">Propietarios autorizados</label>
+    <p-multiSelect
+      formControlName="clientesids"
+      [options]="propietarios"
+      optionLabel="nombre"
+      optionValue="id"
+      placeholder="Selecciona uno o más propietarios"
+      appendTo="body"
+      styleClass="w-full text-sm">
+    </p-multiSelect>
+    <small class="text-gray-500 text-xs">
+      Determina sobre qué clientes puede consultar el usuario en el Chat IA y otros módulos.
+      Si no eliges ninguno, el usuario no podrá usar Chat IA.
+    </small>
+  </div>
+
   <div class="flex justify-end gap-2 pt-2 border-t border-gray-200">
     <button pButton class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md" icon="pi pi-times" label="Cancelar" (click)="cancelar()"></button>
     <button pButton class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md" icon="pi pi-check" label="Guardar" [disabled]="guardando" (click)="guardar()"></button>

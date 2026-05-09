@@ -45,6 +45,28 @@
             </ng-template>
           </p-dropdown>
         </div>
+
+        <div class="flex flex-col sm:col-span-2">
+          <label class="text-xs font-medium text-gray-700 mb-1">BÚSQUEDA (código, EAN o descripción):</label>
+          <div class="flex gap-2">
+            <input
+              pInputText
+              class="w-full text-sm border-gray-300"
+              placeholder="Escribe código, EAN o descripción..."
+              [(ngModel)]="filtroGeneral"
+              (input)="filtrarTabla(dt)"
+              (keyup.enter)="filtrarTabla(dt)" />
+            <button
+              pButton
+              type="button"
+              icon="pi pi-times"
+              class="p-button-secondary"
+              pTooltip="Limpiar filtro"
+              tooltipPosition="bottom"
+              (click)="limpiarFiltro(dt)">
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Botones de Acción -->
@@ -101,6 +123,7 @@
         [resizableColumns]="true"
         selectionMode="single"
         [loading]="loading"
+        [globalFilterFields]="['codigo','codigoTWH','codigoEAN','descripcionLarga','familia']"
         styleClass="p-datatable-sm">
 
         <ng-template pTemplate="colgroup" let-columns>
@@ -138,6 +161,10 @@
             </td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.familia }}</td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">{{ rowData.codigo }}</td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">
+              <span *ngIf="rowData.codigoEAN">{{ rowData.codigoEAN }}</span>
+              <span *ngIf="!rowData.codigoEAN" class="text-gray-300">—</span>
+            </td>
             <td class="px-4 py-2 text-gray-700 text-sm">{{ rowData.descripcionLarga }}</td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.canal }}</td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.volumen }}</td>

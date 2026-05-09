@@ -1,10 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { PropietarioService } from '../../../_services/propietario.service';
 import { SeguridadService } from '../../seguridad.service';
+
+interface PropietarioOption {
+  id: number;
+  nombre: string;
+}
 
 @Component({
   selector: 'app-new-user',
@@ -16,12 +23,18 @@ import { SeguridadService } from '../../seguridad.service';
     InputTextModule,
     ButtonModule,
     DynamicDialogModule,
+    MultiSelectModule,
   ]
 })
 export class NewUserComponent implements OnInit {
 
+  private propietarioService = inject(PropietarioService);
+
   form!: FormGroup;
   guardando = false;
+
+  propietarios: PropietarioOption[] = [];
+  cargandoPropietarios = false;
 
   constructor(
     private fb: FormBuilder,
@@ -31,11 +44,28 @@ export class NewUserComponent implements OnInit {
 
   ngOnInit() {
     this.form = this.fb.group({
-      username:      ['', [Validators.required, Validators.minLength(3), Validators.maxLength(15)]],
-      password:      ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]],
-      nombreCompleto:['', Validators.required],
-      email:         ['', [Validators.required, Validators.email]],
-      dni:           ['', Validators.required],
+      username:       ['', [Validators.required, Validators.minLength(3), Validators.maxLength(15)]],
+      password:       ['', [Validators.required, Validators.minLength(4), Validators.maxLength(8)]],
+      nombreCompleto: ['', Validators.required],
+      email:          ['', [Validators.required, Validators.email]],
+      dni:            ['', Validators.required],
+      clientesids:    [[] as number[]],
+    });
+
+    this.cargarPropietarios();
+  }
+
+  private cargarPropietarios(): void {
+    this.cargandoPropietarios = true;
+    this.propietarioService.getAllPropietarios().subscribe({
+      next: (lista) => {
+        this.propietarios = (lista ?? []).map((p: any) => ({
+          id: Number(p.id ?? p.Id),
+          nombre: (p.razonSocial ?? p.nombre ?? p.RazonSocial ?? p.Nombre ?? `#${p.id}`).toString().toUpperCase(),
+        })).filter(p => p.id > 0);
+      },
+      error: () => { this.propietarios = []; },
+      complete: () => { this.cargandoPropietarios = false; }
     });
   }
 
@@ -46,13 +76,17 @@ export class NewUserComponent implements OnInit {
     }
 
     this.guardando = true;
+    const seleccion = (this.form.value.clientesids ?? []) as number[];
+
     const payload = {
-      Username: this.form.value.username.trim().toLowerCase(),
-      Password: this.form.value.password,
+      Username:       this.form.value.username.trim().toLowerCase(),
+      Password:       this.form.value.password,
       NombreCompleto: this.form.value.nombreCompleto.trim(),
-      Email: this.form.value.email.trim(),
-      Dni: this.form.value.dni.trim(),
-      EstadoId: 1
+      Email:          this.form.value.email.trim(),
+      Dni:            this.form.value.dni.trim(),
+      EstadoId:       1,
+      // Backend espera string[] (DTO.clientesids)
+      clientesids:    seleccion.map(id => String(id)),
     };
 
     this.seguridadService.register(payload).subscribe({
