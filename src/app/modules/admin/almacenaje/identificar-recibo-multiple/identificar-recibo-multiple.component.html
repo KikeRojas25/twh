@@ -8,7 +8,9 @@
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
           <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-gray-700 hover:text-gray-900">Almacenaje</a>
+          <a class="ml-1 text-gray-700 hover:text-gray-900 cursor-pointer"
+             [routerLink]="['/recibo/equipotransporteentrante']"
+             [queryParams]="{ equipoTransporteId: this.equipoTransporteId }">Equipos de Transporte</a>
         </div>
         <div class="flex items-center ml-1 whitespace-nowrap">
           <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>

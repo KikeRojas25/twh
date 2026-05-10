@@ -18,6 +18,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { ToolbarModule } from 'primeng/toolbar';
 import { SidebarModule } from 'primeng/sidebar';
 import { DragDropModule } from 'primeng/dragdrop';
+import { MatIcon } from '@angular/material/icon';
 
 import { InventarioGeneral } from '../../_models/inventariogeneral';
 import { GeneralService } from '../../_services/general.service';
@@ -40,8 +41,8 @@ declare var $: any;
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, ButtonModule, TableModule,
      DropdownModule, CalendarModule,
-     InputNumberModule, InputTextModule, ToastModule, ConfirmDialogModule, TooltipModule, InputSwitchModule, 
-     ToolbarModule, SidebarModule,DragDropModule],
+     InputNumberModule, InputTextModule, ToastModule, ConfirmDialogModule, TooltipModule, InputSwitchModule,
+     ToolbarModule, SidebarModule, DragDropModule, MatIcon],
 
   encapsulation: ViewEncapsulation.None,
   providers: [ConfirmationService, MessageService]  

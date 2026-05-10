@@ -9,6 +9,7 @@ import { ConfirmationService, MenuItem, MessageService, SelectItem } from 'prime
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { InventarioGeneral } from '../../_models/inventariogeneral';
 import { GeneralService } from '../../_services/general.service';
@@ -38,7 +39,8 @@ import { PropietarioService } from '../../_services/propietario.service';
     InputTextModule,
     ToastModule,
     ConfirmDialogModule,
-    SplitButtonModule
+    SplitButtonModule,
+    TooltipModule
   ],
   providers: [
     ConfirmationService, 
@@ -88,12 +90,14 @@ export class AjusteinventarioComponent implements OnInit{
     this.items = [
       {
           label: 'Gestión de estados',
+          icon: 'pi pi-flag',
           command: () => {
               this.merma();
           }
       },
       {
-        label: 'Extraer',
+        label: 'Extraer pallet',
+        icon: 'pi pi-sign-out',
         command: () => {
             this.extraer();
         }
@@ -310,9 +314,8 @@ export class AjusteinventarioComponent implements OnInit{
 
   editstock(id: number){
     this.ref = this.dialogService.open(AjustestockComponent, {
-      header: 'Solicitud de modificación de Stock',
-      width: '580px',
-      height: '500px',
+      header: 'Solicitud de modificación de stock',
+      width: '520px',
       data: {id:  id}
     });
     this.ref.onClose.subscribe((actualizado) => {

@@ -69,7 +69,7 @@ ActualizarInventario(model: any) {
 
 
   SolicitarActualizarStock(data: InventarioForEdit): Observable<any> {
-    return this.http.post(`${this.baseUrl}proponer-ajuste-cantidad`, data);
+    return this.http.post(`${this.baseUrl}proponer-ajuste-cantidad`, data, httpOptions);
   }
 
 actualizar_stock(model: any) {

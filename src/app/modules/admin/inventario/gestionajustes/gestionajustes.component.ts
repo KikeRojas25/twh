@@ -18,6 +18,7 @@ import { GeneralService } from '../../_services/general.service';
 import { ClienteService } from '../../_services/cliente.service';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { Ubicacion } from '../inventario.type';
 import { PropietarioService } from '../../_services/propietario.service';
 
@@ -33,7 +34,8 @@ import { PropietarioService } from '../../_services/propietario.service';
     DropdownModule,
     ToastModule,
     InputTextModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    TooltipModule
   ],
   providers: [
     DialogService,
@@ -51,9 +53,15 @@ export class GestionajustesComponent implements OnInit{
   areas: SelectItem[] = [];
   ubicaciones: Ubicacion[];
   seleccion: InventarioGeneral[] = [];
-  listData: InventarioGeneral[];
+  listData: InventarioGeneral[] = [];
+  private listDataRaw: InventarioGeneral[] = [];
   cols: any[];
-  model: any  = {};
+  model: any  = { estadoFiltro: 'pendiente' };
+
+  estadosAjuste: SelectItem[] = [
+    { value: 'pendiente', label: 'Solo pendientes' },
+    { value: 'todos',     label: 'Todos' },
+  ];
   public loading = false;
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
@@ -77,7 +85,7 @@ export class GestionajustesComponent implements OnInit{
 
     this.cols =
     [
-       {header: 'ACCIONES', field: 'estado' , width: '60px'  },
+      {header: 'ACCIONES', field: 'estado' , width: '60px'  },
       {header: 'ID', field: 'id'  ,  width: '60px'  },
       {header: 'FECHA Y HORA', field: 'nombreEstado'  ,  width: '60px'  },
       {header: 'LODNUM', field: 'producto'  ,  width: '90px' },
@@ -85,25 +93,21 @@ export class GestionajustesComponent implements OnInit{
       {header: 'OBSERVACION', field: 'numOrden'  ,  width: '70px' },
       {header: 'MOTIVO', field: 'numOrden'  ,  width: '70px' },
 
+      {header: 'F. EXPIRE ANT.', field: 'fechaExpireOld'  ,  width: '70px', kind: 'old' },
+      {header: 'F. EXPIRE NUEVA', field: 'fechaExpire'  ,  width: '70px', kind: 'new' },
 
-        {header: 'F. EXPIRE OLD', field: 'fechaExpireOld'  ,  width: '70px' },
-        {header: 'F. EXPIRE', field: 'fechaExpire'  ,  width: '70px' },
+      {header: 'F. MANUFACTURA ANT.', field: 'fechaManufacturaOld'  ,  width: '90px', kind: 'old' },
+      {header: 'F. MANUFACTURA NUEVA', field: 'fechaManufactura'  ,  width: '90px', kind: 'new' },
 
-        {header: 'F. MANUFACTURA OLD', field: 'fechaExpireOld'  ,  width: '70px' },
-        {header: 'F. MANUFACTURA', field: 'fechaExpire'  ,  width: '70px' },
+      {header: 'LOTE ANT.', field: 'lotNumOld'  ,  width: '70px', kind: 'old' },
+      {header: 'LOTE NUEVO', field: 'lotNum'  ,  width: '70px', kind: 'new' },
 
-        {header: 'LOTE OLD', field: 'lotNumOld'  ,  width: '70px' },
-        {header: 'LOTE', field: 'LotNum'  ,  width: '70px' },
+      {header: 'QTY ANT.', field: 'untqty_old' , width: '50px', kind: 'old' },
+      {header: 'QTY NUEVA', field: 'untQty' , width: '50px', kind: 'new' },
 
-
-
-
-      {header: 'QTY', field: 'untqty' , width: '40px'  },
-      {header: 'QTY OLD', field: 'untqty' , width: '40px'  },
       {header: 'SOLICITADO POR', field: 'estado' , width: '60px'  },
       {header: 'EJECUTADO', field: 'estado' , width: '60px'  },
       {header: 'APROBADO POR', field: 'estado' , width: '60px'  },
-     
     ];
 
     this.generalService.getAreas().subscribe(resp =>{
@@ -153,9 +157,18 @@ export class GestionajustesComponent implements OnInit{
       , this.model.ProductoId
       , this.model.lpn
     ).subscribe(list => {
-      this.listData = list;
+      this.listDataRaw = list || [];
+      this.applyFilter();
     });
 
+  }
+
+  applyFilter(){
+    if (this.model.estadoFiltro === 'todos') {
+      this.listData = [...this.listDataRaw];
+    } else {
+      this.listData = this.listDataRaw.filter((x: any) => !x.ejecutado);
+    }
   }
 
  aprobar(id: number) {
@@ -202,6 +215,7 @@ export class GestionajustesComponent implements OnInit{
               summary: 'Inventario aprobado',
               detail: 'Se ha aprobado el Inventario correctamente.'
             });
+            this.buscar();
           }
         },
         error: () => {
@@ -265,6 +279,7 @@ export class GestionajustesComponent implements OnInit{
               summary: 'Inventario rechazado',
               detail: 'El ajuste fue rechazado correctamente.'
             });
+            this.buscar();
           }
         },
         error: () => {

@@ -25,6 +25,7 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { PanelModule } from 'primeng/panel';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { MatIcon } from '@angular/material/icon';
@@ -53,13 +54,16 @@ import { PropietarioService } from '../../_services/propietario.service';
     InputIconModule,
     InputMaskModule,
     InputNumberModule,
-    PanelModule
+    PanelModule,
+    SkeletonModule
   ],
   providers: [MessageService, ConfirmationService]
 })
 export class EditComponent implements OnInit {
   form: FormGroup;
   loading = false;
+  /** True mientras se cargan combos + datos de la orden. Mientras tanto se muestra el skeleton. */
+  cargando = true;
 
   propietarios: SelectItem[] = [];
   tiposingreso: SelectItem[] = [];
@@ -104,22 +108,37 @@ export class EditComponent implements OnInit {
     private router: Router
   ) {
     this.form = this.fb.group({
-      almacenId: [null, Validators.required],
+      // Obligatorios
+      almacenId:     [null, Validators.required],
       propietarioId: [null, Validators.required],
       fechaEsperada: [new Date(), Validators.required],
-      horaEsperada: ['15:00', Validators.required],
+      horaEsperada:  ['15:00', Validators.required],
       IdTipoIngreso: [null, Validators.required],
-      destino: [null],
-      ordenCompra: ['', [Validators.minLength(5), Validators.maxLength(20), Validators.required]],
-      guiaRemision: ['', [Validators.minLength(5), Validators.maxLength(50), Validators.required]],
-      cantidad: [null, [Validators.min(1), Validators.max(100000)]],
-      peso: [null, [Validators.min(0.01), Validators.max(100000)]],
-      volumen: [null, [Validators.min(0.01), Validators.max(100000)]],
+      ordenCompra:   ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
+      guiaRemision:  ['', [Validators.required, Validators.minLength(5), Validators.maxLength(50)]],
+
+      // Opcionales
+      destino:   [null],
+      cantidad:  [null, [Validators.min(1), Validators.max(100000)]],
+      peso:      [null, [Validators.min(0.01), Validators.max(100000)]],
+      volumen:   [null, [Validators.min(0.01), Validators.max(100000)]],
       proveedor: ['', [Validators.minLength(5), Validators.maxLength(50)]],
-      entrega: ['', [Validators.minLength(5), Validators.maxLength(50)]]
+      entrega:   ['', [Validators.minLength(5), Validators.maxLength(50)]]
     });
 
     this.id = this.config.data.id;
+  }
+
+  /** True si el control fue tocado/dirty y tiene un error puntual. */
+  hasError(control: string, error: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.hasError(error));
+  }
+
+  /** True si el control es inválido y ya fue tocado o modificado. */
+  isInvalid(control: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.invalid);
   }
 
   // ===============================================================
@@ -130,6 +149,7 @@ export class EditComponent implements OnInit {
     this.decodedToken = this.jwtHelper.decodeToken(token ?? '');
 
     this.model.horaEsperada = '15:00';
+    this.cargando = true;
 
     // Esperar a que los combos terminen de cargar antes de aplicar valores
     forkJoin([
@@ -137,14 +157,20 @@ export class EditComponent implements OnInit {
       this.almacenService.getAllAlmacenes(),
       this.generalService.getValorTabla(31),
       this.generalService.getValorTabla(31)
-    ]).subscribe(([propResp, almacResp, tipoIngResp, tipoDescResp]) => {
-      this.propietarios = propResp.map((p: any) => ({ value: p.id, label: p.razonSocial }));
-      this.almacenes = almacResp.map((a: any) => ({ value: a.id, label: a.descripcion }));
-      this.tiposingreso = tipoIngResp.map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
-      this.tipodescarga = tipoDescResp.map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
+    ]).subscribe({
+      next: ([propResp, almacResp, tipoIngResp, tipoDescResp]) => {
+        this.propietarios = (propResp ?? []).map((p: any) => ({ value: p.id, label: p.razonSocial }));
+        this.almacenes    = (almacResp ?? []).map((a: any) => ({ value: a.id, label: a.descripcion }));
+        this.tiposingreso = (tipoIngResp ?? []).map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
+        this.tipodescarga = (tipoDescResp ?? []).map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
 
-      // ✅ Una vez que todo esté cargado, obtenemos la orden
-      this.cargarOrden();
+        // ✅ Una vez que todo esté cargado, obtenemos la orden
+        this.cargarOrden();
+      },
+      error: () => {
+        this.cargando = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos del formulario.' });
+      }
     });
   }
 
@@ -152,7 +178,7 @@ export class EditComponent implements OnInit {
   // 🔹 OBTENER Y CARGAR ORDEN EN EL FORMULARIO
   // ===============================================================
   cargarOrden() {
-    this.recepcionService.obtenerOrden(this.id).subscribe(resp => {
+    this.recepcionService.obtenerOrden(this.id).pipe(finalize(() => this.cargando = false)).subscribe(resp => {
       this.model = resp;
 
       // Convertir la fecha
@@ -192,7 +218,15 @@ export class EditComponent implements OnInit {
   // 🔹 GUARDAR CAMBIOS
   // ===============================================================
   registrar() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Faltan datos',
+        detail: 'Completa los campos obligatorios marcados con *.'
+      });
+      return;
+    }
 
     this.confirmationService.confirm({
       message: '¿Está seguro que desea editar la ORI?',
@@ -222,16 +256,33 @@ export class EditComponent implements OnInit {
           id: this.id
         };
 
+        this.loading = true;
         this.recepcionService
           .actualizar(model)
           .pipe(finalize(() => (this.loading = false)))
           .subscribe({
             next: resp => this.ref.close({ ok: true, data: resp }),
-            error: err =>
-              this.ref.close({
-                ok: false,
-                error: err?.error?.message || 'No se pudo registrar la ORI.'
-              })
+            error: err => {
+              // ❌ NO cerramos el modal: mostramos el mensaje y dejamos que el usuario corrija.
+              const detalle =
+                (typeof err === 'string' ? err : null) ??
+                err?.error?.message ??
+                err?.message ??
+                'No se pudo actualizar la ORI.';
+
+              const esGuiaDuplicada = /gu[ií]a/i.test(detalle) && /existe|registrad/i.test(detalle);
+              if (esGuiaDuplicada) {
+                this.form.get('guiaRemision')?.setErrors({ duplicada: true });
+                this.form.get('guiaRemision')?.markAsTouched();
+              }
+
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'No se pudo guardar',
+                detail: detalle,
+                life: 6000
+              });
+            }
           });
       }
     });

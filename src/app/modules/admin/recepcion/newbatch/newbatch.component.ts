@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { MessageService, PrimeNGConfig, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -26,6 +27,7 @@ import { PropietarioService } from '../../_services/propietario.service';
   imports: [
     FormsModule,
     CommonModule,
+    RouterModule,
     MatIcon,
     DynamicDialogModule ,
     DropdownModule ,

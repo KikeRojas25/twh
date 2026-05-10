@@ -1,5 +1,27 @@
 <div class="p-3">
-  <form [formGroup]="form" class="space-y-4">
+  <!-- Skeleton mientras cargan combos / datos de cabecera -->
+  <div *ngIf="cargandoCombos" class="space-y-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div class="space-y-4">
+        <div class="flex flex-col gap-2" *ngFor="let _ of [].constructor(6)">
+          <p-skeleton width="40%" height="0.75rem"></p-skeleton>
+          <p-skeleton height="2.25rem" borderRadius="6px"></p-skeleton>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="flex flex-col gap-2" *ngFor="let _ of [].constructor(5)">
+          <p-skeleton width="40%" height="0.75rem"></p-skeleton>
+          <p-skeleton height="2.25rem" borderRadius="6px"></p-skeleton>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 pt-2 border-t border-gray-200">
+      <p-skeleton width="6rem" height="2.25rem" borderRadius="6px"></p-skeleton>
+      <p-skeleton width="9rem" height="2.25rem" borderRadius="6px"></p-skeleton>
+    </div>
+  </div>
+
+  <form *ngIf="!cargandoCombos" [formGroup]="form" class="space-y-4">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div class="space-y-4">
         <div class="flex flex-col">

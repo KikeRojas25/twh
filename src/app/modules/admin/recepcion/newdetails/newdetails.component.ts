@@ -10,6 +10,9 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { OrdenReciboDetalleForRegisterDto } from '../recepcion.types';
 
@@ -27,8 +30,10 @@ import { OrdenReciboDetalleForRegisterDto } from '../recepcion.types';
         ,TableModule
         ,ButtonModule
         ,CardModule
-        , InputTextModule
-
+        ,InputTextModule
+        ,ConfirmDialogModule
+        ,ToastModule
+        ,TooltipModule
     ],
       providers: [
           DialogService ,
@@ -51,6 +56,7 @@ export class NewdetailsComponent implements OnInit {
     constructor(private productoService: ProductoService,
         private ordenreciboService: RecepcionService,
         private messageService: MessageService,
+        private confirmationService: ConfirmationService,
     ) {}
     ngOnInit(): void {
 
@@ -148,7 +154,54 @@ export class NewdetailsComponent implements OnInit {
       }
 
       eliminarFila(row: any) {
-        this.orden.detalles = this.orden.detalles.filter((d: any) => d !== row);
+        if (this.orden?.nombreEstado !== 'Planificado') {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'No permitido',
+            detail: 'Solo se pueden eliminar ítems de una orden en estado Planificado.'
+          });
+          return;
+        }
+
+        const id = row?.id ?? row?.Id;
+        if (!id) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo identificar el ítem a eliminar (sin id).'
+          });
+          return;
+        }
+
+        this.confirmationService.confirm({
+          message: `¿Está seguro que desea eliminar el ítem <b>${row?.codigo ?? ''}</b> — <b>${row?.producto ?? ''}</b>? Esta acción no se puede deshacer.`,
+          header: 'Eliminar ítem',
+          icon: 'pi pi-exclamation-triangle',
+          acceptLabel: 'Sí, eliminar',
+          rejectLabel: 'Cancelar',
+          acceptButtonStyleClass: 'p-button-danger',
+          accept: () => {
+            this.ordenreciboService.deleteOrderDetail(id).subscribe({
+              next: () => {
+                // Solo después del éxito en BD removemos del array local.
+                this.orden.detalles = (this.orden.detalles || [])
+                  .filter((d: any) => (d?.id ?? d?.Id) !== id);
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'TWH',
+                  detail: 'Ítem eliminado correctamente.'
+                });
+              },
+              error: (err) => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: err?.error?.message || 'No se pudo eliminar el ítem en el servidor.'
+                });
+              }
+            });
+          }
+        });
       }
 
 }

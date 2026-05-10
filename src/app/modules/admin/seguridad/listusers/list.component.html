@@ -93,20 +93,34 @@
             <td class="text-center px-4 py-2">
               <div class="flex justify-center gap-1">
                 <p-button icon="fa fa-edit" severity="primary" [raised]="true"
-                  pTooltip="Editar" (click)="editar(usuario.id || usuario.Id)"></p-button>
+                  [disabled]="esSuperAdmin(usuario)"
+                  [pTooltip]="esSuperAdmin(usuario) ? 'Usuario protegido (super admin)' : 'Editar'"
+                  (click)="editar(usuario.id || usuario.Id)"></p-button>
                 <p-button icon="pi pi-key" severity="warn" [raised]="true"
-                  pTooltip="Cambiar contraseña" (click)="cambiarPassword(usuario)"></p-button>
+                  [disabled]="esSuperAdmin(usuario)"
+                  [pTooltip]="esSuperAdmin(usuario) ? 'Usuario protegido (super admin)' : 'Cambiar contraseña'"
+                  (click)="cambiarPassword(usuario)"></p-button>
                 <p-button icon="pi pi-shield" severity="info" [raised]="true"
-                  pTooltip="Gestionar roles" (click)="gestionarRoles(usuario)"></p-button>
+                  [disabled]="esSuperAdmin(usuario)"
+                  [pTooltip]="esSuperAdmin(usuario) ? 'Usuario protegido (super admin)' : 'Gestionar roles'"
+                  (click)="gestionarRoles(usuario)"></p-button>
                 <p-button
                   [severity]="(usuario.estadoId || usuario.EstadoId) === 1 ? 'danger' : 'success'"
                   [icon]="(usuario.estadoId || usuario.EstadoId) === 1 ? 'pi pi-lock' : 'pi pi-unlock'"
                   [raised]="true"
-                  [pTooltip]="(usuario.estadoId || usuario.EstadoId) === 1 ? 'Bloquear' : 'Activar'"
+                  [disabled]="esSuperAdmin(usuario)"
+                  [pTooltip]="esSuperAdmin(usuario) ? 'Usuario protegido (super admin)' : ((usuario.estadoId || usuario.EstadoId) === 1 ? 'Bloquear' : 'Activar')"
                   (click)="toggleEstado(usuario)"></p-button>
               </div>
             </td>
-            <td class="px-4 py-2 text-gray-700 text-sm">{{ usuario.nombreCompleto || usuario.NombreCompleto || '-' }}</td>
+            <td class="px-4 py-2 text-gray-700 text-sm">
+              {{ usuario.nombreCompleto || usuario.NombreCompleto || '-' }}
+              <span *ngIf="esSuperAdmin(usuario)"
+                    class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-800 align-middle"
+                    pTooltip="Usuario protegido del sistema">
+                <i class="pi pi-shield text-[10px] mr-1"></i>SUPER ADMIN
+              </span>
+            </td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ usuario.username || usuario.Username || '-' }}</td>
             <td class="px-4 py-2 text-gray-700 text-sm">{{ usuario.email || usuario.Email || '-' }}</td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ usuario.dni || usuario.Dni || '-' }}</td>

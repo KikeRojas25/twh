@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { forkJoin } from 'rxjs';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CalendarModule } from 'primeng/calendar';
@@ -9,6 +10,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ToastModule } from 'primeng/toast';
 import { DespachosService } from '../../despachos.service';
 import { PropietarioService } from '../../../_services/propietario.service';
@@ -29,7 +31,8 @@ type CabeceraDialogMode = 'create' | 'edit';
     InputTextModule,
     ButtonModule,
     ConfirmDialogModule,
-    ToastModule
+    ToastModule,
+    SkeletonModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './orden-salida-cabecera-dialog.component.html'
@@ -44,11 +47,22 @@ export class OrdenSalidaCabeceraDialogComponent implements OnInit {
   tiposDescarga: SelectItem[] = [];
 
   loading = false;
+  cargandoCombos = true;
   mode: CabeceraDialogMode = 'create';
   ordenSalidaId: number | null = null;
   private isPrefilling = false;
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
+
+  hasError(control: string, error: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.hasError(error));
+  }
+
+  isInvalid(control: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.invalid);
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -101,25 +115,25 @@ export class OrdenSalidaCabeceraDialogComponent implements OnInit {
       }
     }
 
-    this.propietarioService.getAllPropietarios().subscribe({
-      next: (resp) => {
-        this.propietarios = (resp ?? []).map((x: any) => ({ value: x.id, label: x.razonSocial }));
+    this.cargandoCombos = true;
+    forkJoin([
+      this.propietarioService.getAllPropietarios(),
+      this.generalService.getAllAlmacenes(),
+      this.generalService.getValorTabla(43)
+    ]).subscribe({
+      next: ([propResp, almacResp, tipoDescResp]) => {
+        this.propietarios  = (propResp ?? []).map((x: any) => ({ value: x.id, label: x.razonSocial }));
+        this.almacenes     = (almacResp ?? []).map((a: any) => ({ value: a.id, label: a.descripcion }));
+        this.tiposDescarga = (tipoDescResp ?? []).map((x: any) => ({ value: x.id, label: x.valorPrincipal }));
+        // En modo create podemos ocultar el skeleton ya. En edit lo mantenemos hasta que termine cargarCabeceraExistente.
+        if (this.mode !== 'edit') {
+          this.cargandoCombos = false;
+        }
       },
-      error: (err) => console.error('Error al cargar propietarios:', err)
-    });
-
-    this.generalService.getAllAlmacenes().subscribe({
-      next: (resp) => {
-        this.almacenes = (resp ?? []).map((a: any) => ({ value: a.id, label: a.descripcion }));
-      },
-      error: (err) => console.error('Error al cargar almacenes:', err)
-    });
-
-    this.generalService.getValorTabla(43).subscribe({
-      next: (resp) => {
-        this.tiposDescarga = (resp ?? []).map((x: any) => ({ value: x.id, label: x.valorPrincipal }));
-      },
-      error: (err) => console.error('Error al cargar tipos de descarga:', err)
+      error: () => {
+        this.cargandoCombos = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos del formulario.' });
+      }
     });
 
     this.form.get('propietarioId')?.valueChanges.subscribe((propietarioId) => {
@@ -334,31 +348,37 @@ export class OrdenSalidaCabeceraDialogComponent implements OnInit {
                       label: `${d.direccion} [ ${d.departamento} - ${d.provincia} - ${d.distrito} ]`
                     }));
                     this.loading = false;
+                    this.cargandoCombos = false;
                     this.isPrefilling = false;
                   },
                   error: () => {
                     this.loading = false;
+                    this.cargandoCombos = false;
                     this.isPrefilling = false;
                   }
                 });
               } else {
                 this.loading = false;
+                this.cargandoCombos = false;
                 this.isPrefilling = false;
               }
             },
             error: () => {
               this.loading = false;
+              this.cargandoCombos = false;
               this.isPrefilling = false;
             }
           });
         } else {
           this.loading = false;
+          this.cargandoCombos = false;
           this.isPrefilling = false;
         }
       },
       error: (err) => {
         console.error('Error al cargar orden para edición:', err);
         this.loading = false;
+        this.cargandoCombos = false;
         this.isPrefilling = false;
         this.messageService.add({
           severity: 'error',

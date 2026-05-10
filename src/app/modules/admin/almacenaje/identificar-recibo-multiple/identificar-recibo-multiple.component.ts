@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
@@ -29,6 +29,7 @@ import { InventarioGeneral, InventarioDetalle } from '../../_models/inventarioge
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     MatIcon,
     ButtonModule,
     TableModule,

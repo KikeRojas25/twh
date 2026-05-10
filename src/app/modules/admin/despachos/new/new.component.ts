@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { FormBuilder, FormGroup, FormsModule, NgForm, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { DropdownModule } from 'primeng/dropdown';
+import { SkeletonModule } from 'primeng/skeleton';
 import { DialogService } from 'primeng/dynamicdialog';
 import { DespachosService } from '../despachos.service';
 import { ClienteService } from '../../_services/cliente.service';
@@ -40,7 +42,8 @@ import { PropietarioService } from '../../_services/propietario.service';
     ButtonModule,
     ReactiveFormsModule,
     ConfirmDialogModule,
-    TableModule 
+    TableModule,
+    SkeletonModule
   ],
   providers: [
     DialogService,
@@ -51,8 +54,9 @@ import { PropietarioService } from '../../_services/propietario.service';
 export class NewComponent implements OnInit {
 
   form: FormGroup;
+  loading = false;
+  cargandoCombos = true;
 
-  
   propietarios: SelectItem[] = [];
   clientes  : SelectItem[] = [];
   almacenes: SelectItem[] = [];
@@ -63,6 +67,18 @@ export class NewComponent implements OnInit {
 
   jwtHelper = new JwtHelperService();
   decodedToken: any = {};
+
+  /** True si el control fue tocado/dirty y tiene un error puntual. */
+  hasError(control: string, error: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.hasError(error));
+  }
+
+  /** True si el control es invalido y ya fue tocado o modificado. */
+  isInvalid(control: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.invalid);
+  }
 
 
 
@@ -123,31 +139,23 @@ export class NewComponent implements OnInit {
    
   }
   cargarCombos(){
-
-    this.propietarioService.getAllPropietarios().subscribe(resp => {
-      resp.forEach(resp => {
-        this.propietarios.push({value: resp.id , label: resp.razonSocial });
-      });
-    
-  
+    this.cargandoCombos = true;
+    forkJoin([
+      this.propietarioService.getAllPropietarios(),
+      this.almacenService.getAllAlmacenes(),
+      this.generalService.getValorTabla(43)
+    ]).subscribe({
+      next: ([propResp, almacResp, tipoDescResp]) => {
+        this.propietarios = (propResp ?? []).map((p: any) => ({ value: p.id, label: p.razonSocial }));
+        this.almacenes    = (almacResp ?? []).map((a: any) => ({ value: a.id, label: a.descripcion }));
+        this.tipodescarga = (tipoDescResp ?? []).map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
+        this.cargandoCombos = false;
+      },
+      error: () => {
+        this.cargandoCombos = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos del formulario.' });
+      }
     });
-
-    
-    this.almacenService.getAllAlmacenes().subscribe(resp => {
-          resp.forEach(element => {
-            this.almacenes.push({ value: element.id ,  label : element.descripcion});
-          });
-      });
-
-
-      
-    this.generalService.getValorTabla(43).subscribe(resp =>
-      {
-        resp.forEach(element => {
-          this.tipodescarga.push({ value: element.id , label: element.valorPrincipal});
-        });
-
-      });
   }
 
   onChangePropietario(propietario) {
@@ -199,6 +207,12 @@ export class NewComponent implements OnInit {
   registrar() {
 
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Faltan datos',
+        detail: 'Completa los campos obligatorios marcados con *.'
+      });
       return;
     }
 

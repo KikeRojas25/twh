@@ -19,9 +19,11 @@ export const authInterceptor = (
     // Detectar si es para el segundo servicio
     const isServicio2 = req.url.startsWith(environment.baseUrl);
 
-    // Elegir el token correcto según la URL
+    // Elegir el token correcto según la URL. Si accessToken2 no está disponible
+    // (no está cableado en el flujo actual de login), caer al accessToken principal
+    // para que las llamadas al backend igualmente lleven Authorization.
     const token = isServicio2
-        ? authService.accessToken2
+        ? (authService.accessToken2 || authService.accessToken)
         : authService.accessToken;
 
     // Verificar que el token exista y no esté expirado

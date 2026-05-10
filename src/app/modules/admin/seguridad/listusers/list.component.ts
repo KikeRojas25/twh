@@ -40,11 +40,21 @@ import { RolesModalComponent } from './roles/roles-modal.component';
 })
 export class ListUsersComponent implements OnInit {
 
+  // Usuario super administrador intocable (sincronizar con backend
+  // UsersController.SUPER_ADMIN_USER_ID).
+  readonly SUPER_ADMIN_ID = 1;
+
   usuarios: any[] = [];
   cargando = false;
   busqueda = '';
   mostrarBloqueados = false;
   ref: DynamicDialogRef | undefined;
+
+  /** True si el usuario es el super admin intocable. */
+  esSuperAdmin(usuario: any): boolean {
+    const id = Number(usuario?.id ?? usuario?.Id);
+    return id === this.SUPER_ADMIN_ID;
+  }
 
   constructor(
     private seguridadService: SeguridadService,
@@ -101,6 +111,10 @@ export class ListUsersComponent implements OnInit {
   }
 
   editar(id: number) {
+    if (Number(id) === this.SUPER_ADMIN_ID) {
+      this.messageService.add({ severity: 'warn', summary: 'Usuario protegido', detail: 'El super administrador no puede editarse.' });
+      return;
+    }
     this.ref = this.dialogService.open(EditUserComponent, {
       header: 'Editar usuario',
       width: '550px',
@@ -118,6 +132,10 @@ export class ListUsersComponent implements OnInit {
   }
 
   gestionarRoles(usuario: any) {
+    if (this.esSuperAdmin(usuario)) {
+      this.messageService.add({ severity: 'warn', summary: 'Usuario protegido', detail: 'No se pueden modificar los roles del super administrador.' });
+      return;
+    }
     this.ref = this.dialogService.open(RolesModalComponent, {
       header: 'Gestión de roles',
       width: '750px',
@@ -137,6 +155,10 @@ export class ListUsersComponent implements OnInit {
   }
 
   cambiarPassword(usuario: any) {
+    if (this.esSuperAdmin(usuario)) {
+      this.messageService.add({ severity: 'warn', summary: 'Usuario protegido', detail: 'No se puede cambiar la contraseña del super administrador.' });
+      return;
+    }
     this.ref = this.dialogService.open(ChangePasswordComponent, {
       header: 'Cambiar contraseña',
       width: '480px',
@@ -156,6 +178,10 @@ export class ListUsersComponent implements OnInit {
   }
 
   toggleEstado(usuario: any) {
+    if (this.esSuperAdmin(usuario)) {
+      this.messageService.add({ severity: 'warn', summary: 'Usuario protegido', detail: 'No se puede bloquear/activar al super administrador.' });
+      return;
+    }
     const id = usuario.id || usuario.Id;
     const nombre = usuario.nombreCompleto || usuario.NombreCompleto;
     const esActivo = (usuario.estadoId || usuario.EstadoId) === 1;

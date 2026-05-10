@@ -1,106 +1,140 @@
-<div class="flex flex-col flex-auto min-w-0">
-    <form #form="ngForm">
-        <!-- Filtros -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-            <div class="flex flex-col sm:flex-row gap-8 items-end">
-                <!-- Almacén -->
-                <div class="w-full">
-                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Almacén</label>
-                    <p-dropdown
-                        [options]="almacenes"
-                        [(ngModel)]="model.AlmacenId"
-                        name="almacen"
-                        #almacen="ngModel"
-                        [style]="{ 'width': '100%' }"
-                        [filter]="true"
-                        filterBy="label"
-                        [showClear]="true"
-                        placeholder="Seleccione un almacén"
-                        class="flex-1"
-                        required>
-                        <ng-template let-item pTemplate="selectedItem">
-                            <span>{{ item.label }}</span>
-                        </ng-template>
-                    </p-dropdown>
-                </div>
+<div class="reubicar">
+  <div class="reubicar__form">
 
-                <!-- Nueva ubicación -->
-                <div class="flex flex-col">
-                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Nueva ubicación</label>
-                    <input 
-                        pInputText 
-                        class="flex-1" 
-                        autocomplete="off"
-                        [(ngModel)]="model.ubicacion" 
-                        name="ubicacion" 
-                        type="text">    
-                </div>
-        
-                <!-- Botón Buscar -->
-                <div class="flex-1">
-                    <p-button 
-                        severity="primary" 
-                        label="Buscar" 
-                        (onClick)="buscar()" 
-                        icon="pi pi-search" 
-                        styleClass="h-[50px] w-full">
-                    </p-button>
-                </div>
+    <!-- Resumen del origen -->
+    <section class="panel panel--origen">
+      <header class="panel__header">
+        <span class="panel__title">
+          <i class="pi pi-box"></i>
+          {{ isMulti ? (origenes.length + ' pallets seleccionados') : 'Pallet a reubicar' }}
+        </span>
+        <span class="panel__sub" *ngIf="origenAlmacenNombre">
+          Almacén: <strong>{{ origenAlmacenNombre }}</strong>
+        </span>
+      </header>
+
+      <!-- Caso 1 pallet: tarjeta detallada -->
+      <div class="origen-card" *ngIf="!isMulti && origenes.length === 1">
+        <div class="origen-card__row">
+          <span class="lbl">LPN</span>
+          <span class="val">{{ origenes[0].lpn || '-' }}</span>
+        </div>
+        <div class="origen-card__row">
+          <span class="lbl">Ubicación actual</span>
+          <span class="val val--accent">{{ origenes[0].ubicacion || '-' }}</span>
+        </div>
+        <div class="origen-card__row">
+          <span class="lbl">Producto</span>
+          <span class="val">{{ origenes[0].producto || '-' }}</span>
+        </div>
+        <div class="origen-card__row">
+          <span class="lbl">Cantidad</span>
+          <span class="val">{{ origenes[0].qty ?? '-' }}</span>
+        </div>
+      </div>
+
+      <!-- Caso N pallets: lista compacta -->
+      <ul class="origen-list" *ngIf="isMulti">
+        <li *ngFor="let o of origenes" class="origen-list__item">
+          <span class="chip chip--lpn">{{ o.lpn || ('#' + o.id) }}</span>
+          <span class="origen-list__loc">{{ o.ubicacion }}</span>
+          <span class="origen-list__qty">{{ o.qty }} u.</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Selector de ubicación destino -->
+    <section class="panel">
+      <header class="panel__header">
+        <span class="panel__title">
+          <i class="pi pi-map-marker"></i> Ubicación destino
+        </span>
+      </header>
+
+      <div class="field">
+        <label class="field__label" for="destino">Buscar ubicación</label>
+        <p-autoComplete
+          inputId="destino"
+          [(ngModel)]="destino"
+          [suggestions]="sugerencias"
+          (completeMethod)="buscarUbicaciones($event)"
+          (onSelect)="onSelectDestino($event)"
+          (onClear)="onClearDestino()"
+          field="ubicacion"
+          placeholder="Escribe parte del código de ubicación"
+          [forceSelection]="true"
+          [delay]="250"
+          [minLength]="1"
+          [showEmptyMessage]="true"
+          emptyMessage="Sin coincidencias"
+          appendTo="body"
+          styleClass="w-full">
+          <ng-template let-item pTemplate="item">
+            <div class="suggestion">
+              <span class="suggestion__code">{{ item.ubicacion }}</span>
+              <span class="suggestion__meta">{{ item.area }} · {{ item.estado }}</span>
             </div>
+          </ng-template>
+        </p-autoComplete>
+        <small class="field__hint" *ngIf="!destino">
+          Solo se muestran ubicaciones del almacén <strong>{{ origenAlmacenNombre }}</strong>.
+        </small>
+      </div>
+
+      <!-- Tarjeta de destino seleccionado -->
+      <div class="destino-card" *ngIf="destino">
+        <div class="destino-card__head">
+          <div class="destino-card__main">
+            <i class="pi pi-map-marker"></i>
+            <span class="destino-card__code">{{ destino.ubicacion }}</span>
+            <span class="destino-card__area">{{ destino.area }}</span>
+          </div>
+          <span class="badge"
+                [class.badge--ok]="!destinoOcupado && !loadingContenido"
+                [class.badge--warn]="destinoOcupado"
+                [class.badge--neutral]="loadingContenido">
+            <ng-container *ngIf="loadingContenido">Verificando…</ng-container>
+            <ng-container *ngIf="!loadingContenido && !destinoOcupado">Disponible</ng-container>
+            <ng-container *ngIf="!loadingContenido && destinoOcupado">Ocupada · {{ contenidoDestino.length }}</ng-container>
+          </span>
         </div>
 
-        <!-- Tabla con ubicaciones disponibles -->
-        <div class="flex flex-col px-6 py-4 sm:py-8 sm:px-10 bg-card dark:bg-transparent">      
-            <!-- Botón masivo -->
-            <div class="flex justify-between mb-4">
-                <p class="text-sm text-gray-700">LPNs seleccionados: {{ lpnList.length }}</p>
-                <p-button 
-                    label="Reubicar masivamente" 
-                    icon="pi pi-map-marker" 
-                    (onClick)="reubicarMasivo(selectedUbicacion?.id)" 
-                    [disabled]="!selectedUbicacion"
-                    styleClass="p-button-success">
-                </p-button>
-            </div>
-
-            <p-table 
-                [style]="{width:'100%'}"
-                [scrollable]="true" 
-                [columns]="cols" 
-                [value]="Ubicaciones"
-                selectionMode="single"
-                [(selection)]="selectedUbicacion"
-                #dt 
-                [paginator]="true"
-                [rows]="10" 
-                [resizableColumns]="true"
-                [responsive]="true"
-            >
-                <ng-template pTemplate="colgroup" let-columns>
-                    <colgroup>
-                        <col *ngFor="let col of columns" [ngStyle]="{'width': col.width}">
-                    </colgroup>
-                </ng-template>
-
-                <ng-template pTemplate="header" let-columns>
-                    <tr>
-                        <th *ngFor="let col of columns" [ngStyle]="{'width': col.width}" pResizableColumn>
-                            {{ col.header }}
-                        </th>
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="body" let-rowData let-columns="columns">
-                    <tr [pSelectableRow]="rowData">
-                                          
-                        <td class="text-center">{{ rowData.ubicacion }}</td>
-                        <td class="text-center">{{ rowData.almacen }}</td>
-                        <td class="text-center">{{ rowData.estado }}</td>
-                    </tr>
-                </ng-template>
-            </p-table>
+        <div class="destino-card__body" *ngIf="!loadingContenido && destinoOcupado">
+          <div class="destino-card__warn">
+            <i class="pi pi-exclamation-triangle"></i>
+            Esta ubicación ya tiene pallets. Al reubicar te pediremos confirmar.
+          </div>
+          <ul class="contenido">
+            <li *ngFor="let c of contenidoDestino.slice(0, 4)" class="contenido__item">
+              <span class="chip">{{ c.lodNum || '-' }}</span>
+              <span class="contenido__desc">{{ c.descripcionLarga }}</span>
+              <span class="contenido__qty">{{ c.untQty }} u.</span>
+            </li>
+            <li *ngIf="contenidoDestino.length > 4" class="contenido__more">
+              + {{ contenidoDestino.length - 4 }} más…
+            </li>
+          </ul>
         </div>
-    </form>
+      </div>
+    </section>
+
+    <!-- Acciones -->
+    <div class="reubicar__actions">
+      <p-button
+        type="button"
+        label="Cancelar"
+        styleClass="p-button-text p-button-secondary"
+        (click)="cancelar()">
+      </p-button>
+      <p-button
+        type="button"
+        [label]="isMulti ? ('Reubicar ' + origenes.length + ' pallets') : 'Reubicar pallet'"
+        icon="pi pi-arrows-alt"
+        [disabled]="!puedeReubicar"
+        (click)="reubicar()">
+      </p-button>
+    </div>
+  </div>
 </div>
 
 <p-confirmDialog></p-confirmDialog>

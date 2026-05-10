@@ -37,7 +37,6 @@ export class KardexgeneralComponent implements OnInit {
   @ViewChild('resultadosBlock') resultadosBlock!: ElementRef;
 
   propietarios: SelectItem[] = [];
-  grupos: SelectItem[] = [];
   almacenes:  SelectItem[] = [];
   model: any =  {};
   cols: any[];
@@ -115,17 +114,7 @@ export class KardexgeneralComponent implements OnInit {
   });
 
 
-    
-  this.clienteService.getAllGrupos().subscribe(resp => {
-
-    resp.forEach(resp => {
-      this.grupos.push({value: resp.id , label: resp.nombre });
-    });
-  
-
-  });
-
-  this.generealService.getAllAlmacenes().subscribe(resp2 => {
+    this.generealService.getAllAlmacenes().subscribe(resp2 => {
 
     this.almacenes.push({ value: undefined,  label : "Todos"});
     resp2.forEach(element => {

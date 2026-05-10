@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { MessageService, ConfirmationService, SelectItem } from 'primeng/api';
@@ -14,6 +15,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputMaskModule } from 'primeng/inputmask';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { GeneralService } from '../../_services/general.service';
@@ -34,24 +36,25 @@ import { PropietarioService } from '../../_services/propietario.service';
   styleUrls: ['./new.component.css'],
   standalone:true,
       imports: [
-            InputTextModule, 
+            InputTextModule,
             DropdownModule,
             FormsModule,
             ButtonModule,
             TableModule,
             CommonModule,
-            DialogModule   ,
-            DynamicDialogModule ,
+            DialogModule,
+            DynamicDialogModule,
             ToastModule,
             CalendarModule,
             ConfirmDialogModule,
             MatIcon,
             IconFieldModule,
             InputIconModule,
-            InputMaskModule ,
+            InputMaskModule,
             InputNumberModule,
             PanelModule,
-            ReactiveFormsModule
+            ReactiveFormsModule,
+            SkeletonModule
           ],
           providers: [
             MessageService ,
@@ -62,8 +65,8 @@ export class NewComponent implements OnInit {
 
   form: FormGroup;
   loading = false;
+  cargandoCombos = true;
 
-  
   propietarios: SelectItem[] = [];
   tiposingreso  : SelectItem[] = [];
   almacenes: SelectItem[] = [];
@@ -107,29 +110,22 @@ export class NewComponent implements OnInit {
 
 
       this.form = this.fb.group({
-        almacenId: [null, Validators.required],
+        // Obligatorios
+        almacenId:     [null, Validators.required],
         propietarioId: [null, Validators.required],
-        fechaEsperada: [ new Date(), Validators.required],
-        horaEsperada: ['15:00', Validators.required],
+        fechaEsperada: [new Date(), Validators.required],
+        horaEsperada:  ['15:00', Validators.required],
         IdTipoIngreso: [null, Validators.required],
-        destino : [null, ],
-        ordenCompra: ['', [Validators.minLength(5), Validators.maxLength(20),Validators.required]],
-        guiaRemision: ['', [Validators.minLength(5), Validators.maxLength(50), Validators.required]],
-        cantidad:         [
-          null, 
-          [, Validators.min(1), Validators.max(100000)]
-        ],
-        peso:             [
-          null, 
-          [, Validators.min(0.01), Validators.max(100000)]
-        ],
-        volumen:          [
-          null, 
-          [ Validators.min(0.01), Validators.max(100000)]
-        ],
+        ordenCompra:   ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
+        guiaRemision:  ['', [Validators.required, Validators.minLength(5), Validators.maxLength(50)]],
 
+        // Opcionales (sin Validators.required)
+        destino:   [null],
+        cantidad:  [null, [Validators.min(1), Validators.max(100000)]],
+        peso:      [null, [Validators.min(0.01), Validators.max(100000)]],
+        volumen:   [null, [Validators.min(0.01), Validators.max(100000)]],
         proveedor: ['', [Validators.minLength(5), Validators.maxLength(50)]],
-        entrega: ['', [Validators.minLength(5), Validators.maxLength(50)]],
+        entrega:   ['', [Validators.minLength(5), Validators.maxLength(50)]],
       });
 
 
@@ -150,39 +146,25 @@ export class NewComponent implements OnInit {
    
   }
   cargarCombos(){
-
-    this.propietarioService.getAllPropietarios().subscribe(resp => {
-      resp.forEach(resp => {
-        this.propietarios.push({value: resp.id , label: resp.razonSocial });
-      });
-    
-  
+    this.cargandoCombos = true;
+    forkJoin([
+      this.propietarioService.getAllPropietarios(),
+      this.almacenService.getAllAlmacenes(),
+      this.generalService.getValorTabla(31),
+      this.generalService.getValorTabla(31)
+    ]).subscribe({
+      next: ([propResp, almacResp, tipoIngResp, tipoDescResp]) => {
+        this.propietarios  = (propResp ?? []).map((p: any) => ({ value: p.id, label: p.razonSocial }));
+        this.almacenes     = (almacResp ?? []).map((a: any) => ({ value: a.id, label: a.descripcion }));
+        this.tiposingreso  = (tipoIngResp ?? []).map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
+        this.tipodescarga  = (tipoDescResp ?? []).map((t: any) => ({ value: t.id, label: t.valorPrincipal }));
+        this.cargandoCombos = false;
+      },
+      error: () => {
+        this.cargandoCombos = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos del formulario.' });
+      }
     });
-
-    
-    this.almacenService.getAllAlmacenes().subscribe(resp => {
-          resp.forEach(element => {
-            this.almacenes.push({ value: element.id ,  label : element.descripcion});
-          });
-      });
-
-      this.generalService.getValorTabla(31).subscribe(resp =>
-        {
-          resp.forEach(element => {
-            this.tiposingreso.push({ value: element.id , label: element.valorPrincipal});
-          });
-  
-        });
-
-
-      
-    this.generalService.getValorTabla(31).subscribe(resp =>
-      {
-        resp.forEach(element => {
-          this.tipodescarga.push({ value: element.id , label: element.valorPrincipal});
-        });
-
-      });
   }
 
 //   onChangePropietario(propietario) {
@@ -230,8 +212,30 @@ export class NewComponent implements OnInit {
 //     }
 //   });
 // }
+ /** True si el control existe, fue tocado/dirty y tiene un error puntual. */
+  hasError(control: string, error: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.hasError(error));
+  }
+
+  /** True si el control es inválido y ya fue tocado o modificado. */
+  isInvalid(control: string): boolean {
+    const c = this.form.get(control);
+    return !!(c && (c.touched || c.dirty) && c.invalid);
+  }
+
  registrar() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      // Marcar todos como tocados → muestra TODOS los errores al hacer click
+      // en Guardar (no solo los del campo que el usuario tocó). Patrón estándar.
+      this.form.markAllAsTouched();
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Faltan datos',
+        detail: 'Completa los campos obligatorios marcados con *.'
+      });
+      return;
+    }
 
     this.confirmationService.confirm({
       message: '¿Está seguro que desea agregar la ORI?',
@@ -259,7 +263,7 @@ export class NewComponent implements OnInit {
           usuarioid: this.decodedToken.nameid
         };
 
-  
+        this.loading = true;
         this.recepcionService
           .registrar(model)
           .pipe(finalize(() => (this.loading = false)))
@@ -269,11 +273,26 @@ export class NewComponent implements OnInit {
               this.ref.close({ ok: true, data: resp });
             },
             error: (err) => {
-              // ✅ O bien no cierras y muestras algo local,
-              // ✅ o cierras devolviendo el error para que el padre lo maneje:
-              this.ref.close({
-                ok: false,
-                error: err?.error?.message || 'No se pudo registrar la ORI.'
+              // ❌ NO cerramos el modal: mostramos el mensaje y dejamos que el
+              //    usuario corrija (típicamente la guía duplicada).
+              const detalle =
+                (typeof err === 'string' ? err : null) ??
+                err?.error?.message ??
+                err?.message ??
+                'No se pudo registrar la ORI.';
+
+              const esGuiaDuplicada = /gu[ií]a/i.test(detalle) && /existe|registrad/i.test(detalle);
+              if (esGuiaDuplicada) {
+                // Marca el campo guiaRemision como inválido visualmente.
+                this.form.get('guiaRemision')?.setErrors({ duplicada: true });
+                this.form.get('guiaRemision')?.markAsTouched();
+              }
+
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'No se pudo guardar',
+                detail: detalle,
+                life: 6000
               });
             }
           });

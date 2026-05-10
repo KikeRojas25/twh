@@ -1,0 +1,37 @@
+:host ::ng-deep {
+    /* SplitButton "Acciones" — match toolbar buttons (gray-700) */
+    .ajuste-split-btn {
+        .p-splitbutton-defaultbutton,
+        .p-splitbutton-menubutton {
+            background-color: #374151; /* gray-700 */
+            border-color: #374151;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: background-color .15s ease, border-color .15s ease;
+
+            &:enabled:hover {
+                background-color: #4b5563; /* gray-600 */
+                border-color: #4b5563;
+                color: #ffffff;
+            }
+
+            &:focus,
+            &:focus-visible {
+                box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.25);
+            }
+        }
+
+        .p-splitbutton-defaultbutton {
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .p-splitbutton-menubutton {
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+    }
+}

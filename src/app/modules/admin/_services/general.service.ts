@@ -121,6 +121,16 @@ constructor() { }
     const params = 'AlmacenId=' + AlmacenId + '&Ubicacion=' + Ubicacion;
     return this._httpClient.get<Ubicacion[]>(this.baseUrl + 'GetUbicacionesxNombre?' + params, httpOptions);
   }
+
+  /**
+   * Devuelve ubicaciones del catálogo `Mantenimiento.Ubicacion` (Id canónico válido para FK_InvLod_Ubicacion).
+   * Reemplaza a getAllUbicacionesxNombre en flujos de reubicación: el SP antiguo incluía stages virtuales
+   * cuyos Id no existían en el catálogo.
+   */
+  buscarUbicacionesCatalogo(almacenId: number, nombre: string): Observable<any[]> {
+    const params = `almacenId=${almacenId ?? ''}&nombre=${encodeURIComponent(nombre ?? '')}`;
+    return this._httpClient.get<any[]>(`${environment.baseUrl}/api/Ubicacion/ubicaciones?${params}`, httpOptions);
+  }
   getAll(TablaId: number): Observable<Estado[]> {
     return this._httpClient.get<Estado[]>(this.baseUrl + '?TablaId=' + TablaId, httpOptions);
   }

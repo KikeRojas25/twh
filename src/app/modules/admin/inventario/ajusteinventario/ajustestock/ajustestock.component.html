@@ -1,95 +1,112 @@
-<div class="flex flex-col flex-auto min-w-0">
-    <form (ngSubmit)="save()" #form="ngForm">
-        <div class="grid grid-cols-1 sm:grid-cols-1 gap p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent space-y-4">
-            
-            <!-- Motivo -->
-            <div class="flex flex-col">
-                <div class="flex items-center space-x-4">
-                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Motivo</label>
-                  <p-dropdown
-                    [options]="motivos"
-                    [(ngModel)]="model.motivoid"
-                    name="motivo"
-                    #motivo="ngModel"
-                    [style]="{ 'width': '100%' }"
-                    [resetFilterOnHide]="true"
-                    [filter]="true"
-                    filterBy="label"
-                    [showClear]="true"
-                    placeholder="Seleccione un motivo"
-                    class="flex-1"
-                    required
-                    >
-                    <ng-template let-item pTemplate="selectedItem">
-                      <span>{{ item.label }}</span>
-                    </ng-template>
-                  </p-dropdown>
-                </div>
-                <div *ngIf="motivo.invalid && (motivo.dirty || motivo.touched)" class="text-red-500 text-sm pl-44">
-                    <div *ngIf="motivo.errors?.required">Debe seleccionar el motivo.</div>
-                </div>
-            </div>
+<div class="ajuste-stock">
+    <form (ngSubmit)="save()" #form="ngForm" class="ajuste-stock__form">
 
-            <!-- Observación -->
-            <div class="flex flex-col">
-                <div class="flex items-center space-x-4">
-                    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Observación</label>
-                    <textarea 
-                        rows="5" 
-                        cols="30" 
-                        pInputTextarea   
-                        class="flex-1"  
-                        autocomplete="off" 
-                        [(ngModel)]="model.observacion" 
-                        name="observacion" 
-                        #observacion="ngModel"
-                        type="text"
-                        required>
-                    </textarea>
-                </div>
-                <div *ngIf="observacion.invalid && (observacion.dirty || observacion.touched)" class="text-red-500 text-sm pl-44">
-                    <div *ngIf="observacion.errors?.required">Debe ingresar la observación.</div>
-                </div>
-            </div>
-
-            <!-- Cantidad a ajustar -->
-            <div class="flex flex-col">
-                <div class="flex items-center space-x-4">
-                  <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Cantidad a ajustar</label>
-                  <input 
-                    pInputText 
-                    maxlength="6" 
-                    required
-                    class="flex-1" 
-                    autocomplete="off"
-                    [(ngModel)]="model.cantidad" 
-                    name="cantidad" 
-                    #cantidad="ngModel" 
-                    type="text">
-                </div>
-                <div *ngIf="cantidad.invalid && (cantidad.dirty || cantidad.touched)" class="text-red-500 text-sm pl-44">
-                  <div *ngIf="cantidad.errors?.required">La cantidad es obligatoria.</div>
-                  <div *ngIf="cantidad.errors?.maxlength">No debe superar los 6 caracteres.</div>
-                </div>
-            </div>
-
+        <!-- Motivo -->
+        <div class="field">
+            <label for="motivo" class="field__label">
+                Motivo <span class="field__required">*</span>
+            </label>
+            <p-dropdown
+                inputId="motivo"
+                [options]="motivos"
+                [(ngModel)]="model.motivoid"
+                name="motivo"
+                #motivo="ngModel"
+                styleClass="w-full"
+                [resetFilterOnHide]="true"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                placeholder="Seleccione un motivo"
+                appendTo="body"
+                required>
+            </p-dropdown>
+            <small class="field__error"
+                   *ngIf="motivo.invalid && (motivo.dirty || motivo.touched) && motivo.errors?.required">
+                Debe seleccionar el motivo.
+            </small>
         </div>
-        <!-- Botones -->
-        <div class="flex justify-center gap-x-4 pt-6">
-            <p-button 
-              class="btn btn-space btn-primary" 
-              type="submit"
-              [disabled]="!form.valid" >
-              Guardar
+
+        <!-- Observación -->
+        <div class="field">
+            <label for="observacion" class="field__label">
+                Observación <span class="field__required">*</span>
+            </label>
+            <textarea
+                id="observacion"
+                rows="3"
+                pInputTextarea
+                class="w-full"
+                autocomplete="off"
+                maxlength="150"
+                placeholder="Detalle el motivo del ajuste"
+                [(ngModel)]="model.observacion"
+                name="observacion"
+                #observacion="ngModel"
+                required>
+            </textarea>
+            <div class="field__meta">
+                <small class="field__error"
+                       *ngIf="observacion.invalid && (observacion.dirty || observacion.touched)">
+                    <ng-container *ngIf="observacion.errors?.required">Debe ingresar la observación.</ng-container>
+                    <ng-container *ngIf="observacion.errors?.maxlength">Máximo 150 caracteres.</ng-container>
+                </small>
+                <small class="field__counter">{{ (model.observacion || '').length }}/150</small>
+            </div>
+        </div>
+
+        <!-- Nueva cantidad -->
+        <div class="field">
+            <label for="cantidad" class="field__label">
+                Nueva cantidad <span class="field__required">*</span>
+            </label>
+            <input
+                id="cantidad"
+                pInputText
+                type="number"
+                class="w-full"
+                required
+                min="0"
+                max="9999"
+                step="1"
+                pattern="^[0-9]+$"
+                inputmode="numeric"
+                maxlength="4"
+                autocomplete="off"
+                placeholder="Ej: 25"
+                [(ngModel)]="model.cantidad"
+                name="cantidad"
+                #cantidad="ngModel"
+                (keypress)="onlyDigits($event)"
+                (paste)="onPasteDigits($event)">
+            <small class="field__hint"
+                   *ngIf="!(cantidad.invalid && (cantidad.dirty || cantidad.touched))">
+                Es el nuevo valor del stock, no un incremento.
+            </small>
+            <small class="field__error"
+                   *ngIf="cantidad.invalid && (cantidad.dirty || cantidad.touched)">
+                <ng-container *ngIf="cantidad.errors?.required">La cantidad es obligatoria.</ng-container>
+                <ng-container *ngIf="cantidad.errors?.pattern">Solo se permiten números enteros.</ng-container>
+                <ng-container *ngIf="cantidad.errors?.min">La cantidad no puede ser negativa.</ng-container>
+                <ng-container *ngIf="cantidad.errors?.max">La cantidad no puede superar 9999 unidades.</ng-container>
+            </small>
+        </div>
+
+        <!-- Acciones -->
+        <div class="ajuste-stock__actions">
+            <p-button
+                type="button"
+                label="Cancelar"
+                styleClass="p-button-text p-button-secondary"
+                (click)="close()">
             </p-button>
-          
-            <p-button  
-              routerLinkActive="router-link-active" 
-              class="btn btn-space btn-secondary"
-              (click)="close()">
-              Cancelar
+            <p-button
+                type="submit"
+                label="Guardar ajuste"
+                [disabled]="!form.valid">
             </p-button>
         </div>
     </form>
 </div>
 <p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>
