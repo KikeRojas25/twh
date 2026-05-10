@@ -300,7 +300,10 @@ export class NewComponent implements OnInit {
     });
   }
 
-  
+  cancelar() {
+    this.ref?.close();
+  }
+
   onChangePropietario(propietario) {
   
 

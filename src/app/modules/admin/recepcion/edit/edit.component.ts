@@ -288,8 +288,12 @@ export class EditComponent implements OnInit {
     });
   }
 
+  cancelar() {
+    this.ref?.close();
+  }
+
   // ===============================================================
-  // 🔹 CAMBIO DE PROPIETARIO → DESTINOS
+  // CAMBIO DE PROPIETARIO -> DESTINOS
   // ===============================================================
   onChangePropietario(propietario: any) {
     this.destinos = [];
