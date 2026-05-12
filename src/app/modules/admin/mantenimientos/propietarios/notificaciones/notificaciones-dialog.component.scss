@@ -1,0 +1,174 @@
+:host { display: block; }
+
+.notificaciones {
+  padding: 0.25rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    i {
+      color: #2563eb;
+      font-size: 1.1rem;
+    }
+  }
+
+  &__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  &__sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    strong { color: #1e293b; font-weight: 600; }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+  }
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 0.5rem;
+  }
+
+  &__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+
+    i { color: #64748b; }
+  }
+
+  &__sub {
+    font-size: 0.7rem;
+    color: #64748b;
+  }
+}
+
+.evento {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.25rem;
+  border-bottom: 1px dashed #f1f5f9;
+
+  &:last-child { border-bottom: 0; }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__nombre {
+    font-size: 0.875rem;
+    color: #1e293b;
+    font-weight: 500;
+  }
+
+  &__codigo {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+}
+
+.correos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__empty {
+    font-size: 0.8125rem;
+    color: #64748b;
+    padding: 0.5rem 0;
+    font-style: italic;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+
+    i { color: #64748b; }
+  }
+
+  &__email {
+    flex: 1;
+    color: #1e293b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__remove {
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background-color .15s ease, color .15s ease;
+
+    &:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+  }
+
+  &__add {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    input { flex: 1; }
+  }
+}
+
+:host ::ng-deep {
+  .p-tabview .p-tabview-nav { font-size: 0.8125rem; }
+  .p-tabview .p-tabview-panels { padding: 0.75rem 0 0; }
+  .p-inputtext { height: 2.25rem; font-size: 0.875rem; }
+}

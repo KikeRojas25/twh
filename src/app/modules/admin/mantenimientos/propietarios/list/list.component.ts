@@ -18,6 +18,8 @@ import { PropietarioService } from '../../../_services/propietario.service';
 import { NewPropietarioComponent } from '../new/new.component';
 import { EditPropietarioComponent } from '../edit/edit.component';
 import { VincularClientesDialogComponent } from '../vincular-clientes/vincular-clientes-dialog.component';
+import { NotificacionesDialogComponent } from '../notificaciones/notificaciones-dialog.component';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-list-propietarios',
@@ -39,6 +41,7 @@ import { VincularClientesDialogComponent } from '../vincular-clientes/vincular-c
     MatIcon,
     IconFieldModule,
     InputIconModule,
+    TooltipModule,
   ],
   providers: [
     DialogService,
@@ -171,6 +174,17 @@ export class ListPropietariosComponent implements OnInit {
     this.ref = this.dialogService.open(VincularClientesDialogComponent, {
       header: `Vincular Clientes — ${propietario.razonSocial || propietario.nombreCorto || ''}`,
       width: '700px',
+      data: {
+        propietarioId: propietario.id,
+        propietarioNombre: propietario.razonSocial || propietario.nombreCorto
+      }
+    });
+  }
+
+  notificaciones(propietario: any) {
+    this.ref = this.dialogService.open(NotificacionesDialogComponent, {
+      header: `Notificaciones — ${propietario.razonSocial || propietario.nombreCorto || ''}`,
+      width: '640px',
       data: {
         propietarioId: propietario.id,
         propietarioNombre: propietario.razonSocial || propietario.nombreCorto

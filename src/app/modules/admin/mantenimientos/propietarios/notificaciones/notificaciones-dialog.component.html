@@ -1,0 +1,123 @@
+<div class="notificaciones">
+
+  <!-- Skeleton de carga -->
+  <div *ngIf="cargando" class="px-6 py-8 text-center text-gray-500 text-sm">
+    <i class="pi pi-spin pi-spinner mr-2"></i> Cargando configuración...
+  </div>
+
+  <ng-container *ngIf="!cargando && data">
+
+    <!-- Header con info del propietario -->
+    <div class="notificaciones__header">
+      <i class="pi pi-bell"></i>
+      <div>
+        <div class="notificaciones__title">Notificaciones por correo</div>
+        <div class="notificaciones__sub">Propietario: <strong>{{ data.propietarioNombre || propietarioNombre }}</strong></div>
+      </div>
+    </div>
+
+    <!-- Sección Eventos -->
+    <section class="panel">
+      <header class="panel__header">
+        <span class="panel__title"><i class="pi pi-flag"></i> Eventos suscritos</span>
+        <span class="panel__sub">Activa los eventos que este propietario debe recibir</span>
+      </header>
+
+      <div class="evento" *ngFor="let evento of data.eventos">
+        <div class="evento__info">
+          <span class="evento__nombre">{{ evento.descripcion }}</span>
+          <span class="evento__codigo">{{ evento.codigo }}</span>
+        </div>
+        <p-inputSwitch
+          [(ngModel)]="evento.suscrito"
+          [disabled]="guardandoEvento.has(evento.id)"
+          (onChange)="onToggleEvento(evento)">
+        </p-inputSwitch>
+      </div>
+    </section>
+
+    <!-- Sección Correos -->
+    <section class="panel">
+      <header class="panel__header">
+        <span class="panel__title"><i class="pi pi-envelope"></i> Destinatarios</span>
+      </header>
+
+      <p-tabView>
+
+        <!-- Propietario -->
+        <p-tabPanel header="Operaciones del cliente">
+          <ng-container
+            *ngTemplateOutlet="tplCorreos; context: { tipo: 'Propietario', emptyText: 'Sin correos del cliente registrados.' }">
+          </ng-container>
+        </p-tabPanel>
+
+        <!-- Ejecutivos -->
+        <p-tabPanel header="Ejecutivos TWH">
+          <ng-container
+            *ngTemplateOutlet="tplCorreos; context: { tipo: 'Ejecutivo', emptyText: 'Sin ejecutivos TWH registrados.' }">
+          </ng-container>
+        </p-tabPanel>
+
+      </p-tabView>
+    </section>
+
+    <!-- Acciones -->
+    <div class="notificaciones__actions">
+      <p-button
+        type="button"
+        label="Cerrar"
+        styleClass="p-button-text p-button-secondary"
+        (onClick)="cerrar()">
+      </p-button>
+    </div>
+
+  </ng-container>
+</div>
+
+<!-- Template reutilizable para listas de correos por tipo -->
+<ng-template #tplCorreos let-tipo="tipo" let-emptyText="emptyText">
+  <div class="correos">
+
+    <!-- Lista -->
+    <div *ngIf="correosPorTipo(tipo).length === 0" class="correos__empty">
+      {{ emptyText }}
+    </div>
+
+    <ul class="correos__list" *ngIf="correosPorTipo(tipo).length > 0">
+      <li class="correos__item" *ngFor="let c of correosPorTipo(tipo)">
+        <i class="pi pi-envelope"></i>
+        <span class="correos__email">{{ c.correo }}</span>
+        <button
+          type="button"
+          class="correos__remove"
+          pTooltip="Eliminar"
+          tooltipPosition="left"
+          (click)="eliminarCorreo(c)">
+          <i class="pi pi-trash"></i>
+        </button>
+      </li>
+    </ul>
+
+    <!-- Agregar -->
+    <div class="correos__add">
+      <input
+        pInputText
+        type="email"
+        class="w-full text-sm"
+        [(ngModel)]="nuevoCorreo[tipo]"
+        (keyup.enter)="agregarCorreo(tipo)"
+        placeholder="nuevo@correo.com"
+        autocomplete="off" />
+      <p-button
+        type="button"
+        icon="pi pi-plus"
+        label="Agregar"
+        [disabled]="agregandoCorreo || !nuevoCorreo[tipo]?.trim()"
+        (onClick)="agregarCorreo(tipo)">
+      </p-button>
+    </div>
+  </div>
+</ng-template>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>
