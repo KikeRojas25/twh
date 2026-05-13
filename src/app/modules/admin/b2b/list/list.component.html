@@ -224,6 +224,30 @@
                   severity="info"
                 >
                 </p-button>
+
+                <!-- Notificar a Chazki (solo ALU, estado Planificado, sin éxito previo) -->
+                <ng-container *ngIf="puedeNotificarTercero(rowData)">
+                  <p-button
+                    *ngIf="!rowData.notifTerceroExitoso"
+                    icon="pi pi-send"
+                    severity="warning"
+                    [size]="small"
+                    [raised]="true"
+                    [pTooltip]="rowData.notifTerceroEnviado ? ('Falló el envío anterior · click para reintentar' + (rowData.notifTerceroIntentos ? ' (intentos: ' + rowData.notifTerceroIntentos + ')' : '')) : 'Notificar a Chazki'"
+                    tooltipPosition="top"
+                    (click)="notificarTercero(rowData)">
+                  </p-button>
+                  <p-button
+                    *ngIf="rowData.notifTerceroExitoso"
+                    icon="pi pi-check-circle"
+                    severity="success"
+                    [size]="small"
+                    [raised]="true"
+                    [pTooltip]="'Notificado a ' + (rowData.notifTerceroProveedor || 'Chazki') + (rowData.notifTerceroTrackingId ? ' · Tracking: ' + rowData.notifTerceroTrackingId : '')"
+                    tooltipPosition="top"
+                    (click)="rowData.notifTerceroTrackingUrl && abrirTracking(rowData.notifTerceroTrackingUrl)">
+                  </p-button>
+                </ng-container>
               </div>
             </td>
 

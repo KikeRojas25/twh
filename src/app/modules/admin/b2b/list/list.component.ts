@@ -26,6 +26,7 @@ import { SplitButtonModule } from 'primeng/splitbutton';
 import { TableModule } from 'primeng/table';
 import { TimelineModule } from 'primeng/timeline';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subject, takeUntil } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PropietarioService } from '../../_services/propietario.service';
@@ -57,6 +58,7 @@ import { WebSocketService } from 'app/core/services/websocket.service';
         CalendarModule,
         ConfirmDialogModule,
         SplitButtonModule,
+        TooltipModule,
     ],
     providers: [DialogService, MessageService, ConfirmationService],
 })
@@ -532,6 +534,59 @@ export class ListComponent implements OnInit, OnDestroy {
       });
     }
   });
+    }
+
+    abrirTracking(url: string): void {
+      if (!url) return;
+      window.open(url, '_blank');
+    }
+
+    /**
+     * Identifica si la orden está habilitada para mostrar el botón "Notificar a Chazki".
+     * Por ahora solo ALU (148).
+     */
+    puedeNotificarTercero(rowData: any): boolean {
+      const propId = Number(
+        rowData?.propietarioId ?? rowData?.PropietarioId ?? this.model?.PropietarioId ?? 0
+      );
+      return propId === 148 && rowData?.nombreEstado === 'Planificado';
+    }
+
+    notificarTercero(rowData: any): void {
+      const ordenId = Number(rowData?.ordenSalidaId || rowData?.id || rowData?.Id || 0);
+      if (!ordenId) return;
+
+      this.confirmationService.confirm({
+        header: 'Notificar a Chazki',
+        message: `¿Enviar la orden ${rowData.numOrden} a Chazki?`,
+        icon: 'pi pi-send',
+        acceptLabel: 'Sí, enviar',
+        rejectLabel: 'Cancelar',
+        accept: () => {
+          this.b2bService.notificarTercero(ordenId).subscribe({
+            next: (res) => {
+              if (res?.exitoso) {
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Notificación enviada',
+                  detail: res?.trackingId ? `Tracking: ${res.trackingId}` : (res?.mensaje ?? 'Enviado correctamente.')
+                });
+              } else {
+                this.messageService.add({
+                  severity: 'warn',
+                  summary: 'No se pudo enviar',
+                  detail: res?.mensaje ?? 'El proveedor reportó un fallo. Reintente.'
+                });
+              }
+              this.buscar();
+            },
+            error: (err) => {
+              const msg = err?.error?.message ?? 'No se pudo notificar al proveedor.';
+              this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
+            }
+          });
+        }
+      });
     }
 
     nuevaorden() {

@@ -26,7 +26,12 @@ private baseUrlGeneral = environment.baseUrl + '/api/General/';
 private baseUrlPlanning = environment.baseUrl + '/api/Planning/';
 private baseUrl = environment.baseUrl + '/api/public/inventory/';
 private baseUrlInventario = environment.baseUrl + '/api/inventario/';
+private baseUrlOrdenSalida = environment.baseUrl + '/api/OrdenSalida/';
 private _httpClient = inject(HttpClient);
+
+notificarTercero(ordenSalidaId: number): Observable<any> {
+  return this._httpClient.post(`${this.baseUrlOrdenSalida}${ordenSalidaId}/notificar-tercero`, {}, httpOptions);
+}
 
 constructor() { }
 
