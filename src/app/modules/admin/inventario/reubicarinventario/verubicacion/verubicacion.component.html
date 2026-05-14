@@ -52,6 +52,25 @@
       </header>
 
       <div class="field">
+        <label class="field__label" for="almacenDestino">Almacén destino</label>
+        <p-dropdown
+          inputId="almacenDestino"
+          [(ngModel)]="almacenDestinoId"
+          [options]="almacenes"
+          (onChange)="onAlmacenDestinoChange()"
+          placeholder="Seleccione un almacén"
+          appendTo="body"
+          [filter]="true"
+          [resetFilterOnHide]="true"
+          styleClass="w-full">
+        </p-dropdown>
+        <small class="field__hint" *ngIf="cambiaAlmacen">
+          <i class="pi pi-arrow-right"></i>
+          Reubicación entre almacenes: <strong>{{ origenAlmacenNombre }}</strong> → <strong>{{ almacenDestinoNombre }}</strong>.
+        </small>
+      </div>
+
+      <div class="field">
         <label class="field__label" for="destino">Buscar ubicación</label>
         <p-autoComplete
           inputId="destino"
@@ -68,6 +87,7 @@
           [showEmptyMessage]="true"
           emptyMessage="Sin coincidencias"
           appendTo="body"
+          [disabled]="!almacenDestinoId"
           styleClass="w-full">
           <ng-template let-item pTemplate="item">
             <div class="suggestion">
@@ -77,7 +97,7 @@
           </ng-template>
         </p-autoComplete>
         <small class="field__hint" *ngIf="!destino">
-          Solo se muestran ubicaciones del almacén <strong>{{ origenAlmacenNombre }}</strong>.
+          Solo se muestran ubicaciones del almacén <strong>{{ almacenDestinoNombre || origenAlmacenNombre }}</strong>.
         </small>
       </div>
 

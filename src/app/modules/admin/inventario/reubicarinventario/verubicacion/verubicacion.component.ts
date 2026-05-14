@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
@@ -51,6 +51,9 @@ export class VerubicacionComponent implements OnInit {
   origenAlmacenId: number | null = null;
   origenAlmacenNombre = '';
 
+  almacenes: SelectItem[] = [];
+  almacenDestinoId: number | null = null;
+
   query = '';
   sugerencias: Ubicacion[] = [];
   destino: Ubicacion | null = null;
@@ -88,6 +91,26 @@ export class VerubicacionComponent implements OnInit {
       this.origenAlmacenId = fallbackAlmacenId;
       this.origenAlmacenNombre = fallbackAlmacen;
     }
+
+    this.almacenDestinoId = this.origenAlmacenId;
+
+    const almacenesData = (data.almacenes as SelectItem[]) ?? [];
+    if (almacenesData.length) {
+      this.almacenes = almacenesData;
+    } else {
+      this.generalService.getAllAlmacenes().subscribe(resp => {
+        this.almacenes = (resp ?? []).map((a: any) => ({
+          value: a.id,
+          label: a.descripcion,
+        }));
+      });
+    }
+  }
+
+  onAlmacenDestinoChange() {
+    this.destino = null;
+    this.sugerencias = [];
+    this.contenidoDestino = [];
   }
 
   get isMulti(): boolean {
@@ -101,13 +124,13 @@ export class VerubicacionComponent implements OnInit {
   buscarUbicaciones(event: { query: string }) {
     const q = (event?.query ?? '').trim();
 
-    if (!this.origenAlmacenId) {
+    if (!this.almacenDestinoId) {
       this.sugerencias = [];
       return;
     }
 
     this.loadingSugerencias = true;
-    this.generalService.buscarUbicacionesCatalogo(this.origenAlmacenId, q).subscribe({
+    this.generalService.buscarUbicacionesCatalogo(this.almacenDestinoId, q).subscribe({
       next: (rows) => {
         const mapped: Ubicacion[] = (rows ?? []).map((r: any) => ({
           id: r.id,
@@ -157,7 +180,17 @@ export class VerubicacionComponent implements OnInit {
   }
 
   get puedeReubicar(): boolean {
-    return !!this.destino && !this.saving && this.origenes.length > 0;
+    return !!this.destino && !!this.almacenDestinoId && !this.saving && this.origenes.length > 0;
+  }
+
+  get cambiaAlmacen(): boolean {
+    return this.almacenDestinoId != null
+      && this.origenAlmacenId != null
+      && this.almacenDestinoId !== this.origenAlmacenId;
+  }
+
+  get almacenDestinoNombre(): string {
+    return this.almacenes.find(a => a.value === this.almacenDestinoId)?.label ?? '';
   }
 
   reubicar() {
@@ -179,11 +212,16 @@ export class VerubicacionComponent implements OnInit {
 
   private confirmarReubicacion() {
     const totalLpns = this.origenes.length;
+    const destinoTxt = `${this.destino?.ubicacion} (${this.almacenDestinoNombre})`;
+    const base = totalLpns === 1
+      ? `¿Reubicar el pallet ${this.origenes[0].lpn ?? ''} a la ubicación ${destinoTxt}?`
+      : `¿Reubicar ${totalLpns} pallets a la ubicación ${destinoTxt}?`;
+    const aviso = this.cambiaAlmacen
+      ? `\n\nSe transferirá entre almacenes: ${this.origenAlmacenNombre} → ${this.almacenDestinoNombre}.`
+      : '';
     this.confirmationService.confirm({
       header: 'Confirmar reubicación',
-      message: totalLpns === 1
-        ? `¿Reubicar el pallet ${this.origenes[0].lpn ?? ''} a la ubicación ${this.destino?.ubicacion}?`
-        : `¿Reubicar ${totalLpns} pallets a la ubicación ${this.destino?.ubicacion}?`,
+      message: base + aviso,
       icon: 'pi pi-question-circle',
       acceptLabel: 'Reubicar',
       rejectLabel: 'Cancelar',

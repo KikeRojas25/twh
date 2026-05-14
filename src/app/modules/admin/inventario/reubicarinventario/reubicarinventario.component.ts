@@ -166,6 +166,7 @@ export class ReubicarinventarioComponent implements OnInit{
         origenes,
         almacenId: this.model.AlmacenId,
         almacen: this.almacenLabel(this.model.AlmacenId),
+        almacenes: this.almacenes,
       }
     });
 
@@ -212,6 +213,7 @@ export class ReubicarinventarioComponent implements OnInit{
         origenes,
         almacenId: this.model.AlmacenId,
         almacen: this.almacenLabel(this.model.AlmacenId),
+        almacenes: this.almacenes,
       }
     });
 
