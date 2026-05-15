@@ -89,6 +89,8 @@ export class ListUbicacionesComponent implements OnInit {
     this.ubicacionService.getUbicaciones(this.model.almacenId, this.model.areaId, this.model.nombre).subscribe({
       next: (data) => {
         let lista = data || [];
+        // Ocultar ubicaciones inactivas (soft-deleted: Activo = false)
+        lista = lista.filter((u: any) => u.activo !== false);
         // Filtro client-side por tipo (mientras el SP no lo soporte como param)
         if (this.model.tipoUbicacionId) {
           lista = lista.filter((u: any) => u.tipoUbicacionId === this.model.tipoUbicacionId);

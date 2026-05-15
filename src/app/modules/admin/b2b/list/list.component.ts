@@ -549,7 +549,7 @@ export class ListComponent implements OnInit, OnDestroy {
       const propId = Number(
         rowData?.propietarioId ?? rowData?.PropietarioId ?? this.model?.PropietarioId ?? 0
       );
-      return propId === 148 && rowData?.nombreEstado === 'Planificado';
+      return propId === 148 && rowData?.nombreEstado !== 'Creado';
     }
 
     notificarTercero(rowData: any): void {
