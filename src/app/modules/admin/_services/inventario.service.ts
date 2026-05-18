@@ -34,6 +34,11 @@ export class InventarioService {
 
      }
 
+getUbicacionesOcupadasByPropietarioAlmacen(propietarioId: number, almacenId: number): Observable<any[]> {
+    const params = `propietarioId=${propietarioId}&almacenId=${almacenId}`;
+    return this.http.get<any[]>(`${this.baseUrl}GetUbicacionesOcupadasByPropietarioAlmacen?${params}`, httpOptions);
+}
+
 registrar_inventario(model: any) {
     return this.http.post(this.baseUrl + 'register_inventario', model, httpOptions)
     .pipe(

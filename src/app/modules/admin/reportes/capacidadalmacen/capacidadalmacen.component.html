@@ -97,7 +97,14 @@
           [class.shadow-md]="almacenSeleccionado?.almacenId === a.almacenId"
           [class.ring-gray-100]="almacenSeleccionado?.almacenId !== a.almacenId">
 
-          <div class="flex justify-end mb-1 h-5">
+          <div class="flex items-center justify-between mb-1 h-5">
+            <button
+              type="button"
+              (click)="abrir3D(a, $event)"
+              class="inline-flex items-center gap-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-0.5 text-[10px] font-semibold shadow-sm transition-colors"
+              title="Ver vista 3D del almacén">
+              <i class="pi pi-box text-[10px]"></i> Ver 3D
+            </button>
             <span *ngIf="almacenSeleccionado?.almacenId === a.almacenId"
               class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
               <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
@@ -185,6 +192,13 @@
               <div class="w-14 text-center shrink-0">
                 <p class="text-lg font-extrabold text-violet-600">{{ p.pctDelTotal }}%</p>
               </div>
+              <button
+                type="button"
+                (click)="abrir3DPorPropietario(p, $event)"
+                class="shrink-0 inline-flex items-center gap-1 rounded-md bg-violet-600 hover:bg-violet-700 text-white px-2.5 py-1 text-[11px] font-semibold shadow-sm transition-colors"
+                title="Ver en 3D solo las ubicaciones de este propietario">
+                <i class="pi pi-box text-[10px]"></i> Ver 3D
+              </button>
             </div>
           </div>
         </div>
@@ -332,6 +346,14 @@
                 </div>
               </div>
 
+              <button
+                type="button"
+                (click)="abrir3DPorArea(p, $event)"
+                class="shrink-0 inline-flex items-center gap-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 text-[11px] font-semibold shadow-sm transition-colors"
+                title="Ver en 3D solo esta área">
+                <i class="pi pi-box text-[10px]"></i> Ver 3D
+              </button>
+
             </div>
           </div>
         </div>
@@ -343,3 +365,24 @@
 
   </div>
 </div>
+
+<!-- Modal Vista 3D del almacén -->
+<p-dialog
+  [(visible)]="modal3dVisible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="true"
+  [dismissableMask]="false"
+  [style]="{ width: '95vw', height: '90vh' }"
+  [contentStyle]="{ height: 'calc(90vh - 5rem)', padding: '1rem', overflow: 'hidden' }"
+  [header]="'Vista 3D — ' + almacen3dNombre">
+
+  <app-almacen3d-viewer
+    *ngIf="modal3dVisible && almacen3dId"
+    [almacenId]="almacen3dId!"
+    [almacenNombre]="almacen3dNombre"
+    [propietarioId]="propietario3dId"
+    [areaIdInicial]="area3dId">
+  </app-almacen3d-viewer>
+</p-dialog>

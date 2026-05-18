@@ -1,0 +1,255 @@
+<div class="flex flex-col gap-3 h-full">
+
+  <!-- Toolbar -->
+  <div class="flex flex-wrap items-center gap-3 px-1">
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-medium text-gray-500">Filtrar por área:</span>
+      <p-dropdown
+        [options]="areas"
+        [(ngModel)]="areaSeleccionada"
+        (onChange)="onAreaChange()"
+        appendTo="body"
+        styleClass="w-64 text-sm"
+        placeholder="Todas las áreas">
+      </p-dropdown>
+    </div>
+
+    <div class="inline-flex items-stretch rounded-md overflow-hidden ring-1 ring-gray-200">
+      <button
+        (click)="vistaIsometrica()"
+        class="inline-flex items-center gap-1 bg-white hover:bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 border-r border-gray-200"
+        title="Vista isométrica (default)">
+        <i class="pi pi-box"></i> Isométrica
+      </button>
+      <button
+        (click)="vistaSuperior()"
+        class="inline-flex items-center gap-1 bg-white hover:bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 border-r border-gray-200"
+        title="Vista desde arriba (plano)">
+        <i class="pi pi-arrow-down"></i> Superior
+      </button>
+      <button
+        (click)="vistaLateral()"
+        class="inline-flex items-center gap-1 bg-white hover:bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700"
+        title="Vista lateral (elevación)">
+        <i class="pi pi-arrow-right"></i> Lateral
+      </button>
+    </div>
+
+    <button
+      (click)="resetCamera()"
+      class="inline-flex items-center gap-1 rounded-md bg-gray-100 hover:bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700"
+      title="Re-encuadrar manteniendo la vista actual">
+      <i class="pi pi-refresh"></i> Centrar
+    </button>
+
+    <div class="ml-auto flex items-center gap-3 text-xs">
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-700">
+        Total: {{ total | number }}
+      </span>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-600">
+        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+        {{ hayFiltroPropietario ? 'Del propietario' : 'Ocupadas' }}: {{ ocupadas | number }}
+      </span>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-600">
+        <span class="h-2 w-2 rounded-full bg-white ring-1 ring-gray-300"></span>
+        {{ hayFiltroPropietario ? 'Otras' : 'Libres' }}: {{ libres | number }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Canvas + tooltip -->
+  <div class="relative flex-1 rounded-xl overflow-hidden ring-1 ring-gray-200 bg-[#0a0e27]" style="min-height: 500px;">
+    <canvas #canvasRef class="w-full h-full block outline-none"></canvas>
+
+    <!-- Loading overlay -->
+    <div *ngIf="cargando"
+         class="absolute inset-0 grid place-items-center bg-black/50 backdrop-blur-sm">
+      <div class="flex flex-col items-center gap-3">
+        <p-progressSpinner styleClass="!h-10 !w-10" strokeWidth="4"></p-progressSpinner>
+        <p class="text-sm font-medium text-white">Cargando ubicaciones…</p>
+      </div>
+    </div>
+
+    <!-- Panel seleccionado (click) — fijo, con detalle inline + botón Ampliar -->
+    <div *ngIf="selectedInfo && !cargando"
+         class="absolute top-3 right-3 rounded-lg bg-white/95 backdrop-blur px-3 py-2 shadow-lg ring-2 ring-indigo-400 text-xs min-w-[260px] max-w-[320px]">
+      <button
+        type="button"
+        (click)="cerrarSeleccion()"
+        class="absolute top-1 right-1 h-5 w-5 grid place-items-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+        title="Cerrar">
+        <i class="pi pi-times text-[10px]"></i>
+      </button>
+      <p class="font-bold text-gray-800 pr-5">{{ selectedInfo.nombre }}</p>
+      <p class="text-gray-500">Área: <span class="text-gray-700">{{ selectedInfo.areaNombre || '-' }}</span></p>
+      <p class="text-gray-500">
+        Estado:
+        <span [class.text-emerald-600]="selectedInfo.estadoOcupacion === 'Ocupada'"
+              [class.text-gray-600]="selectedInfo.estadoOcupacion !== 'Ocupada'"
+              class="font-semibold">{{ selectedInfo.estadoOcupacion }}</span>
+      </p>
+      <p *ngIf="selectedInfo.totalLods > 0" class="text-gray-500">
+        LPNs: <span class="text-gray-700 font-semibold">{{ selectedInfo.totalLods }}</span>
+        · Unidades: <span class="text-gray-700 font-semibold">{{ selectedInfo.totalUnidades | number }}</span>
+      </p>
+
+      <!-- Detalle inline (LODs + productos) -->
+      <div *ngIf="selectedInfo.totalLods > 0" class="mt-2 border-t border-gray-200 pt-2">
+        <div *ngIf="detalleCargando" class="flex items-center gap-2 text-gray-400 text-[10px] py-1">
+          <i class="pi pi-spin pi-spinner text-[10px]"></i> Cargando contenido…
+        </div>
+
+        <div *ngIf="!detalleCargando && detalleLods.length > 0"
+             class="max-h-[180px] overflow-y-auto pr-1 space-y-1.5">
+          <div *ngFor="let lod of detalleLods" class="rounded bg-gray-50 px-1.5 py-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold text-[10px] text-indigo-700 truncate">{{ lod.lodNum }}</span>
+              <span class="text-[10px] text-gray-400 shrink-0">{{ lod.detalle?.length || 0 }} ítem(s)</span>
+            </div>
+            <div *ngFor="let it of lod.detalle"
+                 class="flex items-center justify-between gap-2 text-[10px] py-0.5">
+              <div class="min-w-0 flex-1">
+                <div class="font-mono font-semibold text-gray-700 truncate">{{ it.productoCodigo }}</div>
+                <div class="text-gray-500 truncate">{{ it.productoDescripcion }}</div>
+              </div>
+              <span class="shrink-0 font-bold text-gray-800 text-[11px]">{{ it.untQty | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!detalleCargando && detalleLods.length === 0"
+             class="text-[10px] text-gray-400 py-1 italic">
+          Sin detalle disponible.
+        </div>
+      </div>
+
+      <button
+        type="button"
+        (click)="ampliarSeleccion()"
+        class="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 text-[11px] font-semibold shadow-sm transition-colors">
+        <i class="pi pi-window-maximize text-[10px]"></i>
+        Ampliar
+      </button>
+    </div>
+
+    <!-- Hover info — solo cuando no hay selección fija -->
+    <div *ngIf="hoverInfo && !selectedInfo && !cargando"
+         class="absolute top-3 right-3 rounded-lg bg-white/95 backdrop-blur px-3 py-2 shadow-lg ring-1 ring-gray-200 text-xs pointer-events-none">
+      <p class="font-bold text-gray-800">{{ hoverInfo.nombre }}</p>
+      <p class="text-gray-500">Área: <span class="text-gray-700">{{ hoverInfo.area }}</span></p>
+      <p class="text-gray-500">
+        Estado:
+        <span [class.text-emerald-600]="hoverInfo.estado === 'Ocupada'"
+              [class.text-gray-600]="hoverInfo.estado !== 'Ocupada'"
+              class="font-semibold">{{ hoverInfo.estado }}</span>
+      </p>
+      <p *ngIf="hoverInfo.lods > 0" class="text-gray-500">
+        LPNs: <span class="text-gray-700 font-semibold">{{ hoverInfo.lods }}</span>
+        · Unidades: <span class="text-gray-700 font-semibold">{{ hoverInfo.unidades | number }}</span>
+      </p>
+    </div>
+
+    <!-- Hint -->
+    <div class="absolute bottom-3 left-3 text-[11px] text-white/70 bg-black/30 rounded px-2 py-1 backdrop-blur">
+      Click izq + drag = rotar · Rueda = zoom · Click der + drag = pan · <strong>Click sobre cubo → Ampliar</strong>
+    </div>
+
+    <!-- Dashboard del pasillo (solo cuando hay un área seleccionada) -->
+    <div *ngIf="dashboardArea && !cargando"
+         class="absolute top-3 left-3 rounded-lg bg-white/95 backdrop-blur shadow-lg ring-1 ring-gray-200 text-xs w-[260px] overflow-hidden">
+
+      <!-- Header -->
+      <div class="px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-th-large text-[11px]"></i>
+          <span class="font-bold uppercase tracking-wide text-[11px]">Pasillo {{ dashboardArea.nombre }}</span>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-3 gap-1 px-3 py-2 border-b border-gray-100">
+        <div class="text-center">
+          <p class="text-[10px] uppercase tracking-wide text-gray-400">Total</p>
+          <p class="text-base font-bold text-gray-800">{{ dashboardArea.total | number }}</p>
+        </div>
+        <div class="text-center">
+          <p class="text-[10px] uppercase tracking-wide text-gray-400">Ocupadas</p>
+          <p class="text-base font-bold text-emerald-600">{{ dashboardArea.ocupadas | number }}</p>
+        </div>
+        <div class="text-center">
+          <p class="text-[10px] uppercase tracking-wide text-gray-400">Libres</p>
+          <p class="text-base font-bold text-gray-500">{{ dashboardArea.libres | number }}</p>
+        </div>
+      </div>
+
+      <!-- Barra de ocupación global -->
+      <div class="px-3 py-2 border-b border-gray-100">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Ocupación</span>
+          <span class="text-[11px] font-bold"
+                [class.text-red-600]="dashboardArea.pct >= 80"
+                [class.text-amber-600]="dashboardArea.pct >= 50 && dashboardArea.pct < 80"
+                [class.text-emerald-600]="dashboardArea.pct < 50">
+            {{ dashboardArea.pct }}%
+          </span>
+        </div>
+        <div class="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-700"
+               [class.bg-red-500]="dashboardArea.pct >= 80"
+               [class.bg-amber-500]="dashboardArea.pct >= 50 && dashboardArea.pct < 80"
+               [class.bg-emerald-500]="dashboardArea.pct < 50"
+               [style.width.%]="dashboardArea.pct">
+          </div>
+        </div>
+      </div>
+
+      <!-- Clientes con ocupación -->
+      <div class="px-3 py-2">
+        <div class="flex items-center justify-between mb-1.5">
+          <p class="text-[10px] uppercase tracking-wide text-gray-400">Clientes</p>
+          <button *ngIf="clienteSeleccionado"
+                  type="button"
+                  (click)="toggleCliente(clienteSeleccionado)"
+                  class="text-[10px] text-orange-600 hover:underline font-semibold">
+            Quitar resaltado
+          </button>
+        </div>
+        <div *ngIf="dashboardArea.clientes.length === 0"
+             class="text-[10px] italic text-gray-400 py-1">Sin clientes asignados.</div>
+        <div *ngIf="dashboardArea.clientes.length > 0"
+             class="max-h-[220px] overflow-y-auto pr-1 space-y-1">
+          <button *ngFor="let c of dashboardArea.clientes"
+                  type="button"
+                  (click)="toggleCliente(c.nombre)"
+                  class="w-full text-left flex items-center gap-2 rounded px-1.5 py-1 transition-colors"
+                  [class.bg-orange-50]="clienteSeleccionado === c.nombre"
+                  [class.ring-1]="clienteSeleccionado === c.nombre"
+                  [class.ring-orange-300]="clienteSeleccionado === c.nombre"
+                  [class.hover:bg-gray-50]="clienteSeleccionado !== c.nombre">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-semibold truncate"
+                      [class.text-orange-700]="clienteSeleccionado === c.nombre"
+                      [class.text-gray-700]="clienteSeleccionado !== c.nombre">
+                  {{ c.nombre }}
+                </span>
+                <span class="text-[10px] shrink-0"
+                      [class.text-orange-600]="clienteSeleccionado === c.nombre"
+                      [class.text-gray-500]="clienteSeleccionado !== c.nombre">
+                  {{ c.ocupadas }} · {{ c.pct }}%
+                </span>
+              </div>
+              <div class="h-1 w-full rounded-full bg-gray-100 overflow-hidden mt-0.5">
+                <div class="h-full rounded-full"
+                     [class.bg-orange-500]="clienteSeleccionado === c.nombre"
+                     [class.bg-violet-500]="clienteSeleccionado !== c.nombre"
+                     [style.width.%]="c.pct"></div>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

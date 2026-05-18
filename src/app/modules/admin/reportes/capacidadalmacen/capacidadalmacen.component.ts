@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DialogModule } from 'primeng/dialog';
 import {
   ApexChart,
   ApexDataLabels,
@@ -12,6 +13,7 @@ import {
 import { ReportesService } from '../reportes.service';
 import { OcupabilidadItem } from '../reportes.types';
 import { UbicacionService } from '../../_services/ubicacion.service';
+import { Almacen3dViewerComponent } from './almacen3d-viewer/almacen3d-viewer.component';
 
 export type GaugeOptions = {
   series: number[];
@@ -36,7 +38,7 @@ interface AlmacenResumen {
   selector: 'app-capacidadalmacen',
   standalone: true,
   templateUrl: './capacidadalmacen.component.html',
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule, DialogModule, Almacen3dViewerComponent],
 })
 export class CapacidadalmacenComponent implements OnInit {
   @ViewChild('barChart') barChart!: ChartComponent;
@@ -66,6 +68,13 @@ export class CapacidadalmacenComponent implements OnInit {
   almacenSeleccionado: AlmacenResumen | null = null;
   pasillos: any[] = [];
   cargandoPasillos = false;
+
+  // Modal 3D
+  modal3dVisible = false;
+  almacen3dId: number | null = null;
+  almacen3dNombre = '';
+  propietario3dId: number | null = null;
+  area3dId: number | null = null;
 
   constructor(
     private reportesService: ReportesService,
@@ -116,6 +125,35 @@ export class CapacidadalmacenComponent implements OnInit {
       next: (data) => { this.pasillos = data; this.cargandoPasillos = false; },
       error: () => { this.cargandoPasillos = false; }
     });
+  }
+
+  abrir3D(a: AlmacenResumen, ev: MouseEvent): void {
+    ev.stopPropagation();
+    this.almacen3dId = a.almacenId;
+    this.almacen3dNombre = a.almacen;
+    this.propietario3dId = null;
+    this.area3dId = null;
+    this.modal3dVisible = true;
+  }
+
+  abrir3DPorPropietario(p: any, ev: MouseEvent): void {
+    ev.stopPropagation();
+    if (!this.almacenSeleccionado) return;
+    this.almacen3dId = this.almacenSeleccionado.almacenId;
+    this.almacen3dNombre = `${this.almacenSeleccionado.almacen} · ${p.propietarioNombre}`;
+    this.propietario3dId = Number(p.propietarioId ?? p.PropietarioId ?? 0) || null;
+    this.area3dId = null;
+    this.modal3dVisible = true;
+  }
+
+  abrir3DPorArea(p: any, ev: MouseEvent): void {
+    ev.stopPropagation();
+    if (!this.almacenSeleccionado) return;
+    this.almacen3dId = this.almacenSeleccionado.almacenId;
+    this.almacen3dNombre = `${this.almacenSeleccionado.almacen} · ${p.areaNombre}`;
+    this.propietario3dId = null;
+    this.area3dId = Number(p.areaId ?? p.AreaId ?? 0) || null;
+    this.modal3dVisible = true;
   }
 
   colorBarra(pct: number): string {
