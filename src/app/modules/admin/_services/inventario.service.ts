@@ -204,6 +204,14 @@ GetAllInventarioByOrdenReciboId(Id: any ): Observable<InventarioGeneral[]> {
   return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetInventarioGeneralByOrdenReciboId?' + params, httpOptions);
 }
 
+// Vista agrupada (SUM(UntQty) por LodId/Producto/Ubicación). Sin campo Id.
+// Usar en pantallas que no requieren identificar registros individuales de InventarioGeneral,
+// como acomodo de pallets.
+GetAllInventarioAgrupadoByOrdenReciboId(Id: any ): Observable<InventarioGeneral[]> {
+  const params = 'OrdenReciboId=' + Id ;
+  return this.http.get<InventarioGeneral[]>(this.baseUrl + 'GetInventarioAgrupadoByOrdenReciboId?' + params, httpOptions);
+}
+
 
 
 GetReporteUbicaciones(model: any): Observable<InventarioGeneral[]> {

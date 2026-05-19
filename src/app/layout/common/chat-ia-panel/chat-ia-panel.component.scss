@@ -28,11 +28,11 @@
         justify-content: space-between;
         gap: 0.75rem;
         padding: 14px 8px 14px 16px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 48%, #06b6d4 100%);
+        background: linear-gradient(135deg, #1f1f23 0%, #4a232a 50%, #7a1e22 100%);
         background-size: 220% 220%;
         color: #fff;
         animation: chat-ia-gradient 7s ease-in-out infinite;
-        box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+        box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.10);
     }
 
     &__title {
@@ -144,11 +144,11 @@
         height: 76px;
         margin: 0 auto;
         border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #c7d2fe 0%, #8b5cf6 35%, #6366f1 65%, #312e81 100%);
+        background: radial-gradient(circle at 30% 30%, #f1d4d4 0%, #9b3036 35%, #7a1e22 65%, #1f1f23 100%);
         box-shadow:
-            0 12px 36px rgba(99, 102, 241, 0.35),
-            inset -6px -8px 18px rgba(0, 0, 0, 0.18),
-            inset 6px 8px 18px rgba(255, 255, 255, 0.18);
+            0 12px 36px rgba(122, 30, 34, 0.30),
+            inset -6px -8px 18px rgba(0, 0, 0, 0.22),
+            inset 6px 8px 18px rgba(255, 255, 255, 0.14);
         animation: chat-ia-orb 6s ease-in-out infinite;
     }
 
@@ -164,16 +164,16 @@
         li {
             font-size: 12.5px;
             line-height: 1.4;
-            color: #4f46e5;
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.18);
+            color: #7a1e22;
+            background: rgba(122, 30, 34, 0.06);
+            border: 1px solid rgba(122, 30, 34, 0.16);
             border-radius: 8px;
             padding: 8px 10px;
             cursor: pointer;
             transition: background 150ms ease, transform 150ms ease;
 
             &:hover {
-                background: rgba(99, 102, 241, 0.16);
+                background: rgba(122, 30, 34, 0.12);
                 transform: translateY(-1px);
             }
         }
@@ -209,16 +209,16 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
-                background: rgba(99, 102, 241, 0.08);
-                border-color: rgba(99, 102, 241, 0.2);
-                color: #4338ca;
+                background: rgba(122, 30, 34, 0.06);
+                border-color: rgba(122, 30, 34, 0.18);
+                color: #7a1e22;
                 font-size: 12px;
                 mat-icon { width: 14px; height: 14px; font-size: 14px; }
             }
         }
 
         &--user .msg__bubble {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: linear-gradient(135deg, #2a2226, #7a1e22);
             color: #fff;
             border: 0;
             border-bottom-right-radius: 4px;
@@ -239,6 +239,71 @@
             font-family: inherit;
             white-space: pre-wrap;
         }
+
+        &__line {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        &__br { height: 8px; }
+
+        &__table-wrap {
+            margin: 8px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+            overflow-x: auto;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        &__table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+
+            thead {
+                background: linear-gradient(135deg, rgba(122, 30, 34, 0.06), rgba(31, 31, 35, 0.06));
+                th {
+                    text-align: left;
+                    font-weight: 600;
+                    color: #7a1e22;
+                    padding: 8px 10px;
+                    border-bottom: 1px solid #e2e8f0;
+                    white-space: nowrap;
+                    letter-spacing: 0.02em;
+                    text-transform: uppercase;
+                    font-size: 10.5px;
+                }
+            }
+
+            tbody {
+                tr {
+                    transition: background 120ms ease;
+                    &:nth-child(even) { background: #faf7f7; }
+                    &:hover { background: rgba(122, 30, 34, 0.05); }
+                }
+                td {
+                    padding: 7px 10px;
+                    border-top: 1px solid #f1ecec;
+                    color: #1e293b;
+                    vertical-align: top;
+                    word-break: break-word;
+                }
+            }
+        }
+
+        &__text code {
+            background: rgba(122, 30, 34, 0.08);
+            color: #7a1e22;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+        }
+
+        &__text strong { font-weight: 700; color: #0f172a; }
+        &__text em     { font-style: italic; }
 
         &__dots {
             display: inline-flex;
@@ -316,7 +381,7 @@
         background: #f8fafc;
 
         &:focus {
-            border-color: #6366f1;
+            border-color: #7a1e22;
             background: #fff;
         }
 
@@ -332,7 +397,7 @@
         height: 38px;
         border: 0;
         border-radius: 10px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: linear-gradient(135deg, #2a2226, #7a1e22);
         color: #fff;
         cursor: pointer;
         display: inline-flex;
@@ -379,6 +444,24 @@
         border-color: #334155;
         color: #cbd5e1;
     }
+
+    .msg__table-wrap {
+        background: #0f172a;
+        border-color: #334155;
+    }
+    .msg__table {
+        thead {
+            background: linear-gradient(135deg, rgba(122, 30, 34, 0.22), rgba(31, 31, 35, 0.22));
+            th { color: #f1d4d4; border-bottom-color: #334155; }
+        }
+        tbody {
+            tr:nth-child(even) { background: #1e293b; }
+            tr:hover { background: rgba(122, 30, 34, 0.18); }
+            td { color: #e2e8f0; border-top-color: #1e293b; }
+        }
+    }
+    .msg__text strong { color: #f1f5f9; }
+    .msg__text code { background: rgba(122, 30, 34, 0.25); color: #f1d4d4; }
 }
 
 // ----------- ANIMATIONS -----------

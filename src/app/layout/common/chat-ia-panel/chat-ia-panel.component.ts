@@ -18,6 +18,7 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatIaService } from 'app/core/chatia/chatia.service';
 import {
     HubFunctionEvent,
@@ -41,7 +42,9 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
 
     private _chatIa = inject(ChatIaService);
     private _cdr = inject(ChangeDetectorRef);
+    private _sanitizer = inject(DomSanitizer);
     private _destroy$ = new Subject<void>();
+    private _htmlCache = new WeakMap<UiMensaje, SafeHtml>();
 
     @ViewChild('messagesEnd') messagesEnd?: ElementRef<HTMLDivElement>;
 
@@ -217,5 +220,82 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
         } catch {
             /* ignore */
         }
+    }
+
+    renderizarContenido(msg: UiMensaje): SafeHtml {
+        const cached = this._htmlCache.get(msg);
+        if (cached) return cached;
+        const html = this._sanitizer.bypassSecurityTrustHtml(
+            this._markdownLite(msg.contenido ?? '')
+        );
+        this._htmlCache.set(msg, html);
+        return html;
+    }
+
+    private _markdownLite(texto: string): string {
+        const escape = (s: string) =>
+            s.replace(/&/g, '&amp;')
+             .replace(/</g, '&lt;')
+             .replace(/>/g, '&gt;');
+
+        const inline = (s: string) =>
+            escape(s)
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+
+        const splitRow = (row: string): string[] => {
+            let r = row.trim();
+            if (r.startsWith('|')) r = r.slice(1);
+            if (r.endsWith('|')) r = r.slice(0, -1);
+            return r.split('|').map(c => c.trim());
+        };
+
+        const isSeparator = (row: string) =>
+            /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(row);
+
+        const lines = texto.replace(/\r\n/g, '\n').split('\n');
+        const out: string[] = [];
+        let i = 0;
+
+        while (i < lines.length) {
+            const line = lines[i];
+            const isTableHead =
+                line.includes('|') &&
+                i + 1 < lines.length &&
+                isSeparator(lines[i + 1]);
+
+            if (isTableHead) {
+                const headers = splitRow(line);
+                i += 2;
+                const rows: string[][] = [];
+                while (i < lines.length && lines[i].includes('|') && lines[i].trim() !== '') {
+                    rows.push(splitRow(lines[i]));
+                    i++;
+                }
+                let table = '<div class="msg__table-wrap"><table class="msg__table"><thead><tr>';
+                table += headers.map(h => `<th>${inline(h)}</th>`).join('');
+                table += '</tr></thead><tbody>';
+                for (const r of rows) {
+                    table += '<tr>';
+                    for (let c = 0; c < headers.length; c++) {
+                        table += `<td>${inline(r[c] ?? '')}</td>`;
+                    }
+                    table += '</tr>';
+                }
+                table += '</tbody></table></div>';
+                out.push(table);
+                continue;
+            }
+
+            if (line.trim() === '') {
+                out.push('<div class="msg__br"></div>');
+            } else {
+                out.push(`<div class="msg__line">${inline(line)}</div>`);
+            }
+            i++;
+        }
+
+        return out.join('');
     }
 }

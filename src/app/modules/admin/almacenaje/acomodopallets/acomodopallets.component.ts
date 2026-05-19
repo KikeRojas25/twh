@@ -157,7 +157,7 @@ export class AcomodopalletsComponent implements OnInit {
 
 
 
-    this.inventarioServicio.GetAllInventarioByOrdenReciboId(this.id).subscribe({
+    this.inventarioServicio.GetAllInventarioAgrupadoByOrdenReciboId(this.id).subscribe({
       next: (resp) => {
         let sum = 0;
         let huella;
@@ -602,7 +602,7 @@ ejecutarAsignarYTerminar() {
       this.inventarios = [];
       this.selectedInventarios = [];
 
-      this.inventarioServicio.GetAllInventarioByOrdenReciboId(this.id).subscribe({
+      this.inventarioServicio.GetAllInventarioAgrupadoByOrdenReciboId(this.id).subscribe({
         next: (resp) => {
           let sum = 0;
           let huella;
