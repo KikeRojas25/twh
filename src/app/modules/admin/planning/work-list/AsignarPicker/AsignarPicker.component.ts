@@ -41,7 +41,11 @@ export class AsignarPickerComponent implements OnInit {
   asignar(): void {
     if (!this.usuarioSeleccionado) return;
 
-    const ids = this.config.data.codigo.map(e => e.id).join(',');
+    const raw = this.config.data?.codigo;
+    const cargas = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    if (!cargas.length) return;
+
+    const ids = cargas.map(e => e.id).join(',');
 
     this.planningService.assignmentOfUser(ids, this.usuarioSeleccionado.id).subscribe({
       next: () => {

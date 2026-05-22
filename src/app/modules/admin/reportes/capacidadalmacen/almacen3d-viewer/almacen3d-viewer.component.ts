@@ -510,11 +510,58 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     });
   }
 
+  /**
+   * Áreas que NO son racks (puertas, zonas de despacho, recepción, staging,
+   * pre-despacho, rechazos, etc.). El 3D no las dibuja — sólo muestra racks
+   * de almacenamiento.
+   */
+  private _esPuertaOZona(nombre: string | null | undefined): boolean {
+    if (!nombre) return false;
+    const n = nombre.toUpperCase().trim();
+    return (
+      n.includes('PUERTA') ||
+      n.includes('DOOR') ||
+      n.includes('DESPACHO') ||
+      n.includes('RECEP') ||
+      n.includes('STAGING') ||
+      n.includes('PRE-') ||
+      n.includes('PRE ') ||
+      n.includes('RECHAZ') ||
+      n.includes('ZONA') ||
+      // "AREA A", "AREA B", "AREA DE PICKING"... son zonas, no pasillos.
+      // Los pasillos reales se llaman con 1 letra (A, B, ...) o 2 iguales (AA, BB).
+      n.startsWith('AREA ') ||
+      n.startsWith('ÁREA ')
+    );
+  }
+
+  /**
+   * Detecta si un nombre de área es la "espalda" de otra (AA, BB, CC, DD...).
+   * Convención del almacén: el rack físico tiene 2 caras; la cara frente se
+   * llama X y la espalda XX. En el 3D dibujamos UN solo rack doble.
+   */
+  private _esEspaldaArea(nombre: string | null | undefined): boolean {
+    if (!nombre) return false;
+    const n = nombre.trim();
+    if (n.length !== 2) return false;
+    return n[0].toUpperCase() === n[1].toUpperCase();
+  }
+
+  /** Nombre del rack base ("BB" → "B"). Para áreas frente devuelve el nombre tal cual. */
+  private _baseDeArea(nombre: string | null | undefined): string {
+    const n = (nombre ?? '').trim();
+    if (this._esEspaldaArea(n)) return n[0].toUpperCase();
+    return n.toUpperCase();
+  }
+
   private _construirAreas(): void {
     const map = new Map<number, string>();
     for (const u of this.todas) {
       if (u.areaId != null && !map.has(u.areaId)) {
-        map.set(u.areaId, u.areaNombre || `Área ${u.areaId}`);
+        const nombre = u.areaNombre || `Área ${u.areaId}`;
+        // No mostramos puertas/zonas en el dropdown — no son racks.
+        if (this._esPuertaOZona(nombre)) continue;
+        map.set(u.areaId, nombre);
       }
     }
     this.areas = [
@@ -568,43 +615,59 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
       return;
     }
 
-    // Layout: agrupar por área en bloques separados sobre el eje X.
-    // Dentro de cada área: nivel = Y, posición = Z.
+    // Cada área = un rack independiente. Las áreas "doble letra" (BB, CC...)
+    // se renderizan como racks aparte (alfabéticamente junto a su letra base
+    // pero como pasillos separados). Las "puertas/zonas" se filtran.
     const porArea = new Map<number, Ubicacion3D[]>();
     for (const u of filtradas) {
+      const nombre = (u.areaNombre ?? '').trim();
+      if (!nombre || this._esPuertaOZona(nombre)) continue;
       const key = u.areaId ?? -1;
       if (!porArea.has(key)) porArea.set(key, []);
       porArea.get(key)!.push(u);
     }
 
-    const areasOrdenadas = [...porArea.entries()].sort(([a], [b]) => a - b);
+    // Sort alfabético por areaNombre. Con esto el orden queda:
+    //   A, B, BB, C, CC, D, DD, ..., O, OO, P
+    const areasOrdenadas = [...porArea.entries()].sort(([, ua], [, ub]) => {
+      const nA = ua[0]?.areaNombre ?? '';
+      const nB = ub[0]?.areaNombre ?? '';
+      return nA.localeCompare(nB, undefined, { numeric: true, sensitivity: 'base' });
+    });
+
+    if (areasOrdenadas.length === 0) {
+      this._encajarCamara();
+      return;
+    }
+
     const ESCALA_CUBO = 0.55;
-    const SPACING_AREA = 10;       // separación entre pasillos paralelos
+    // Layout pareado: idx par → spacing GRANDE al siguiente (calle de
+    // circulación), idx impar → spacing CHICO al siguiente (par interno).
+    // Con el orden A, B, BB, C, CC, ..., O, OO, P resulta:
+    //   A | gap | B-BB | gap | C-CC | gap | D-DD | ... | O-OO | gap | P
+    const SPACING_PARES = 2.0;
+    const SPACING_GRUPOS = 10;
     const SPACING_POS = 1.7;
     const SPACING_NIVEL = 1.6;
-    // Ancho mínimo del rack: si el u.width de las ubicaciones es muy chico
-    // (o quedó en el fallback de _safeDim), el rack se ve como un "muro
-    // delgado" y aplasta los pallets. Este piso asegura que cada pasillo
-    // tenga profundidad suficiente para apreciar el pallet en 3D.
     const MIN_RACK_WIDTH = 2.0;
-    // Tamaño del pallet: atado al hueco del rack (no a u.width/length/height).
-    // Así el pallet llena el espacio entre postes/vigas dejando un margen
-    // visible — más realista que escalar las dimensiones de la BD.
-    const PALLET_FILL_W = 0.874;  // 87.4% del ancho entre postes
-    const PALLET_FILL_D = 0.855;  // 85.5% del largo del bay
-    const PALLET_FILL_H = 0.76;   // 76% de la altura del nivel (deja aire para la viga)
+    const PALLET_FILL_W = 0.874;
+    const PALLET_FILL_D = 0.855;
+    const PALLET_FILL_H = 0.76;
 
     let offsetX = 0;
     let maxZ = 0;
     let maxYGlobal = 0;
 
-    for (const [, ubicaciones] of areasOrdenadas) {
+    for (let idxArea = 0; idxArea < areasOrdenadas.length; idxArea++) {
+      const [, ubicaciones] = areasOrdenadas[idxArea];
+      if (ubicaciones.length === 0) continue;
+
       const posiciones = [...new Set(ubicaciones.map(u => u.posicionId ?? 0))].sort((a, b) => a - b);
       const niveles = [...new Set(ubicaciones.map(u => this._nivelANumero(u.nivelId)))].sort((a, b) => a - b);
       const posIndex = new Map(posiciones.map((p, i) => [p, i]));
       const nivIndex = new Map(niveles.map((n, i) => [n, i]));
 
-      const maxWidth = Math.max(
+      const anchoRack = Math.max(
         Math.max(...ubicaciones.map(u => u.width)) * ESCALA_CUBO,
         MIN_RACK_WIDTH,
       );
@@ -614,34 +677,22 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
       for (const u of ubicaciones) {
         const ix = posIndex.get(u.posicionId ?? 0) ?? 0;
         const iy = nivIndex.get(this._nivelANumero(u.nivelId)) ?? 0;
+        const centroX = offsetX + anchoRack / 2;
 
         const tpl = this._templateForUbicacion(u);
-        // Una ubicación "libre" se ve como hueco vacío en el rack (no dibujamos
-        // el pallet), pero la instancia sigue siendo pickable: el bounding box
-        // ocupa el hueco completo para que el usuario pueda hacer click sobre
-        // el espacio vacío y ver "Libre".
         const esLibre = tpl === this.templates.libre;
         const inst = tpl.createInstance(`u-${u.id}`);
 
         if (esLibre) {
-          inst.scaling.set(maxWidth, SPACING_NIVEL * 0.9, SPACING_POS * 0.9);
-          inst.position.set(
-            offsetX + maxWidth / 2,
-            iy * SPACING_NIVEL + SPACING_NIVEL / 2,
-            ix * SPACING_POS,
-          );
-          inst.isVisible = false;          // no se dibuja, pero sigue pickable
+          inst.scaling.set(anchoRack, SPACING_NIVEL * 0.9, SPACING_POS * 0.9);
+          inst.position.set(centroX, iy * SPACING_NIVEL + SPACING_NIVEL / 2, ix * SPACING_POS);
+          inst.isVisible = false;
         } else {
-          // Pallet centrado en el hueco, descansando sobre la viga del nivel.
-          const w = maxWidth * PALLET_FILL_W;
+          const w = anchoRack * PALLET_FILL_W;
           const h = SPACING_NIVEL * PALLET_FILL_H;
           const d = SPACING_POS * PALLET_FILL_D;
           inst.scaling.set(w, h, d);
-          inst.position.set(
-            offsetX + maxWidth / 2,
-            iy * SPACING_NIVEL + h / 2 + 0.05, // +0.05: que se vea apoyado sobre la viga
-            ix * SPACING_POS,
-          );
+          inst.position.set(centroX, iy * SPACING_NIVEL + h / 2 + 0.05, ix * SPACING_POS);
         }
 
         inst.isPickable = true;
@@ -649,16 +700,12 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
         inst.freezeWorldMatrix();
         inst.doNotSyncBoundingInfo = true;
         this.boxes.push(inst);
-
         if (inst.position.z > maxZ) maxZ = inst.position.z;
       }
 
-      // Estructura física del rack (postes azules + largueros amarillos +
-      // diagonales X-bracing). Va DESPUÉS de los pallets para que el dispose
-      // del próximo render limpie todo en orden.
       this._construirEstructuraRack({
         offsetX,
-        ancho: maxWidth,
+        ancho: anchoRack,
         numPosiciones: posiciones.length,
         numNiveles: niveles.length,
         spacingPos: SPACING_POS,
@@ -666,28 +713,35 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
         alturaRack,
       });
 
-      // Números de posición en el piso, alineados con cada bay. Como las
-      // ubicaciones se cargan por ambos lados del rack, los pinto a un costado
-      // (lado izquierdo, en x = offsetX - 0.45) para que queden en el pasillo
-      // de circulación y se lean derechos vistos desde la vista isométrica.
+      // Números de posición: alternar lado izq/der según paridad del idx para
+      // que los racks pareados (B-BB) tengan los números hacia afuera y no
+      // queden atrapados entre los dos.
+      const xNumero = (idxArea % 2 === 0)
+        ? offsetX + anchoRack + 0.45
+        : offsetX - 0.45;
       for (let i = 0; i < posiciones.length; i++) {
         const z = i * SPACING_POS;
         const numero = String(posiciones[i]).padStart(2, '0');
-        const lbl = this._crearNumeroPiso(numero, offsetX - 0.45, z, maxWidth);
-        this.numerosPiso.push(lbl);
+        this.numerosPiso.push(this._crearNumeroPiso(numero, xNumero, z, anchoRack));
       }
 
-      // Cartel del área al fondo del pasillo
       const zFondo = (posiciones.length - 1) * SPACING_POS + 2.0;
       const yEncimaRack = maxHeightStack + 1.5;
       this._crearLabelArea(
         ubicaciones[0].areaNombre || `Área ${ubicaciones[0].areaId ?? '?'}`,
-        offsetX + maxWidth / 2, yEncimaRack, zFondo,
-        maxWidth + 2, 3,
+        offsetX + anchoRack / 2, yEncimaRack, zFondo,
+        anchoRack + 2, 3,
       );
 
       if (yEncimaRack > maxYGlobal) maxYGlobal = yEncimaRack;
-      offsetX += maxWidth + SPACING_AREA;
+
+      const esUltimo = idxArea === areasOrdenadas.length - 1;
+      if (!esUltimo) {
+        const spacingAlSiguiente = (idxArea % 2 === 0) ? SPACING_GRUPOS : SPACING_PARES;
+        offsetX += anchoRack + spacingAlSiguiente;
+      } else {
+        offsetX += anchoRack;
+      }
     }
 
     // Si el usuario tenía ocultos los racks, respeta ese estado tras re-render.
