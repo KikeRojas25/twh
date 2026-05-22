@@ -59,7 +59,11 @@ export class AsignarPuertaComponent implements OnInit {
                 private   generalService : GeneralService ,  
                 private dialogService: DialogService) {
 
-          this.model = config.data.codigo; // ✅ ESTA ES LA FORMA CORRECTA
+          // El padre (work-list) ahora usa selección simple y manda 1 objeto;
+          // antes mandaba un array. Normalizamos a array para mantener el
+          // resto del código intacto.
+          const raw = config.data?.codigo;
+          this.model = Array.isArray(raw) ? raw : (raw ? [raw] : []);
 
 
   }
@@ -70,6 +74,10 @@ export class AsignarPuertaComponent implements OnInit {
   }
 
   getUbicaciones(): void {
+    if (!this.model?.length) {
+      console.warn('AsignarPuerta: sin carga seleccionada, no se listan puertas');
+      return;
+    }
     const almacenId = this.model[0].almacenId;
 
     this.generalService.getPuertas(almacenId, 1).subscribe(list => {
