@@ -21,7 +21,6 @@ import {
   ArcRotateCamera,
   Color3,
   Color4,
-  DynamicTexture,
   Engine,
   HemisphericLight,
   DirectionalLight,
@@ -87,7 +86,6 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
   total = 0;
   ocupadas = 0;
   libres = 0;
-  mostrarEstructuraRack = true;
 
   areas: AreaOption[] = [{ label: 'Todas las áreas', value: null }];
   areaSeleccionada: number | null = null;
@@ -111,11 +109,8 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
   private scene?: Scene;
   private camera?: ArcRotateCamera;
   private boxes: (Mesh | InstancedMesh)[] = [];
-  private rackInstances: InstancedMesh[] = [];
-  private numerosPiso: Mesh[] = [];
   private piso?: Mesh;
   private templates: { libre?: Mesh; ocupada?: Mesh; otro?: Mesh; resaltada?: Mesh; naranja?: Mesh } = {};
-  private rackTemplates: { poste?: Mesh; viga?: Mesh; diagonal?: Mesh } = {};
   hayFiltroPropietario = false;
   clienteSeleccionado: string | null = null;
   private resaltadasSet = new Set<number>();
@@ -203,12 +198,6 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     this._encajarCamara();
   }
 
-  /** Alterna la visibilidad de postes/vigas/diagonales sin re-renderizar la escena. */
-  toggleEstructuraRack(): void {
-    this.mostrarEstructuraRack = !this.mostrarEstructuraRack;
-    for (const r of this.rackInstances) r.setEnabled(this.mostrarEstructuraRack);
-  }
-
   private _initEngine(): void {
     const canvas = this.canvasRef.nativeElement;
     this.engine = new Engine(canvas, true, {
@@ -220,19 +209,14 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     // Render nítido en pantallas HiDPI/Retina.
     this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
     this.scene = new Scene(this.engine);
-    // Fondo gris muy claro: deja que las estructuras del rack (azul/amarillo)
-    // y los pallets verdes destaquen como en un layout de almacén real.
-    this.scene.clearColor = new Color4(0.94, 0.95, 0.97, 1);
+    this.scene.clearColor = new Color4(0.04, 0.06, 0.15, 1);
 
-    // Vista inicial: perspectiva casi lateral con leve elevación y zoom
-    // cercano — se ven los pallets de costado, los números de posición en el
-    // piso quedan en primer plano y el pasillo se aprecia bien a lo largo.
     this.camera = new ArcRotateCamera(
       'cam',
-      -Math.PI / 2.2,   // alpha: casi lateral, ligeramente girado para perspectiva
-       Math.PI / 2.6,   // beta: ~70° → poca elevación, vista frontal del rack
-       40,              // radius (lo sobreescribe _encajarCamara)
-       Vector3.Zero(),
+      -Math.PI / 2.5,
+      Math.PI / 3.2,
+      40,
+      Vector3.Zero(),
       this.scene
     );
     this.camera.attachControl(canvas, true);
@@ -280,33 +264,6 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     this.templates.otro = mkTemplate('tplOtro', this.materials.otro!);
     this.templates.resaltada = mkTemplate('tplResalt', resaltada);
     this.templates.naranja = mkTemplate('tplNaranja', naranja);
-
-    // Bordes negros en los pallets visibles → marcan las 12 aristas del cubo
-    // y la percepción 3D mejora bastante. enableEdgesRendering() solo dibuja
-    // los bordes del template; necesitamos edgesShareWithInstances=true para
-    // que las instancias hereden esos edges (sin esto el master muestra los
-    // bordes pero las copias no, que es exactamente el bug que se veía).
-    const enableEdges = (m: Mesh): void => {
-      m.enableEdgesRendering();
-      m.edgesWidth = 1.5;
-      m.edgesColor = new Color4(0, 0, 0, 1);
-      m.edgesShareWithInstances = true;
-    };
-    enableEdges(this.templates.ocupada);
-    enableEdges(this.templates.otro);
-    enableEdges(this.templates.resaltada);
-    enableEdges(this.templates.naranja);
-
-    // ===== Estructura del rack (postes + largueros + diagonales) =====
-    // Pintar la estructura física del rack alrededor de cada pasillo da una
-    // lectura mucho más cercana a la realidad: postes azules verticales,
-    // largueros amarillos por nivel, diagonales X en los extremos.
-    const matPoste = makeFlat('matPoste', 0.09, 0.22, 0.78);    // azul intenso
-    const matViga = makeFlat('matViga', 0.98, 0.78, 0.10);      // amarillo
-    const matDiag = makeFlat('matDiag', 0.05, 0.14, 0.55);      // azul más oscuro
-    this.rackTemplates.poste = mkTemplate('tplPoste', matPoste);
-    this.rackTemplates.viga = mkTemplate('tplViga', matViga);
-    this.rackTemplates.diagonal = mkTemplate('tplDiag', matDiag);
 
     // Hover + click sobre cubos
     this.scene.onPointerObservable.add(pi => {
@@ -528,20 +485,9 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
   private _render(): void {
     if (!this.scene) return;
 
-    // limpiar boxes, estructura del rack, piso, números y labels anteriores
+    // limpiar boxes, piso y labels anteriores
     for (const b of this.boxes) b.dispose();
     this.boxes = [];
-    for (const r of this.rackInstances) r.dispose();
-    this.rackInstances = [];
-    for (const n of this.numerosPiso) {
-      // Cada número tiene su propio material + DynamicTexture → liberarlos también.
-      const mat = n.material as StandardMaterial | null;
-      const tex = mat?.diffuseTexture as DynamicTexture | null;
-      tex?.dispose();
-      mat?.dispose();
-      n.dispose();
-    }
-    this.numerosPiso = [];
     this.piso?.dispose();
     this.piso = undefined;
     for (const c of this.labelControls) c.dispose();
@@ -582,17 +528,6 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     const SPACING_AREA = 10;       // separación entre pasillos paralelos
     const SPACING_POS = 1.7;
     const SPACING_NIVEL = 1.6;
-    // Ancho mínimo del rack: si el u.width de las ubicaciones es muy chico
-    // (o quedó en el fallback de _safeDim), el rack se ve como un "muro
-    // delgado" y aplasta los pallets. Este piso asegura que cada pasillo
-    // tenga profundidad suficiente para apreciar el pallet en 3D.
-    const MIN_RACK_WIDTH = 2.0;
-    // Tamaño del pallet: atado al hueco del rack (no a u.width/length/height).
-    // Así el pallet llena el espacio entre postes/vigas dejando un margen
-    // visible — más realista que escalar las dimensiones de la BD.
-    const PALLET_FILL_W = 0.874;  // 87.4% del ancho entre postes
-    const PALLET_FILL_D = 0.855;  // 85.5% del largo del bay
-    const PALLET_FILL_H = 0.76;   // 76% de la altura del nivel (deja aire para la viga)
 
     let offsetX = 0;
     let maxZ = 0;
@@ -604,77 +539,32 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
       const posIndex = new Map(posiciones.map((p, i) => [p, i]));
       const nivIndex = new Map(niveles.map((n, i) => [n, i]));
 
-      const maxWidth = Math.max(
-        Math.max(...ubicaciones.map(u => u.width)) * ESCALA_CUBO,
-        MIN_RACK_WIDTH,
-      );
-      const alturaRack = niveles.length * SPACING_NIVEL;
-      const maxHeightStack = alturaRack + Math.max(...ubicaciones.map(u => u.height)) * ESCALA_CUBO;
+      const maxWidth = Math.max(...ubicaciones.map(u => u.width)) * ESCALA_CUBO;
+      const maxHeightStack = niveles.length * SPACING_NIVEL + Math.max(...ubicaciones.map(u => u.height)) * ESCALA_CUBO;
 
       for (const u of ubicaciones) {
         const ix = posIndex.get(u.posicionId ?? 0) ?? 0;
         const iy = nivIndex.get(this._nivelANumero(u.nivelId)) ?? 0;
 
+        const w = u.width * ESCALA_CUBO;
+        const h = u.height * ESCALA_CUBO;
+        const d = u.length * ESCALA_CUBO;
+
+        // INSTANCING: una sola geometría compartida → carga y render mucho más rápidos.
         const tpl = this._templateForUbicacion(u);
-        // Una ubicación "libre" se ve como hueco vacío en el rack (no dibujamos
-        // el pallet), pero la instancia sigue siendo pickable: el bounding box
-        // ocupa el hueco completo para que el usuario pueda hacer click sobre
-        // el espacio vacío y ver "Libre".
-        const esLibre = tpl === this.templates.libre;
         const inst = tpl.createInstance(`u-${u.id}`);
-
-        if (esLibre) {
-          inst.scaling.set(maxWidth, SPACING_NIVEL * 0.9, SPACING_POS * 0.9);
-          inst.position.set(
-            offsetX + maxWidth / 2,
-            iy * SPACING_NIVEL + SPACING_NIVEL / 2,
-            ix * SPACING_POS,
-          );
-          inst.isVisible = false;          // no se dibuja, pero sigue pickable
-        } else {
-          // Pallet centrado en el hueco, descansando sobre la viga del nivel.
-          const w = maxWidth * PALLET_FILL_W;
-          const h = SPACING_NIVEL * PALLET_FILL_H;
-          const d = SPACING_POS * PALLET_FILL_D;
-          inst.scaling.set(w, h, d);
-          inst.position.set(
-            offsetX + maxWidth / 2,
-            iy * SPACING_NIVEL + h / 2 + 0.05, // +0.05: que se vea apoyado sobre la viga
-            ix * SPACING_POS,
-          );
-        }
-
-        inst.isPickable = true;
+        inst.scaling.set(w, h, d);
+        inst.position.set(
+          offsetX + w / 2,
+          iy * SPACING_NIVEL + h / 2,
+          ix * SPACING_POS,
+        );
         inst.metadata = u;
         inst.freezeWorldMatrix();
         inst.doNotSyncBoundingInfo = true;
         this.boxes.push(inst);
 
         if (inst.position.z > maxZ) maxZ = inst.position.z;
-      }
-
-      // Estructura física del rack (postes azules + largueros amarillos +
-      // diagonales X-bracing). Va DESPUÉS de los pallets para que el dispose
-      // del próximo render limpie todo en orden.
-      this._construirEstructuraRack({
-        offsetX,
-        ancho: maxWidth,
-        numPosiciones: posiciones.length,
-        numNiveles: niveles.length,
-        spacingPos: SPACING_POS,
-        spacingNivel: SPACING_NIVEL,
-        alturaRack,
-      });
-
-      // Números de posición en el piso, alineados con cada bay. Como las
-      // ubicaciones se cargan por ambos lados del rack, los pinto a un costado
-      // (lado izquierdo, en x = offsetX - 0.45) para que queden en el pasillo
-      // de circulación y se lean derechos vistos desde la vista isométrica.
-      for (let i = 0; i < posiciones.length; i++) {
-        const z = i * SPACING_POS;
-        const numero = String(posiciones[i]).padStart(2, '0');
-        const lbl = this._crearNumeroPiso(numero, offsetX - 0.45, z, maxWidth);
-        this.numerosPiso.push(lbl);
       }
 
       // Cartel del área al fondo del pasillo
@@ -688,11 +578,6 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
 
       if (yEncimaRack > maxYGlobal) maxYGlobal = yEncimaRack;
       offsetX += maxWidth + SPACING_AREA;
-    }
-
-    // Si el usuario tenía ocultos los racks, respeta ese estado tras re-render.
-    if (!this.mostrarEstructuraRack) {
-      for (const r of this.rackInstances) r.setEnabled(false);
     }
 
     // Piso cubriendo todos los pasillos
@@ -798,171 +683,6 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     this.labelControls.push(rect);
   }
 
-  /**
-   * Dibuja la estructura física del rack alrededor de un pasillo:
-   *   - postes verticales azules en los costados, alineados con cada bay
-   *   - largueros amarillos a lo largo del pasillo, uno por nivel (incluido el de tope)
-   *   - diagonales X-bracing azules en los dos extremos del pasillo
-   *
-   * Todo va como InstancedMesh sobre 3 templates compartidos → el costo de
-   * render se mantiene en 3 draw calls (uno por color) sin importar cuántos
-   * pasillos haya. Postes/vigas/diagonales NO son pickable: el raycast atraviesa
-   * limpio hasta el cubo de la ubicación detrás.
-   */
-  private _construirEstructuraRack(opts: {
-    offsetX: number;
-    ancho: number;
-    numPosiciones: number;
-    numNiveles: number;
-    spacingPos: number;
-    spacingNivel: number;
-    alturaRack: number;
-  }): void {
-    if (!this.rackTemplates.poste || !this.rackTemplates.viga || !this.rackTemplates.diagonal) return;
-    if (opts.numPosiciones <= 0 || opts.numNiveles <= 0) return;
-
-    const POSTE_GROSOR = 0.10;
-    const VIGA_GROSOR = 0.06;
-    const VIGA_PROFUNDIDAD = 0.10;
-    const DIAG_GROSOR = 0.05;
-
-    // Postes terminan al ras del último nivel: sin la viga del tope, el rack
-    // queda "abierto" arriba y los pallets del nivel superior se ven limpios.
-    const alturaPostes = opts.alturaRack;
-    const zCentro = (opts.numPosiciones - 1) * opts.spacingPos / 2;
-    const longitudPasillo = opts.numPosiciones * opts.spacingPos;
-
-    // ---- Postes verticales: 2 lados (x = offsetX, x = offsetX+ancho) × (N+1) bordes en Z ----
-    for (let lado = 0; lado < 2; lado++) {
-      const x = lado === 0 ? opts.offsetX : opts.offsetX + opts.ancho;
-      for (let i = 0; i <= opts.numPosiciones; i++) {
-        const z = (i - 0.5) * opts.spacingPos;
-        const poste = this.rackTemplates.poste.createInstance(`poste-${opts.offsetX.toFixed(1)}-${lado}-${i}`);
-        poste.scaling.set(POSTE_GROSOR, alturaPostes, POSTE_GROSOR);
-        poste.position.set(x, alturaPostes / 2, z);
-        poste.isPickable = false;
-        poste.freezeWorldMatrix();
-        poste.doNotSyncBoundingInfo = true;
-        this.rackInstances.push(poste);
-      }
-    }
-
-    // ---- Largueros (vigas) longitudinales: 2 lados × N niveles ----
-    // Una viga por nivel donde apoya el pallet (desde el piso hasta el último
-    // nivel, SIN cerrar arriba): así el rack se ve abierto en el tope y los
-    // pallets superiores no quedan tapados por una viga horizontal.
-    for (let lado = 0; lado < 2; lado++) {
-      const x = lado === 0 ? opts.offsetX : opts.offsetX + opts.ancho;
-      for (let iy = 0; iy < opts.numNiveles; iy++) {
-        const y = iy * opts.spacingNivel;
-        const viga = this.rackTemplates.viga.createInstance(`viga-${opts.offsetX.toFixed(1)}-${lado}-${iy}`);
-        viga.scaling.set(VIGA_PROFUNDIDAD, VIGA_GROSOR, longitudPasillo);
-        viga.position.set(x, y, zCentro);
-        viga.isPickable = false;
-        viga.freezeWorldMatrix();
-        viga.doNotSyncBoundingInfo = true;
-        this.rackInstances.push(viga);
-      }
-    }
-
-    // ---- Diagonales X-bracing en los dos extremos del pasillo ----
-    // Plano XY (perpendicular a Z): conectan los postes izquierdo y derecho
-    // formando una X. Solo en los extremos para no saturar visualmente.
-    const diagLen = Math.sqrt(opts.ancho * opts.ancho + opts.alturaRack * opts.alturaRack);
-    const ang = Math.atan2(opts.ancho, opts.alturaRack); // ángulo respecto al eje Y
-    const zExtremos = [-0.5 * opts.spacingPos, (opts.numPosiciones - 0.5) * opts.spacingPos];
-
-    for (let e = 0; e < zExtremos.length; e++) {
-      const z = zExtremos[e];
-      // Diagonal 1: rotada +ang en eje Z
-      const d1 = this.rackTemplates.diagonal.createInstance(`diag-${opts.offsetX.toFixed(1)}-${e}-a`);
-      d1.scaling.set(DIAG_GROSOR, diagLen, DIAG_GROSOR);
-      d1.position.set(opts.offsetX + opts.ancho / 2, opts.alturaRack / 2, z);
-      d1.rotation.z = ang;
-      d1.isPickable = false;
-      d1.freezeWorldMatrix();
-      d1.doNotSyncBoundingInfo = true;
-      this.rackInstances.push(d1);
-
-      // Diagonal 2: rotada -ang en eje Z (cruzada → forma X)
-      const d2 = this.rackTemplates.diagonal.createInstance(`diag-${opts.offsetX.toFixed(1)}-${e}-b`);
-      d2.scaling.set(DIAG_GROSOR, diagLen, DIAG_GROSOR);
-      d2.position.set(opts.offsetX + opts.ancho / 2, opts.alturaRack / 2, z);
-      d2.rotation.z = -ang;
-      d2.isPickable = false;
-      d2.freezeWorldMatrix();
-      d2.doNotSyncBoundingInfo = true;
-      this.rackInstances.push(d2);
-    }
-  }
-
-  /**
-   * Pinta el número de posición sobre el piso, al costado del rack, alineado
-   * con cada bay. Es un Plane horizontal con DynamicTexture (canvas) — se ve
-   * como una etiqueta pegada al piso, no como un cartel flotante.
-   */
-  private _crearNumeroPiso(texto: string, x: number, z: number, _anchoRack: number): Mesh {
-    const ANCHO = 1.0;
-    const ALTO = 0.7;
-    const TEX_W = 256;
-    const TEX_H = 180;
-    const idSuffix = `${x.toFixed(2)}-${z.toFixed(2)}`;
-
-    const plane = MeshBuilder.CreatePlane(`numPiso-${idSuffix}`, { width: ANCHO, height: ALTO }, this.scene!);
-    plane.position.set(x, 0.02, z);
-    plane.rotation.x = Math.PI / 2;          // horizontal, cara visible hacia +Y
-    plane.isPickable = false;
-    plane.doNotSyncBoundingInfo = true;
-    plane.alwaysSelectAsActiveMesh = true;
-
-    const dt = new DynamicTexture(`dtNumPiso-${idSuffix}`, { width: TEX_W, height: TEX_H }, this.scene!, true);
-    dt.hasAlpha = true;
-    const ctx = dt.getContext() as unknown as CanvasRenderingContext2D;
-    ctx.clearRect(0, 0, TEX_W, TEX_H);
-
-    // Fondo redondeado oscuro (estilo etiqueta de almacén)
-    const r = 28;
-    const x0 = 12, y0 = 12, x1 = TEX_W - 12, y1 = TEX_H - 12;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-    ctx.beginPath();
-    ctx.moveTo(x0 + r, y0);
-    ctx.lineTo(x1 - r, y0);
-    ctx.quadraticCurveTo(x1, y0, x1, y0 + r);
-    ctx.lineTo(x1, y1 - r);
-    ctx.quadraticCurveTo(x1, y1, x1 - r, y1);
-    ctx.lineTo(x0 + r, y1);
-    ctx.quadraticCurveTo(x0, y1, x0, y1 - r);
-    ctx.lineTo(x0, y0 + r);
-    ctx.quadraticCurveTo(x0, y0, x0 + r, y0);
-    ctx.closePath();
-    ctx.fill();
-
-    // Borde sutil
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Número
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 120px "Segoe UI", Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(texto, TEX_W / 2, TEX_H / 2 + 6);
-    dt.update();
-
-    const mat = new StandardMaterial(`matNumPiso-${idSuffix}`, this.scene!);
-    mat.diffuseTexture = dt;
-    mat.opacityTexture = dt;
-    mat.useAlphaFromDiffuseTexture = true;
-    mat.emissiveColor = new Color3(1, 1, 1);     // texto a color completo sin sombras
-    mat.specularColor = new Color3(0, 0, 0);
-    mat.disableLighting = true;
-    mat.backFaceCulling = false;                 // visible si la cámara cae del otro lado
-    plane.material = mat;
-
-    return plane;
-  }
-
   private _construirPiso(anchoX: number, profZ: number): Mesh {
     const piso = MeshBuilder.CreateGround('piso', {
       width: anchoX + 4,
@@ -970,12 +690,11 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     }, this.scene);
     piso.position = new Vector3(anchoX / 2 - 2, -0.05, profZ / 2 - 2);
     const mat = new StandardMaterial('matPiso', this.scene);
-    // Gris claro mate para combinar con el fondo nuevo y dejar destacar el rack.
-    mat.diffuseColor = new Color3(0.82, 0.84, 0.88);
-    mat.emissiveColor = new Color3(0.82, 0.84, 0.88);
+    mat.diffuseColor = new Color3(0.12, 0.16, 0.24);
+    mat.emissiveColor = new Color3(0.12, 0.16, 0.24);
     mat.specularColor = new Color3(0, 0, 0);
     mat.disableLighting = true;
-    mat.alpha = 0.95;
+    mat.alpha = 0.6;
     piso.material = mat;
     piso.isPickable = false;
     return piso;
@@ -1001,9 +720,8 @@ export class Almacen3dViewerComponent implements AfterViewInit, OnChanges, OnDes
     const center = Vector3.Center(min, max);
     const size = max.subtract(min).length();
     this.camera.target = center;
-    // Zoom inicial cercano: el pasillo llena el viewport y los pallets se
-    // distinguen con claridad. Si el almacén es muy chico se respeta un mínimo.
-    this.camera.radius = Math.max(size * 0.55, 10);
+    // 40% más cerca que el encuadre completo (1.3 → 0.78).
+    this.camera.radius = Math.max(size * 0.78, 12);
   }
 
   private _materialFor(estado: string): StandardMaterial {

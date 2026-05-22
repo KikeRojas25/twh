@@ -42,6 +42,20 @@
       <i class="pi pi-refresh"></i> Centrar
     </button>
 
+    <button
+      (click)="toggleEstructuraRack()"
+      class="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+      [class.bg-indigo-600]="!mostrarEstructuraRack"
+      [class.text-white]="!mostrarEstructuraRack"
+      [class.hover:bg-indigo-700]="!mostrarEstructuraRack"
+      [class.bg-gray-100]="mostrarEstructuraRack"
+      [class.text-gray-700]="mostrarEstructuraRack"
+      [class.hover:bg-gray-200]="mostrarEstructuraRack"
+      [title]="mostrarEstructuraRack ? 'Ocultar los racks (solo pallets)' : 'Mostrar los racks'">
+      <i class="pi" [class.pi-eye-slash]="mostrarEstructuraRack" [class.pi-eye]="!mostrarEstructuraRack"></i>
+      {{ mostrarEstructuraRack ? 'Ocultar racks' : 'Mostrar racks' }}
+    </button>
+
     <div class="ml-auto flex items-center gap-3 text-xs">
       <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-700">
         Total: {{ total | number }}
@@ -58,7 +72,7 @@
   </div>
 
   <!-- Canvas + tooltip -->
-  <div class="relative flex-1 rounded-xl overflow-hidden ring-1 ring-gray-200 bg-[#0a0e27]" style="min-height: 500px;">
+  <div class="relative flex-1 rounded-xl overflow-hidden ring-1 ring-gray-200 bg-slate-100" style="min-height: 500px;">
     <canvas #canvasRef class="w-full h-full block outline-none"></canvas>
 
     <!-- Loading overlay -->
@@ -150,8 +164,8 @@
     </div>
 
     <!-- Hint -->
-    <div class="absolute bottom-3 left-3 text-[11px] text-white/70 bg-black/30 rounded px-2 py-1 backdrop-blur">
-      Click izq + drag = rotar · Rueda = zoom · Click der + drag = pan · <strong>Click sobre cubo → Ampliar</strong>
+    <div class="absolute bottom-3 left-3 text-[11px] text-white bg-slate-800/85 rounded px-2 py-1 backdrop-blur">
+      Click izq + drag = rotar · Rueda = zoom · Click der + drag = pan · <strong>Click sobre pallet → Ampliar</strong>
     </div>
 
     <!-- Dashboard del pasillo (solo cuando hay un área seleccionada) -->

@@ -1,151 +1,242 @@
+<div class="wl-page flex flex-col flex-auto min-w-0 bg-gray-50">
 
-<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
-
-
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
-    <div class="flex-1 min-w-0">
-      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
-        <div>
-          <a  class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
+    <!-- HEADER compacto -->
+    <div class="wl-header flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 shadow-sm">
+        <div class="min-w-0">
+            <div class="flex items-center text-xs text-gray-500 mb-0.5">
+                <a class="hover:text-gray-800">TWH</a>
+                <mat-icon class="text-gray-400 mx-0.5" style="width:14px;height:14px;font-size:14px"
+                          [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                <span class="text-gray-700">Listado de trabajo pendiente</span>
+            </div>
+            <h2 class="text-xl md:text-2xl font-semibold tracking-tight leading-tight truncate text-gray-900">
+                Trabajo planificado pendiente
+            </h2>
         </div>
-        <div class="flex items-center ml-1 whitespace-nowrap">
-              <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-              <a  class="ml-1 text-gray-700 hover:text-gray-900">Listado trabajo pendiente</a>
-          </div>
-      </div>
-          <div class="mt-1"><h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900"> Trabajo planificado pendiente </h2>
-      </div>
-  </div>
-  </div>
-    <!-- Filtro de búsqueda -->
-    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
-      <h3 class="text-lg font-semibold text-gray-700 mb-4">Filtro de búsqueda</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block mb-1 text-sm font-medium text-gray-700">Propietario</label>
-          <p-dropdown [options]="clientes"
-                      [(ngModel)]="model.PropietarioId"
-                      placeholder="Seleccione un propietario"
-                      filter="true"
-                      [style]="{'width':'100%'}"
-                      scrollHeight="200px"
-                      [resetFilterOnHide]="false">
-             
-            <ng-template let-item pTemplate="selectedItem">
-               <span style="vertical-align:left;">{{item.label}}</span>
+        <div class="text-xs text-gray-500">
+            <span *ngIf="cargas?.length">{{ cargas.length }} trabajo(s)</span>
+        </div>
+    </div>
+
+    <!-- TOOLBAR: filtro + acciones en una sola card densa -->
+    <div class="wl-toolbar mx-4 mt-3 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="flex flex-wrap items-end gap-3 p-3">
+
+            <!-- Propietario -->
+            <div class="flex-1 min-w-[220px] max-w-sm">
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                    Propietario
+                </label>
+                <p-dropdown [options]="clientes"
+                            [(ngModel)]="model.PropietarioId"
+                            placeholder="Seleccione un propietario"
+                            filter="true"
+                            [style]="{'width':'100%'}"
+                            scrollHeight="220px"
+                            [resetFilterOnHide]="false"
+                            styleClass="w-full wl-dd">
+                    <ng-template let-item pTemplate="selectedItem">
+                        <span>{{item.label}}</span>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <!-- Buscar -->
+            <p-button label="Buscar"
+                      icon="pi pi-search"
+                      size="small"
+                      (onClick)="buscar()"
+                      severity="danger"
+                      styleClass="wl-btn-primary"></p-button>
+
+            <!-- Separador flexible -->
+            <div class="flex-1"></div>
+
+            <!-- Acciones rápidas (alineadas a la derecha) -->
+            <div class="flex flex-wrap items-center gap-2">
+                <p-button label="Área despacho"
+                          icon="pi pi-external-link"
+                          size="small"
+                          severity="warning"
+                          [outlined]="true"
+                          (onClick)="asignarPuerta()"
+                          [disabled]="checkSelects()"></p-button>
+                <p-button label="Trabajador"
+                          icon="pi pi-user-plus"
+                          size="small"
+                          severity="info"
+                          [outlined]="true"
+                          (onClick)="asignarTrabajador()"
+                          [disabled]="checkSelects()"></p-button>
+                <p-button label="Iniciar"
+                          icon="pi pi-play"
+                          size="small"
+                          severity="secondary"
+                          [outlined]="true"
+                          (onClick)="iniciar()"
+                          [disabled]="checkSelects()"></p-button>
+                <p-button label="Finalizar"
+                          icon="pi pi-stop"
+                          size="small"
+                          severity="danger"
+                          [outlined]="true"
+                          (onClick)="finalizar()"
+                          [disabled]="checkSelects()"></p-button>
+            </div>
+        </div>
+
+        <!-- Banner de selección (mínima altura, solo si hay selección) -->
+        <div *ngIf="selectedRow"
+             class="px-3 py-1.5 bg-red-50 border-t border-red-100 text-xs text-red-700">
+            <i class="pi pi-check-square mr-1"></i>
+            Trabajo seleccionado:
+            <strong>{{ selectedRow.workNum }}</strong>
+            <span class="text-red-500"> · {{ selectedRow.cliente }}</span>
+        </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="wl-table-wrap mx-4 mt-3 mb-4 bg-white rounded-lg shadow-sm border border-gray-200">
+        <p-table #dt
+                 [value]="cargas"
+                 [columns]="cols"
+                 [(selection)]="selectedRow"
+                 selectionMode="single"
+                 dataKey="id"
+                 [paginator]="true"
+                 [rows]="40"
+                 [rowsPerPageOptions]="[20, 40, 80, 200]"
+                 [globalFilterFields]="['workNum','numOrden','guiaRemision','estado','operador','cliente','propietario','almacen']"
+                 [resizableColumns]="true"
+                 [scrollable]="true"
+                 scrollHeight="calc(100vh - 280px)"
+                 styleClass="wl-table p-datatable-sm"
+                 [style]="{width:'100%'}">
+
+            <!-- Caption: buscador + count -->
+            <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between gap-2 px-2 py-1">
+                    <div class="text-xs font-semibold text-gray-600">
+                        <i class="pi pi-list mr-1"></i>
+                        Trabajos
+                    </div>
+                    <span class="p-input-icon-left wl-search">
+                        <i class="pi pi-search"></i>
+                        <input pInputText type="text"
+                               (input)="dt.filterGlobal($event.target.value, 'contains')"
+                               placeholder="Buscar..." />
+                    </span>
+                </div>
             </ng-template>
 
+            <ng-template pTemplate="colgroup" let-columns>
+                <colgroup>
+                    <col *ngFor="let col of columns" [ngStyle]="{'width': col.width}" />
+                </colgroup>
+            </ng-template>
 
-          </p-dropdown>
-        </div>
-        <div class="flex items-end">
-          <p-button label="Buscar"
-                    icon="pi pi-search"
-                    class="w-full"
-                    (onClick)="buscar()"
-                    severity="danger"></p-button>
-        </div>
-      </div>
-    </div>
-  
-    <!-- Acciones -->
-    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
-      <div *ngIf="checkSelects(); else seleccionadas">
-        <h3 class="text-lg font-semibold text-gray-700">Trabajos</h3>
-        <p class="text-sm text-gray-500">Listado de trabajos del sistema</p>
-      </div>
-      <ng-template #seleccionadas>
-        <h3 class="text-lg font-semibold text-gray-700">Cargas seleccionadas: {{ selection.selected.length }}</h3>
-        <p class="text-sm text-gray-500">Listado de cargas del sistema</p>
-      </ng-template>
-  
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <p-button label="Área despacho" class="w-full" severity="warning" icon="pi pi-external-link" (onClick)="asignarPuerta()"></p-button>
-        <p-button label="Asignar Trabajador" class="w-full" severity="primary" icon="pi pi-user-plus" (onClick)="asignarTrabajador()"></p-button>
-        <p-button label="Iniciar Picking" class="w-full" severity="secondary" icon="pi pi-play" (onClick)="iniciar()"></p-button>
-        <p-button label="Finalizar Picking" class="w-full" severity="danger" icon="pi pi-stop" (onClick)="finalizar()"></p-button>
-      </div>
-    </div>
-  
-    <!-- Tabla -->
-    <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-600">
-      <p-table #dt
-               [value]="cargas"
-               [columns]="cols"
-               [(selection)]="selectedRow"
-               selectionMode="multiple"
-               [paginator]="true"
-               [rows]="40"
-               [globalFilterFields]="['workNum','numOrden','guiaRemision','estado','operador']"
-               [resizableColumns]="true"
-               [scrollable]="true"
-               [style]="{width:'100%'}">
-  
-        <!-- Filtro global -->
-        <ng-template pTemplate="caption">
-          <div class="flex justify-end">
-            <span class="p-input-icon-left">
-              <i class="pi pi-search"></i>
-              <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')" placeholder="Buscar..." />
-            </span>
-          </div>
-        </ng-template>
-  
-        <!-- Columnas -->
-        <ng-template pTemplate="colgroup" let-columns>
-          <colgroup>
-            <col *ngFor="let col of columns" [ngStyle]="{'width': col.width}" />
-          </colgroup>
-        </ng-template>
-  
-        <ng-template pTemplate="header" let-columns>
-          <tr>
-            <th *ngFor="let col of columns" [pSortableColumn]="col.field">
-              {{ col.header }}
-              <p-sortIcon [field]="col.field"></p-sortIcon>
-            </th>
-          </tr>
-        </ng-template>
-  
-        <!-- Cuerpo -->
-        <ng-template pTemplate="body" let-row let-columns="columns">
-          <tr [pSelectableRow]="row">
-            <td class="space-x-2">
-              <button class="p-button p-button-text p-button-sm border border-green-500" (click)="verExcel(row.id)">
-                <i class="pi pi-file-excel text-green-600"></i>
-              </button>
-              <button class="p-button p-button-text p-button-sm border border-red-500" (click)="verPdf(row.id)">
-                <i class="pi pi-file-pdf text-red-600"></i>
-              </button>
-              <button class="p-button p-button-text p-button-sm border border-blue-500" (click)="eliminar(row.id)">
-                <i class="fa fa-trash text-blue-600"></i>
-              </button>
-            </td>
-            <td>{{ row.almacen }}</td>
-            <td>{{ row.propietario }}</td>
-            <td>{{ row.workNum }}</td>
-            <td>{{ row.numOrden }}</td>
-            <td>{{ row.fechaRegistro | date: 'dd/MM/yyyy' }}</td>
-            <td>{{ row.cliente }}</td>
-            <td>{{ row.guiaRemision }}</td>
-            <td>{{ row.cantidadLPN }}</td>
-            <td>{{ row.cantidadTotal }}</td>
-            <td>
-              <span [ngClass]="{
-                'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs': row.estado === 'Almacenado',
-                'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs': row.estado === 'Asignado'
-              }">
-                {{ row.estado }}
-              </span>
-            </td>
-            <td>{{ row.operador }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </div>
-  
+            <ng-template pTemplate="header" let-columns>
+                <tr>
+                    <th *ngFor="let col of columns" [pSortableColumn]="col.field" class="wl-th">
+                        <div class="flex items-center justify-between gap-1">
+                            <span>{{ col.header }}</span>
+                            <p-sortIcon [field]="col.field"></p-sortIcon>
+                        </div>
+                    </th>
+                </tr>
+            </ng-template>
 
-  
+            <ng-template pTemplate="body" let-row let-columns="columns">
+                <tr [pSelectableRow]="row" class="wl-row">
+
+                    <!-- Acciones -->
+                    <td class="wl-actions">
+                        <button class="wl-icon-btn excel"
+                                title="Exportar a Excel"
+                                (click)="verExcel(row.id)">
+                            <i class="pi pi-file-excel"></i>
+                        </button>
+                        <button class="wl-icon-btn pdf"
+                                title="Exportar a PDF"
+                                (click)="verPdf(row.id)">
+                            <i class="pi pi-file-pdf"></i>
+                        </button>
+                        <button class="wl-icon-btn delete"
+                                title="Eliminar planificación"
+                                (click)="eliminar(row.id)">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </td>
+
+                    <td class="text-xs">{{ row.almacen }}</td>
+                    <td class="text-xs">{{ row.propietario }}</td>
+                    <td class="text-xs font-semibold text-gray-800">{{ row.workNum }}</td>
+                    <td class="text-xs">{{ row.numOrden }}</td>
+                    <td class="text-xs whitespace-nowrap">{{ row.fechaRegistro | date: 'dd/MM/yyyy' }}</td>
+                    <td class="text-xs truncate">{{ row.cliente }}</td>
+                    <td class="text-xs">{{ row.guiaRemision }}</td>
+                    <td class="text-xs text-center">{{ row.cantidadLPN }}</td>
+                    <td class="text-xs text-center">{{ row.cantidadTotal }}</td>
+
+                    <!-- Avance -->
+                    <td class="wl-avance">
+                        <ng-container *ngIf="avanceDe(row.id) as av; else sinAv">
+                            <div class="wl-progress">
+                                <div class="wl-progress-bar"
+                                     [ngClass]="{
+                                       'pct-100': av.porcentaje >= 100,
+                                       'pct-mid': av.porcentaje > 0 && av.porcentaje < 100,
+                                       'pct-zero': av.porcentaje === 0
+                                     }"
+                                     [style.width.%]="av.porcentaje">
+                                </div>
+                                <span class="wl-progress-label"
+                                      [ngClass]="{
+                                        'pct-100-text': av.porcentaje >= 100,
+                                        'pct-mid-text': av.porcentaje > 0 && av.porcentaje < 100,
+                                        'pct-zero-text': av.porcentaje === 0
+                                      }">
+                                    {{ av.porcentaje }}%
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-gray-500 mt-0.5">
+                                <span>{{ av.picado }} / {{ av.total }} und</span>
+                                <span>{{ av.lineasCerradas }}/{{ av.lineasTotal }} L</span>
+                            </div>
+                        </ng-container>
+                        <ng-template #sinAv>
+                            <span class="text-xs text-gray-300">—</span>
+                        </ng-template>
+                    </td>
+
+                    <!-- Estado -->
+                    <td>
+                        <span class="wl-badge"
+                              [ngClass]="{
+                                'badge-green': row.estado === 'Almacenado',
+                                'badge-yellow': row.estado === 'Asignado',
+                                'badge-blue': row.estado !== 'Almacenado' && row.estado !== 'Asignado'
+                              }">
+                            {{ row.estado || '—' }}
+                        </span>
+                    </td>
+
+                    <td class="text-xs">{{ row.operador || '—' }}</td>
+                </tr>
+            </ng-template>
+
+            <!-- Empty state -->
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="13" class="text-center py-10 text-gray-400">
+                        <i class="pi pi-inbox text-4xl block mb-2"></i>
+                        <span class="text-sm">No hay trabajos pendientes para mostrar.</span>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
 <p-confirmDialog></p-confirmDialog>
 <p-toast></p-toast>

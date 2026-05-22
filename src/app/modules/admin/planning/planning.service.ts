@@ -155,12 +155,20 @@ FinPicking(ids: string) {
 }
 
 getAllWork(model: any): Observable<any> {
-  
+
   const params = new HttpParams()
     .set('PropietarioId', model.PropietarioId)
     .set('EstadoId', null);
 
     return this.http.get<any>(this.baseUrlPlanning + 'GetAllWork', { params });
+}
+
+/**
+ * Avance batch por wrkId — para refresh en vivo del listado.
+ * Devuelve [{ wrkId, totalUnidades, picadoUnidades, porcentaje, lineasTotal, lineasCerradas }]
+ */
+getWorksAvance(wrkIds: number[]): Observable<any[]> {
+    return this.http.post<any[]>(this.baseUrlPlanning + 'works/avance', { wrkIds });
 }
 
 deletePlanificacion(id: any): Observable<OrdenSalida[]> {

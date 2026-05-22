@@ -16,6 +16,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import * as FileSaver from 'file-saver';
+import { Subject, takeUntil } from 'rxjs';
 import { ClienteService } from '../../_services/cliente.service';
 import { OrdenSalida, carga } from '../../despachos/despachos.types';
 import { PlanningService } from '../planning.service';
@@ -23,6 +24,7 @@ import { AsignarPickerComponent } from './AsignarPicker/AsignarPicker.component'
 import { AsignarPuertaComponent } from './AsignarPuerta/AsignarPuerta.component';
 import { PropietarioService } from '../../_services/propietario.service';
 import { ReportesService } from '../../reportes/reportes.service';
+import { WrkProgressService } from 'app/core/wrk-progress/wrk-progress.service';
 
 @Component({
     selector: 'app-work-list',
@@ -55,6 +57,8 @@ export class WorkListComponent {
     public authService = inject(AuthService);
     private messageService = inject(MessageService);
     private confirmationService = inject(ConfirmationService);
+    private wrkProgress = inject(WrkProgressService);
+    private _destroy$ = new Subject<void>();
 
     cargas: carga[] = [];
     ordenesaux: OrdenSalida[] = [];
@@ -65,14 +69,89 @@ export class WorkListComponent {
     cols: any[] = [];
     clientes: SelectItem[] = [];
     EstadoId: number;
-    selectedRow: carga[];
+    selectedRow: carga | null = null;
     selection = new SelectionModel<carga>(true, []);
+
+    /** Avance por wrkId — se actualiza en VIVO via SignalR (wrk-progress hub).
+     *  Polling cada 60s como fallback por si se cae la conexión. */
+    avancePorWrk: Map<number, { porcentaje: number; picado: number; total: number; lineasCerradas: number; lineasTotal: number }> = new Map();
+    private _pollHandle: any = null;
+    private readonly _pollIntervalMs = 60_000; // fallback cuando SignalR está down
 
     ref: DynamicDialogRef | undefined;
 
     ngOnInit(): void {
         this.inicializarColumnas();
         this.cargarPropietarios();
+        this._suscribirSignalR();
+        this._iniciarPolling();
+    }
+
+    ngOnDestroy(): void {
+        this._detenerPolling();
+        this._destroy$.next();
+        this._destroy$.complete();
+    }
+
+    private async _suscribirSignalR(): Promise<void> {
+        await this.wrkProgress.ensureConnected();
+        this.wrkProgress.avance$
+            .pipe(takeUntil(this._destroy$))
+            .subscribe((ev) => {
+                // Actualizar in-place. Si la wrk no está en la lista visible, lo ignoramos
+                // (se rehidratará al próximo buscar()).
+                const exists = (this.cargas ?? []).some(c => c.id === ev.wrkId);
+                if (!exists) return;
+                const nuevo = new Map(this.avancePorWrk);
+                nuevo.set(ev.wrkId, {
+                    porcentaje: ev.porcentaje,
+                    picado: ev.picadoUnidades,
+                    total: ev.totalUnidades,
+                    lineasCerradas: ev.lineasCerradas,
+                    lineasTotal: ev.lineasTotal,
+                });
+                this.avancePorWrk = nuevo;
+            });
+    }
+
+    private _iniciarPolling(): void {
+        this._detenerPolling();
+        this._pollHandle = setInterval(() => this._refrescarAvances(), this._pollIntervalMs);
+    }
+
+    private _detenerPolling(): void {
+        if (this._pollHandle) {
+            clearInterval(this._pollHandle);
+            this._pollHandle = null;
+        }
+    }
+
+    private _refrescarAvances(): void {
+        const ids = (this.cargas ?? []).map(c => c.id).filter(id => !!id);
+        if (ids.length === 0) return;
+        this.ordensalidaService.getWorksAvance(ids).subscribe({
+            next: (list) => {
+                const nuevo = new Map<number, any>();
+                for (const a of list ?? []) {
+                    nuevo.set(a.wrkId ?? a.WrkId, {
+                        porcentaje: a.porcentaje ?? a.Porcentaje ?? 0,
+                        picado: a.picadoUnidades ?? a.PicadoUnidades ?? 0,
+                        total: a.totalUnidades ?? a.TotalUnidades ?? 0,
+                        lineasCerradas: a.lineasCerradas ?? a.LineasCerradas ?? 0,
+                        lineasTotal: a.lineasTotal ?? a.LineasTotal ?? 0,
+                    });
+                }
+                this.avancePorWrk = nuevo;
+            },
+            error: (err) => {
+                console.warn('No se pudo refrescar avances:', err);
+            },
+        });
+    }
+
+    /** Lo usa el template para leer el avance de cada fila. */
+    avanceDe(id: number) {
+        return this.avancePorWrk.get(id) ?? null;
     }
     private inicializarColumnas(): void {
         this.cols = [
@@ -86,6 +165,7 @@ export class WorkListComponent {
             { header: 'Guía Remisión', field: 'guiaRemision', width: '160px' },
             { header: '# Pallets', field: 'cantidadLPN', width: '100px' },
             { header: '# Bultos', field: 'cantidadTotal', width: '100px' },
+            { header: 'Avance', field: 'avance', width: '200px' },
             { header: 'Estado', field: 'estado', width: '120px' },
             { header: 'Operador', field: 'operador', width: '120px' },
         ];
@@ -117,7 +197,8 @@ export class WorkListComponent {
     }
 
     checkSelects(): boolean {
-        return this.selection.selected.length === 0;
+        // Selección simple — `selectedRow` es 1 carga o null.
+        return !this.selectedRow;
     }
 
     verPdf(id: any): void {
@@ -246,10 +327,7 @@ export class WorkListComponent {
     }
 
     asignarPuerta(): void {
-        if (!this.selectedRow || this.selectedRow.length !== 1) {
-            this.selectedRow = null;
-            return;
-        }
+        if (!this.selectedRow) return;
 
         const ref = this.dialogService.open(AsignarPuertaComponent, {
             header: 'Asignar Puerta',
@@ -278,10 +356,7 @@ export class WorkListComponent {
     }
 
     asignarTrabajador(): void {
-        if (!this.selectedRow || this.selectedRow.length !== 1) {
-            this.selectedRow = null;
-            return;
-        }
+        if (!this.selectedRow) return;
 
         const ref = this.dialogService.open(AsignarPickerComponent, {
             width: '400px',
@@ -310,12 +385,9 @@ export class WorkListComponent {
     }
 
     iniciar(): void {
-        if (!this.selectedRow || this.selectedRow.length !== 1) {
-            this.selectedRow = null;
-            return;
-        }
+        if (!this.selectedRow) return;
 
-        const row = this.selectedRow[0];
+        const row = this.selectedRow;
 
         if (!row.usuarioId || !row.destinoId) {
             this.messageService.add({
@@ -327,21 +399,18 @@ export class WorkListComponent {
         }
 
         this.confirmationService.confirm({
-            acceptLabel: 'Iniciar', // Texto del botón "Aceptar"
-            rejectLabel: 'Cancelar', // Texto del botón "Rechazar"
-            acceptIcon: 'pi pi-check', // Icono del botón "Aceptar"
-            rejectIcon: 'pi pi-times', // Icono del botón "Rechazar"
+            acceptLabel: 'Iniciar',
+            rejectLabel: 'Cancelar',
+            acceptIcon: 'pi pi-check',
+            rejectIcon: 'pi pi-times',
             message: '¿Está seguro que desea iniciar este Trabajo?',
             header: 'Confirmar Guardado',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                if (!this.selectedRow || this.selectedRow.length !== 1) {
-                    this.selectedRow = null;
-                    return;
-                }
+                if (!this.selectedRow) return;
 
                 this.ordensalidaService
-                    .InicioPicking(this.selectedRow[0].id.toString())
+                    .InicioPicking(this.selectedRow.id.toString())
                     .subscribe(() => {
                         this.buscar();
 
@@ -357,12 +426,9 @@ export class WorkListComponent {
     }
 
     finalizar(): void {
-        if (!this.selectedRow || this.selectedRow.length !== 1) {
-            this.selectedRow = null;
-            return;
-        }
+        if (!this.selectedRow) return;
 
-        const row = this.selectedRow[0];
+        const row = this.selectedRow;
 
         if (row.estadoId !== 32) {
             this.messageService.add({
@@ -374,16 +440,18 @@ export class WorkListComponent {
         }
 
         this.confirmationService.confirm({
-            acceptLabel: 'Finalizar', // Texto del botón "Aceptar"
-            rejectLabel: 'Cancelar', // Texto del botón "Rechazar"
-            acceptIcon: 'pi pi-check', // Icono del botón "Aceptar"
-            rejectIcon: 'pi pi-times', // Icono del botón "Rechazar"
+            acceptLabel: 'Finalizar',
+            rejectLabel: 'Cancelar',
+            acceptIcon: 'pi pi-check',
+            rejectIcon: 'pi pi-times',
             message: '¿Está seguro que desea finalizar este trabajo?',
             header: 'Confirmar',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
+                if (!this.selectedRow) return;
+
                 this.ordensalidaService
-                    .FinPicking(this.selectedRow[0].id.toString())
+                    .FinPicking(this.selectedRow.id.toString())
                     .subscribe(() => {
                         this.buscar();
 
@@ -406,10 +474,11 @@ export class WorkListComponent {
             next: (list) => {
                 this.cargas = list;
                 console.log('model', this.cargas);
+                // Avance inicial inmediato — el polling se encargará de refrescos posteriores.
+                this._refrescarAvances();
             },
             error: (err) => {
                 console.error('Error al obtener órdenes de salida:', err);
-                // Opcional: mostrar mensaje con Toastr o PrimeNG toast
             },
         });
     }
