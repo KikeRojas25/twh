@@ -74,6 +74,12 @@ export interface HubErrorEvent {
     mensaje: string;
 }
 
+// Resultado del envío de correo en segundo plano (push del backend).
+export interface EmailStatusEvent {
+    ok: boolean;
+    mensaje: string;
+}
+
 // Auditoría
 export interface ConsumoDiario {
     fecha: string;

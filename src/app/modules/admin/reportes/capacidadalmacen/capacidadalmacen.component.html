@@ -13,7 +13,14 @@
         <h1 class="text-xl font-bold text-gray-900">Dashboard de Ocupabilidad</h1>
         <p class="text-sm text-gray-500">Disponibilidad de ubicaciones por almacén en tiempo real</p>
       </div>
-      <div class="ml-auto">
+      <div class="ml-auto flex items-center gap-3">
+        <!-- TEMPORAL: acceso a la vista 3D por zonas (quitar cuando exista entrada de menú) -->
+        <a routerLink="/reporte/zonas3d"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+          title="Abrir la vista 3D por zonas (temporal)">
+          <i class="pi pi-box text-[11px]"></i>
+          Vista 3D por zonas
+        </a>
         <span *ngIf="cargando"
           class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-600">
           <span class="h-2 w-2 animate-pulse rounded-full bg-indigo-500"></span>

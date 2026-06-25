@@ -228,6 +228,16 @@ export const appRoutes: Route[] = [
                                           .then(m => m.CapacidadalmacenComponent)
                   },
                   {
+                    path: 'zonas3d',
+                    loadComponent: () => import('./modules/admin/reportes/zonas3d/zonas3d.component')
+                                          .then(m => m.Zonas3dComponent)
+                  },
+                  {
+                    path: 'zonas-editor',
+                    loadComponent: () => import('./modules/admin/reportes/zonas-editor/zonas-editor.component')
+                                          .then(m => m.ZonasEditorComponent)
+                  },
+                  {
                     path: 'reporteubicaciones',
                     loadComponent: () => import('./modules/admin/reportes/reporteubicaciones/reporteubicaciones.component')
                                           .then(m => m.ReporteubicacionesComponent)

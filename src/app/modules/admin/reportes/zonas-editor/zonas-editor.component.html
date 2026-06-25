@@ -1,0 +1,185 @@
+<div class="flex flex-col flex-auto min-w-0 h-full bg-gray-50">
+  <p-toast></p-toast>
+  <p-confirmDialog [style]="{ width: '440px' }"></p-confirmDialog>
+
+  <!-- Encabezado -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900 cursor-pointer">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="icon-size-4 text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900 cursor-pointer">Reportes</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="icon-size-4 text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <span class="ml-1 text-gray-900 font-semibold">Gestor de zonas</span>
+        </div>
+      </div>
+      <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Gestor de zonas
+        </h2>
+        <span *ngIf="almacenNombre"
+              class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+          <i class="pi pi-building text-[10px]"></i>{{ almacenNombre }}
+        </span>
+      </div>
+    </div>
+
+    <div class="shrink-0 flex items-center gap-2">
+      <button pButton type="button" icon="pi pi-arrow-left" label="Volver al reporte"
+        class="p-button-text p-button-secondary p-button-sm" (click)="volverAlReporte()"></button>
+      <div class="inline-flex items-center gap-2 rounded-lg bg-gray-50 ring-1 ring-gray-200 pl-3 pr-1.5 py-1">
+        <i class="pi pi-building text-gray-400 text-xs"></i>
+        <span class="text-xs font-medium text-gray-500">Almacén</span>
+        <p-dropdown
+          [options]="almacenes"
+          [(ngModel)]="almacenSeleccionado"
+          (onChange)="onAlmacenChange()"
+          appendTo="body" [filter]="true"
+          styleClass="z3d-dropdown w-56" placeholder="Seleccione…">
+        </p-dropdown>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cargando almacenes -->
+  <div *ngIf="cargandoAlmacenes" class="flex-1 grid place-items-center">
+    <p-progressSpinner styleClass="!h-10 !w-10" strokeWidth="4"></p-progressSpinner>
+  </div>
+
+  <!-- Cuerpo: panel de zonas + visor -->
+  <div *ngIf="!cargandoAlmacenes && almacenSeleccionado" class="flex flex-auto min-h-0 gap-3 p-3 sm:p-4">
+
+    <!-- Panel de zonas -->
+    <aside class="w-72 shrink-0 flex flex-col rounded-xl bg-white ring-1 ring-gray-200 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-3 py-2.5 border-b border-gray-100">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-tags text-indigo-500 text-sm"></i>
+          <span class="font-semibold text-gray-800 text-sm">Zonas</span>
+          <span class="text-[11px] text-gray-400">{{ zonas.length }}</span>
+        </div>
+        <button pButton type="button" icon="pi pi-plus" label="Nueva"
+          class="p-button-sm p-button-outlined" (click)="nuevaZona()"></button>
+      </div>
+
+      <div *ngIf="cargandoZonas" class="grid place-items-center py-8">
+        <p-progressSpinner styleClass="!h-7 !w-7" strokeWidth="4"></p-progressSpinner>
+      </div>
+
+      <div *ngIf="!cargandoZonas" class="flex-1 overflow-y-auto p-2 space-y-1">
+
+        <p *ngIf="zonas.length === 0" class="text-center text-xs text-gray-400 py-6">
+          No hay zonas. Creá la primera con «Nueva».
+        </p>
+
+        <!-- Cada zona -->
+        <div *ngFor="let z of zonas" (click)="elegirTarget(z.id)"
+             class="group rounded-lg ring-1 px-2.5 py-2 cursor-pointer transition-colors"
+             [class.ring-indigo-400]="zonaTarget === z.id"
+             [class.bg-indigo-50]="zonaTarget === z.id"
+             [class.ring-gray-200]="zonaTarget !== z.id"
+             [class.hover:bg-gray-50]="zonaTarget !== z.id">
+          <div class="flex items-center gap-2">
+            <span class="h-4 w-4 rounded shrink-0 ring-1 ring-black/10" [style.background]="colorZona(z)"></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span *ngIf="z.codigo" class="text-[9px] font-bold text-gray-400 font-mono shrink-0">{{ z.codigo }}</span>
+                <span class="text-[13px] font-semibold text-gray-800 truncate">{{ z.nombre }}</span>
+                <i *ngIf="zonaTarget === z.id" class="pi pi-check-circle text-indigo-500 text-[11px]" title="Zona destino"></i>
+              </div>
+              <div class="text-[10px] text-gray-400 truncate">
+                <ng-container *ngIf="conteo(z.id) as c; else sinDatos">
+                  {{ c.ocupadas }}/{{ c.total }} ocupadas
+                </ng-container>
+                <ng-template #sinDatos>Sin ubicaciones</ng-template>
+              </div>
+            </div>
+            <!-- Acciones -->
+            <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button type="button" (click)="seleccionarUbicacionesDeZona(z.id, $event)"
+                class="h-6 w-6 grid place-items-center rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50"
+                pTooltip="Seleccionar sus ubicaciones" tooltipPosition="top">
+                <i class="pi pi-clone text-[11px]"></i>
+              </button>
+              <button type="button" (click)="editarZona(z, $event)"
+                class="h-6 w-6 grid place-items-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                pTooltip="Editar" tooltipPosition="top">
+                <i class="pi pi-pencil text-[11px]"></i>
+              </button>
+              <button type="button" (click)="eliminarZona(z, $event)"
+                class="h-6 w-6 grid place-items-center rounded text-gray-400 hover:text-red-600 hover:bg-red-50"
+                pTooltip="Eliminar" tooltipPosition="top">
+                <i class="pi pi-trash text-[11px]"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin zona (orphans): solo permite seleccionarlas en el 3D -->
+        <div *ngIf="sinZona as sz" (click)="seleccionarUbicacionesDeZona(null, $event)"
+             class="rounded-lg ring-1 ring-dashed ring-gray-300 px-2.5 py-2 cursor-pointer transition-colors mt-2 hover:bg-gray-50">
+          <div class="flex items-center gap-2">
+            <span class="h-4 w-4 rounded shrink-0 ring-1 ring-black/10 bg-gray-300"></span>
+            <div class="min-w-0 flex-1">
+              <span class="text-[13px] font-semibold text-gray-600">Sin zona</span>
+              <div class="text-[10px] text-gray-400">{{ sz.total }} ubicación(es) · click para seleccionarlas</div>
+            </div>
+            <i class="pi pi-clone text-[11px] text-gray-400"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie de ayuda -->
+      <div class="px-3 py-2 border-t border-gray-100 text-[10px] leading-relaxed text-gray-400">
+        Seleccioná ubicaciones en el 3D y elegí la zona en la <b>barra inferior</b> para asignarlas.
+        (Click en una zona de esta lista también la fija como destino.)
+      </div>
+    </aside>
+
+    <!-- Visor + barra de acción -->
+    <div class="relative flex-1 min-w-0 flex flex-col">
+      <app-zonas3d-viewer #viewer
+        [almacenId]="almacenSeleccionado"
+        [almacenNombre]="almacenNombre"
+        [modoEdicion]="true"
+        (seleccionChange)="onSeleccionChange($event)"
+        (resumenChange)="onResumenChange($event)">
+      </app-zonas3d-viewer>
+
+      <!-- Barra de acción (selección activa) -->
+      <div *ngIf="seleccion.length > 0"
+           class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 rounded-xl bg-white shadow-xl ring-1 ring-gray-200 px-4 py-2.5">
+        <span class="inline-flex items-center gap-2 text-sm">
+          <span class="grid place-items-center h-6 min-w-6 px-1.5 rounded-full bg-indigo-600 text-white text-xs font-bold">{{ seleccion.length }}</span>
+          <span class="text-gray-600">seleccionada(s)</span>
+        </span>
+        <span class="h-5 w-px bg-gray-200"></span>
+        <!-- Selector de zona destino + asignar -->
+        <div class="inline-flex items-center gap-2">
+          <span class="text-xs text-gray-500 whitespace-nowrap">Asignar a</span>
+          <div class="inline-flex items-center rounded-md ring-1 ring-gray-300 bg-white">
+            <p-dropdown [options]="zonaOpciones" [(ngModel)]="zonaTarget"
+              appendTo="body" [filter]="true" styleClass="z3d-dropdown w-44"
+              placeholder="Elegí zona…" emptyMessage="No hay zonas"></p-dropdown>
+          </div>
+          <button pButton type="button" icon="pi pi-check" label="Asignar"
+            class="p-button-sm" (click)="asignar()" [disabled]="guardando || zonaTarget == null"
+            pTooltip="Asigná las seleccionadas a la zona elegida" tooltipPosition="top"></button>
+        </div>
+        <span class="h-5 w-px bg-gray-200"></span>
+        <button pButton type="button" icon="pi pi-times-circle" label="Quitar de su zona"
+          class="p-button-sm p-button-outlined p-button-secondary" (click)="quitar()" [disabled]="guardando"></button>
+        <button pButton type="button" icon="pi pi-eraser"
+          class="p-button-sm p-button-text p-button-secondary" (click)="limpiarSeleccion()"
+          pTooltip="Limpiar selección" tooltipPosition="top"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin almacenes -->
+  <div *ngIf="!cargandoAlmacenes && almacenes.length === 0" class="flex-1 grid place-items-center text-gray-400">
+    No hay almacenes disponibles.
+  </div>
+</div>

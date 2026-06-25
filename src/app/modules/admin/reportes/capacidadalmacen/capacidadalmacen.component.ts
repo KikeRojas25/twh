@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
 import {
   ApexChart,
@@ -38,7 +39,7 @@ interface AlmacenResumen {
   selector: 'app-capacidadalmacen',
   standalone: true,
   templateUrl: './capacidadalmacen.component.html',
-  imports: [CommonModule, NgApexchartsModule, DialogModule, Almacen3dViewerComponent],
+  imports: [CommonModule, RouterLink, NgApexchartsModule, DialogModule, Almacen3dViewerComponent],
 })
 export class CapacidadalmacenComponent implements OnInit {
   @ViewChild('barChart') barChart!: ChartComponent;

@@ -76,6 +76,25 @@ export class ChatChartComponent implements AfterViewInit, OnChanges, OnDestroy {
                     title: this.datos.titulo
                         ? { display: true, text: this.datos.titulo, font: { size: 12 } }
                         : { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx: any) => {
+                                const data = (ctx.dataset?.data ?? []) as number[];
+                                const total = data.reduce(
+                                    (a, b) => a + (Number(b) || 0),
+                                    0
+                                );
+                                const val =
+                                    Number(ctx.parsed?.y ?? ctx.parsed ?? ctx.raw) || 0;
+                                const pct =
+                                    total > 0
+                                        ? ((val / total) * 100).toFixed(1)
+                                        : '0';
+                                const label = ctx.label ?? ctx.dataset?.label ?? '';
+                                return `${label}: ${val.toLocaleString()} (${pct}%)`;
+                            },
+                        },
+                    },
                 },
                 scales: isPie ? {} : { y: { beginAtZero: true } },
             },

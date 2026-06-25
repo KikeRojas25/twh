@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -25,6 +26,7 @@ import { RolesModalComponent } from './roles/roles-modal.component';
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     InputTextModule,
     ButtonModule,
     TableModule,

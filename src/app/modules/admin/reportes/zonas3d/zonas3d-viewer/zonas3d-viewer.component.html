@@ -1,0 +1,267 @@
+<div class="flex flex-col gap-3 h-full">
+
+  <!-- Toolbar compacto -->
+  <div class="flex flex-wrap items-center gap-2">
+
+    <!-- Filtros agrupados -->
+    <div class="flex flex-wrap items-center gap-1 rounded-xl bg-white ring-1 ring-gray-200 px-2 py-1 shadow-sm">
+      <i class="pi pi-filter text-gray-400 text-[11px] mx-1"></i>
+      <p-dropdown [options]="areas" [(ngModel)]="areaSeleccionada" (onChange)="onAreaChange()"
+        appendTo="body" styleClass="z3d-dropdown" placeholder="Área"></p-dropdown>
+      <span class="h-4 w-px bg-gray-200"></span>
+      <p-dropdown [options]="zonasOpciones" [(ngModel)]="zonaSeleccionada" (onChange)="onZonaChange()"
+        appendTo="body" [filter]="true" [showClear]="true" styleClass="z3d-dropdown" placeholder="Zona"></p-dropdown>
+      <span class="h-4 w-px bg-gray-200"></span>
+      <p-dropdown [options]="clientesOpciones" [(ngModel)]="clienteSeleccionado" (onChange)="onClienteChange()"
+        appendTo="body" [filter]="true" [showClear]="true" styleClass="z3d-dropdown" placeholder="Propietario"></p-dropdown>
+    </div>
+
+    <!-- Controles de vista (segmentado, solo íconos) -->
+    <div class="inline-flex items-center rounded-xl overflow-hidden ring-1 ring-gray-200 bg-white shadow-sm">
+      <button (click)="vistaIsometrica()" title="Isométrica"
+        class="grid place-items-center h-8 w-9 text-gray-500 hover:bg-gray-50 hover:text-gray-800 border-r border-gray-200 transition-colors">
+        <i class="pi pi-box text-sm"></i>
+      </button>
+      <button (click)="vistaSuperior()" title="Superior"
+        class="grid place-items-center h-8 w-9 text-gray-500 hover:bg-gray-50 hover:text-gray-800 border-r border-gray-200 transition-colors">
+        <i class="pi pi-arrow-down text-sm"></i>
+      </button>
+      <button (click)="vistaLateral()" title="Lateral"
+        class="grid place-items-center h-8 w-9 text-gray-500 hover:bg-gray-50 hover:text-gray-800 border-r border-gray-200 transition-colors">
+        <i class="pi pi-arrow-right text-sm"></i>
+      </button>
+      <button (click)="resetCamera()" title="Centrar"
+        class="grid place-items-center h-8 w-9 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors">
+        <i class="pi pi-refresh text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Mostrar / ocultar racks -->
+    <button (click)="toggleEstructuraRack()"
+      class="grid place-items-center h-8 w-9 rounded-xl ring-1 shadow-sm transition-colors"
+      [class.bg-indigo-600]="!mostrarEstructuraRack"
+      [class.text-white]="!mostrarEstructuraRack"
+      [class.ring-indigo-600]="!mostrarEstructuraRack"
+      [class.hover:bg-indigo-700]="!mostrarEstructuraRack"
+      [class.bg-white]="mostrarEstructuraRack"
+      [class.text-gray-500]="mostrarEstructuraRack"
+      [class.ring-gray-200]="mostrarEstructuraRack"
+      [class.hover:bg-gray-50]="mostrarEstructuraRack"
+      [title]="mostrarEstructuraRack ? 'Ocultar racks (solo pallets)' : 'Mostrar racks'">
+      <i class="pi text-sm" [class.pi-eye-slash]="mostrarEstructuraRack" [class.pi-eye]="!mostrarEstructuraRack"></i>
+    </button>
+
+    <!-- Selección por rectángulo (solo modo edición) -->
+    <button *ngIf="modoEdicion" (click)="toggleRectSelect()"
+      class="grid place-items-center h-8 w-9 rounded-xl ring-1 shadow-sm transition-colors"
+      [class.bg-indigo-600]="rectSelectActivo"
+      [class.text-white]="rectSelectActivo"
+      [class.ring-indigo-600]="rectSelectActivo"
+      [class.hover:bg-indigo-700]="rectSelectActivo"
+      [class.bg-white]="!rectSelectActivo"
+      [class.text-gray-500]="!rectSelectActivo"
+      [class.ring-gray-200]="!rectSelectActivo"
+      [class.hover:bg-gray-50]="!rectSelectActivo"
+      [title]="rectSelectActivo ? 'Selección por rectángulo activa (la cámara no rota)' : 'Activar selección por rectángulo'">
+      <i class="pi pi-stop text-sm"></i>
+    </button>
+
+    <!-- Indicadores -->
+    <div class="ml-auto flex items-center gap-1.5 text-xs">
+      <span class="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 ring-1 ring-gray-200 px-2.5 py-1">
+        <span class="text-gray-400">Total</span>
+        <span class="font-semibold text-gray-800">{{ total | number }}</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 ring-1 ring-emerald-100 px-2.5 py-1 font-semibold text-emerald-700">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>{{ ocupadas | number }}
+      </span>
+      <span class="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 ring-1 ring-gray-200 px-2.5 py-1 font-semibold text-gray-500">
+        <span class="h-1.5 w-1.5 rounded-full bg-white ring-1 ring-gray-300"></span>{{ libres | number }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="relative flex-1 rounded-xl overflow-hidden ring-1 ring-gray-200 bg-slate-100" style="min-height: 500px;"
+       [class.cursor-crosshair]="rectSelectActivo">
+    <canvas #canvasRef class="w-full h-full block outline-none"></canvas>
+
+    <!-- Rectángulo de selección (modo edición) -->
+    <div *ngIf="rectBox"
+         class="absolute border-2 border-indigo-500 bg-indigo-500/15 pointer-events-none z-20"
+         [style.left.px]="rectBox.x" [style.top.px]="rectBox.y"
+         [style.width.px]="rectBox.w" [style.height.px]="rectBox.h"></div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="absolute inset-0 grid place-items-center bg-black/50 backdrop-blur-sm">
+      <div class="flex flex-col items-center gap-3">
+        <p-progressSpinner styleClass="!h-10 !w-10" strokeWidth="4"></p-progressSpinner>
+        <p class="text-sm font-medium text-white">Cargando zonas…</p>
+      </div>
+    </div>
+
+    <!-- Panel seleccionado (click sobre una ubicación) -->
+    <div *ngIf="selectedInfo && !cargando && !modoEdicion"
+         class="absolute top-3 right-3 rounded-lg bg-white/95 backdrop-blur px-3 py-2 shadow-lg ring-2 ring-indigo-400 text-xs min-w-[260px] max-w-[320px]">
+      <button type="button" (click)="cerrarSeleccion()"
+        class="absolute top-1 right-1 h-5 w-5 grid place-items-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+        title="Cerrar">
+        <i class="pi pi-times text-[10px]"></i>
+      </button>
+      <p class="font-bold text-gray-800 pr-5">{{ selectedInfo.nombre }}</p>
+      <p class="text-gray-500 flex items-center gap-1.5">
+        Zona:
+        <span class="h-2.5 w-2.5 rounded-sm ring-1 ring-black/10" [style.background]="selectedInfo._color"></span>
+        <span class="text-gray-700 font-semibold">{{ selectedInfo.zonaNombre || 'Sin zona' }}</span>
+      </p>
+      <p class="text-gray-500">Propietario: <span class="text-gray-700">{{ selectedInfo.propietarioNombreCorto || selectedInfo.propietarioNombre || '-' }}</span></p>
+      <p class="text-gray-500">
+        Estado:
+        <span [class.text-emerald-600]="selectedInfo.estadoOcupacion === 'Ocupada'"
+              [class.text-gray-600]="selectedInfo.estadoOcupacion !== 'Ocupada'"
+              class="font-semibold">{{ selectedInfo.estadoOcupacion }}</span>
+      </p>
+      <p *ngIf="selectedInfo.totalLods > 0" class="text-gray-500">
+        LPNs: <span class="text-gray-700 font-semibold">{{ selectedInfo.totalLods }}</span>
+        · Unidades: <span class="text-gray-700 font-semibold">{{ selectedInfo.totalUnidades | number }}</span>
+      </p>
+
+      <div *ngIf="selectedInfo.totalLods > 0" class="mt-2 border-t border-gray-200 pt-2">
+        <div *ngIf="detalleCargando" class="flex items-center gap-2 text-gray-400 text-[10px] py-1">
+          <i class="pi pi-spin pi-spinner text-[10px]"></i> Cargando contenido…
+        </div>
+        <div *ngIf="!detalleCargando && detalleLods.length > 0" class="max-h-[180px] overflow-y-auto pr-1 space-y-1.5">
+          <div *ngFor="let lod of detalleLods" class="rounded bg-gray-50 px-1.5 py-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold text-[10px] text-indigo-700 truncate">{{ lod.lodNum }}</span>
+              <span class="text-[10px] text-gray-400 shrink-0">{{ lod.detalle?.length || 0 }} ítem(s)</span>
+            </div>
+            <div *ngFor="let it of lod.detalle" class="flex items-center justify-between gap-2 text-[10px] py-0.5">
+              <div class="min-w-0 flex-1">
+                <div class="font-mono font-semibold text-gray-700 truncate">{{ it.productoCodigo }}</div>
+                <div class="text-gray-500 truncate">{{ it.productoDescripcion }}</div>
+              </div>
+              <span class="shrink-0 font-bold text-gray-800 text-[11px]">{{ it.untQty | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" (click)="ampliarSeleccion()"
+        class="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1.5 text-[11px] font-semibold shadow-sm transition-colors">
+        <i class="pi pi-window-maximize text-[10px]"></i> Ampliar
+      </button>
+    </div>
+
+    <!-- Hover -->
+    <div *ngIf="hoverInfo && !selectedInfo && !cargando"
+         class="absolute top-3 right-3 rounded-lg bg-white/95 backdrop-blur px-3 py-2 shadow-lg ring-1 ring-gray-200 text-xs pointer-events-none">
+      <p class="font-bold text-gray-800">{{ hoverInfo.nombre }}</p>
+      <p class="text-gray-500">Zona: <span class="text-gray-700">{{ hoverInfo.zona }}</span></p>
+      <p class="text-gray-500">Propietario: <span class="text-gray-700">{{ hoverInfo.cliente }}</span></p>
+      <p class="text-gray-500">
+        Estado:
+        <span [class.text-emerald-600]="hoverInfo.estado === 'Ocupada'"
+              [class.text-gray-600]="hoverInfo.estado !== 'Ocupada'"
+              class="font-semibold">{{ hoverInfo.estado }}</span>
+      </p>
+    </div>
+
+    <!-- Hint -->
+    <div class="absolute bottom-3 left-3 text-[11px] text-white bg-slate-800/85 rounded px-2 py-1 backdrop-blur">
+      <ng-container *ngIf="!modoEdicion">
+        Click izq + drag = rotar · Rueda = zoom · Click der + drag = pan · <strong>Click sobre pallet → Ampliar</strong>
+      </ng-container>
+      <ng-container *ngIf="modoEdicion">
+        Click = seleccionar · Ctrl/⇧+click = agregar · <strong>Botón ▦ = selección por rectángulo</strong> · Rueda = zoom
+      </ng-container>
+    </div>
+
+    <!-- Panel de zonas (leyenda + detalle) -->
+    <div *ngIf="!cargando && zonasResumen.length > 0 && !modoEdicion"
+         class="absolute top-3 left-3 rounded-lg bg-white/95 backdrop-blur shadow-lg ring-1 ring-gray-200 text-xs w-[280px] overflow-hidden">
+
+      <!-- Detalle de la zona seleccionada -->
+      <ng-container *ngIf="zonaDetalle as z">
+        <div class="px-3 py-2 text-white flex items-center gap-2" [style.background]="z.color">
+          <i class="pi pi-map-marker text-[11px]"></i>
+          <span class="font-bold uppercase tracking-wide text-[11px] truncate">{{ z.nombre }}</span>
+          <button type="button" (click)="seleccionarZona(null)"
+                  class="ml-auto text-[10px] bg-white/25 hover:bg-white/40 rounded px-1.5 py-0.5">
+            Ver todas
+          </button>
+        </div>
+        <div *ngIf="z.cliente" class="px-3 py-1 text-[10px] text-gray-500 border-b border-gray-100">
+          Propietario asignado: <span class="font-semibold text-gray-700">{{ z.cliente }}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1 px-3 py-2 border-b border-gray-100">
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wide text-gray-400">Total</p>
+            <p class="text-base font-bold text-gray-800">{{ z.total | number }}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wide text-gray-400">Ocup.</p>
+            <p class="text-base font-bold text-emerald-600">{{ z.ocupadas | number }}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-wide text-gray-400">Libres</p>
+            <p class="text-base font-bold text-gray-500">{{ z.libres | number }}</p>
+          </div>
+        </div>
+        <div class="px-3 py-2 border-b border-gray-100">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Ocupación</span>
+            <span class="text-[11px] font-bold"
+                  [class.text-red-600]="z.pct >= 80"
+                  [class.text-amber-600]="z.pct >= 50 && z.pct < 80"
+                  [class.text-emerald-600]="z.pct < 50">{{ z.pct }}%</span>
+          </div>
+          <div class="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-700"
+                 [class.bg-red-500]="z.pct >= 80"
+                 [class.bg-amber-500]="z.pct >= 50 && z.pct < 80"
+                 [class.bg-emerald-500]="z.pct < 50"
+                 [style.width.%]="z.pct"></div>
+          </div>
+        </div>
+        <div class="px-3 py-2 border-b border-gray-100">
+          <p class="text-[10px] uppercase tracking-wide text-gray-400 mb-1.5">Propietarios en la zona</p>
+          <div *ngIf="z.clientes.length === 0" class="text-[10px] italic text-gray-400 py-1">Sin mercadería.</div>
+          <div *ngIf="z.clientes.length > 0" class="max-h-[140px] overflow-y-auto pr-1 space-y-1">
+            <div *ngFor="let c of z.clientes" class="flex items-center justify-between gap-2">
+              <span class="text-[11px] text-gray-700 truncate">{{ c.nombre }}</span>
+              <span class="text-[10px] text-gray-500 shrink-0">{{ c.ocupadas }} · {{ c.pct }}%</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Leyenda zona → color → cliente -->
+      <div class="px-3 py-2">
+        <div class="flex items-center justify-between mb-1.5">
+          <p class="text-[10px] uppercase tracking-wide text-gray-400">Leyenda de zonas</p>
+          <span class="text-[10px] text-gray-400">{{ zonasResumen.length }}</span>
+        </div>
+        <div class="max-h-[230px] overflow-y-auto pr-1 space-y-0.5">
+          <button *ngFor="let r of zonasResumen" type="button"
+                  (click)="seleccionarZona(r.zonaId)"
+                  class="w-full text-left flex items-center gap-2 rounded px-1.5 py-1 transition-colors"
+                  [class.bg-indigo-50]="zonaSeleccionada === r.zonaId"
+                  [class.ring-1]="zonaSeleccionada === r.zonaId"
+                  [class.ring-indigo-300]="zonaSeleccionada === r.zonaId"
+                  [class.hover:bg-gray-50]="zonaSeleccionada !== r.zonaId">
+            <span class="h-3 w-3 rounded-sm shrink-0 ring-1 ring-black/10" [style.background]="r.color"></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-semibold text-gray-700 truncate">{{ r.nombre }}</span>
+                <span class="text-[10px] text-gray-500 shrink-0">{{ r.ocupadas }}/{{ r.total }}</span>
+              </div>
+              <div class="text-[10px] text-gray-400 truncate">{{ r.cliente || 'Sin propietario' }}</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

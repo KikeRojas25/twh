@@ -1,0 +1,79 @@
+<div class="flex flex-col flex-auto min-w-0 h-full bg-gray-50">
+
+  <!-- Encabezado / Breadcrumb -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <!-- Breadcrumb -->
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900 cursor-pointer">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="icon-size-4 text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900 cursor-pointer">Reportes</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="icon-size-4 text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <span class="ml-1 text-gray-900 font-semibold">Vista 3D por Zonas</span>
+        </div>
+      </div>
+
+      <!-- Título + contexto -->
+      <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Vista 3D por Zonas
+        </h2>
+        <span *ngIf="almacenNombre"
+              class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+          <i class="pi pi-building text-[10px]"></i>{{ almacenNombre }}
+        </span>
+        <span *ngIf="areaNombre"
+              class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+          <i class="pi pi-map-marker text-[10px]"></i>{{ areaNombre }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Acciones + selector de almacén (compacto) -->
+    <div class="shrink-0 flex items-center gap-2">
+      <button pButton type="button" icon="pi pi-pencil" label="Editar zonas"
+        class="p-button-sm p-button-outlined" (click)="editarZonas()"
+        [disabled]="!almacenSeleccionado"></button>
+      <div class="inline-flex items-center gap-2 rounded-lg bg-gray-50 ring-1 ring-gray-200 pl-3 pr-1.5 py-1">
+        <i class="pi pi-building text-gray-400 text-xs"></i>
+        <span class="text-xs font-medium text-gray-500">Almacén</span>
+        <p-dropdown
+          [options]="almacenes"
+          [(ngModel)]="almacenSeleccionado"
+          (onChange)="onAlmacenChange()"
+          appendTo="body"
+          [filter]="true"
+          styleClass="z3d-dropdown w-56"
+          placeholder="Seleccione…">
+        </p-dropdown>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cuerpo -->
+  <div class="flex flex-col flex-auto min-h-0 p-4 sm:px-6 sm:py-4">
+
+    <!-- Cargando almacenes -->
+    <div *ngIf="cargandoAlmacenes" class="flex-1 grid place-items-center">
+      <p-progressSpinner styleClass="!h-10 !w-10" strokeWidth="4"></p-progressSpinner>
+    </div>
+
+    <!-- Visor 3D por zonas -->
+    <div *ngIf="!cargandoAlmacenes && almacenSeleccionado" class="flex-1 min-h-0">
+      <app-zonas3d-viewer
+        [almacenId]="almacenSeleccionado"
+        [almacenNombre]="almacenNombre"
+        (areaNombreChange)="areaNombre = $event">
+      </app-zonas3d-viewer>
+    </div>
+
+    <!-- Sin almacenes -->
+    <div *ngIf="!cargandoAlmacenes && almacenes.length === 0" class="flex-1 grid place-items-center text-gray-400">
+      No hay almacenes disponibles.
+    </div>
+
+  </div>
+</div>

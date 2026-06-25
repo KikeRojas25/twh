@@ -14,6 +14,7 @@ import {
     ChatResponse,
     ConversacionResumen,
     DashboardChatIa,
+    EmailStatusEvent,
     HubErrorEvent,
     HubFunctionEvent,
     LimiteEstado,
@@ -43,11 +44,13 @@ export class ChatIaService {
     private _functionCompleted$ = new Subject<HubFunctionEvent>();
     private _done$ = new Subject<ChatResponse>();
     private _error$ = new Subject<HubErrorEvent>();
+    private _emailStatus$ = new Subject<EmailStatusEvent>();
 
     readonly functionStarted$: Observable<HubFunctionEvent> = this._functionStarted$.asObservable();
     readonly functionCompleted$: Observable<HubFunctionEvent> = this._functionCompleted$.asObservable();
     readonly done$: Observable<ChatResponse> = this._done$.asObservable();
     readonly error$: Observable<HubErrorEvent> = this._error$.asObservable();
+    readonly emailStatus$: Observable<EmailStatusEvent> = this._emailStatus$.asObservable();
 
     // ============================================================
     // Propietario activo
@@ -92,6 +95,18 @@ export class ChatIaService {
         return this._http.get<LimiteEstado>(`${this._api}/limits/me`);
     }
 
+    /** Crea o actualiza el tope mensual (USD) de un propietario/cliente (admin). */
+    actualizarLimitePropietario(
+        idPropietario: number,
+        limiteMensualUSD: number,
+        activo = true,
+    ): Observable<unknown> {
+        return this._http.put(`${this._api}/limits/${idPropietario}`, {
+            limiteMensualUSD,
+            activo,
+        });
+    }
+
     // ----- Auditoría (admin) -----
     obtenerDashboard(dias = 30): Observable<DashboardChatIa> {
         return this._http.get<DashboardChatIa>(`${this._api}/audit/dashboard`, {
@@ -133,6 +148,7 @@ export class ChatIaService {
             this._hub.on('function_completed', (ev: HubFunctionEvent) => this._functionCompleted$.next(ev));
             this._hub.on('done',               (ev: ChatResponse)     => this._done$.next(ev));
             this._hub.on('error',              (ev: HubErrorEvent)    => this._error$.next(ev));
+            this._hub.on('email_status',       (ev: EmailStatusEvent) => this._emailStatus$.next(ev));
         }
 
         try {

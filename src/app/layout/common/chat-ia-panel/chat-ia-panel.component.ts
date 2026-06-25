@@ -61,6 +61,52 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
     inputTexto = '';
     conversacionId: string | null = null;
 
+    // Sugerencias por categoría (panel izquierdo). Alineadas a las funciones del backend.
+    readonly sugerencias: { titulo: string; icon: string; items: string[] }[] = [
+        {
+            titulo: 'Stock',
+            icon: 'heroicons_outline:cube',
+            items: [
+                'Dame el resumen de mi stock (top por cantidad)',
+                '¿Cuáles son mis 10 productos con más stock disponible?',
+            ],
+        },
+        {
+            titulo: 'Kardex',
+            icon: 'heroicons_outline:arrows-right-left',
+            items: ['¿Qué ingresó esta semana?', '¿Qué se despachó ayer?'],
+        },
+        {
+            titulo: 'Vencimientos',
+            icon: 'heroicons_outline:clock',
+            items: [
+                '¿Qué productos vencen en los próximos 30 días?',
+                'Lista de productos vencidos',
+            ],
+        },
+        {
+            titulo: 'Rotación',
+            icon: 'heroicons_outline:chart-bar',
+            items: [
+                'Top 10 productos con más rotación del último mes',
+                'Productos sin movimiento desde hace 90 días',
+            ],
+        },
+        {
+            titulo: 'Productos',
+            icon: 'heroicons_outline:finger-print',
+            items: ['Muéstrame mis códigos con sus huellas'],
+        },
+    ];
+
+    // Indicaciones (panel derecho).
+    readonly tips: string[] = [
+        'Pregunta por código, lote, vencimiento o estado.',
+        'Filtra el kardex por fecha o por número de guía.',
+        'Pide “envíamelo por correo” para recibir Excel o PDF.',
+        'Di “en gráfico de barras” o “en torta” para visualizar.',
+    ];
+
     private _shouldScroll = false;
 
     ngOnInit(): void {
@@ -93,6 +139,19 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
         this._chatIa.functionCompleted$
             .pipe(takeUntil(this._destroy$))
             .subscribe(() => this.funcionEjecutando.set(null));
+
+        // Aviso del envío de correo en segundo plano (sale después de responder el chat).
+        this._chatIa.emailStatus$
+            .pipe(takeUntil(this._destroy$))
+            .subscribe((ev) => {
+                this.mensajes.update(m => [...m, {
+                    rol: 'system',
+                    contenido: (ev.ok ? '✅ ' : '⚠️ ') + ev.mensaje,
+                    fecha: new Date(),
+                }]);
+                this._shouldScroll = true;
+                this._cdr.detectChanges();
+            });
     }
 
     ngAfterViewChecked(): void {
@@ -214,6 +273,12 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
         this.error.set(null);
     }
 
+    enviarSugerencia(pregunta: string): void {
+        if (this.enviando() || !this.propietarioActivoId()) return;
+        this.inputTexto = pregunta;
+        this.enviar();
+    }
+
     private _scrollAlFondo(): void {
         try {
             this.messagesEnd?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -240,6 +305,11 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
 
         const inline = (s: string) =>
             escape(s)
+                // enlaces http(s) seguros: [texto](url)
+                .replace(
+                    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+                    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+                )
                 .replace(/`([^`]+)`/g, '<code>$1</code>')
                 .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
                 .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
@@ -285,6 +355,36 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
                 }
                 table += '</tbody></table></div>';
                 out.push(table);
+                continue;
+            }
+
+            // Encabezados: #, ##, ###
+            const heading = line.match(/^(#{1,3})\s+(.*)$/);
+            if (heading) {
+                out.push(`<div class="msg__h msg__h--${heading[1].length}">${inline(heading[2])}</div>`);
+                i++;
+                continue;
+            }
+
+            // Lista no ordenada: "- " o "* "
+            if (/^\s*[-*]\s+/.test(line)) {
+                const items: string[] = [];
+                while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+                    items.push(`<li>${inline(lines[i].replace(/^\s*[-*]\s+/, ''))}</li>`);
+                    i++;
+                }
+                out.push(`<ul class="msg__ul">${items.join('')}</ul>`);
+                continue;
+            }
+
+            // Lista ordenada: "1. ", "2. ", ...
+            if (/^\s*\d+\.\s+/.test(line)) {
+                const items: string[] = [];
+                while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+                    items.push(`<li>${inline(lines[i].replace(/^\s*\d+\.\s+/, ''))}</li>`);
+                    i++;
+                }
+                out.push(`<ol class="msg__ol">${items.join('')}</ol>`);
                 continue;
             }
 

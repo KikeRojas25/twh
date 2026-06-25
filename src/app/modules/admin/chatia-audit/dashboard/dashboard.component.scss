@@ -138,6 +138,87 @@
             font-size: 12px;
         }
     }
+
+    // ------- Uso del tope (barra por cliente) -------
+    .uso-col { width: 180px; }
+
+    .uso {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &__bar {
+            flex: 1;
+            height: 7px;
+            background: #f1f5f9;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        &__bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            transition: width 320ms ease;
+            &--warn   { background: linear-gradient(90deg, #f59e0b, #ea580c); }
+            &--danger { background: linear-gradient(90deg, #ef4444, #b91c1c); }
+        }
+        &__pct {
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+            color: #475569;
+            min-width: 44px;
+            text-align: right;
+            &.danger { color: #b91c1c; font-weight: 700; }
+        }
+    }
+
+    // ------- Edición inline del tope -------
+    .lim-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: flex-end;
+
+        &__edit {
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 2px;
+            line-height: 0;
+            mat-icon { width: 15px; height: 15px; font-size: 15px; }
+            &:hover { color: #6366f1; }
+        }
+    }
+
+    .lim-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: flex-end;
+
+        &__input {
+            width: 84px;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12.5px;
+            text-align: right;
+            &:focus { outline: none; border-color: #6366f1; }
+        }
+        &__btn {
+            border: 0;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 0;
+            color: #475569;
+            mat-icon { width: 15px; height: 15px; font-size: 15px; }
+            &:hover { background: #e2e8f0; }
+            &:disabled { opacity: 0.5; cursor: not-allowed; }
+            &--ok { background: #6366f1; color: #fff; &:hover { background: #4f46e5; } }
+        }
+    }
 }
 
 .dark .audit-dashboard {
@@ -157,4 +238,9 @@
         th, td { border-bottom-color: #334155; color: #cbd5e1; }
         code { background: #0f172a; color: #c7d2fe; }
     }
+
+    .uso__bar { background: #334155; }
+    .uso__pct { color: #cbd5e1; }
+    .lim-edit__input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+    .lim-edit__btn { background: #334155; color: #cbd5e1; &:hover { background: #475569; } }
 }
