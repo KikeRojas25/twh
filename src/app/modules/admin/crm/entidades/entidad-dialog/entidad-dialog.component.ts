@@ -86,8 +86,14 @@ export class EntidadDialogComponent implements OnInit {
     NEGOCIACION: 'Negociación', GANADA: 'Ganada', PERDIDA: 'Perdida',
   };
 
-  get oportunidadOpciones() {
-    return this.oportunidades.map(o => ({ label: o.nombre, value: o.oportunidadId }));
+  // Cache de opciones para dropdowns de los paneles hijos. NO usar un getter:
+  // devolvería un array nuevo en cada ciclo de detección de cambios, disparando
+  // el ngOnChanges de los paneles (que recargan por HTTP) en bucle y colgando el
+  // navegador. Se recalcula solo cuando cambian realmente las oportunidades.
+  oportunidadOpciones: { label: string; value: number }[] = [];
+
+  private recalcularOportunidadOpciones(): void {
+    this.oportunidadOpciones = this.oportunidades.map(o => ({ label: o.nombre, value: o.oportunidadId }));
   }
 
   ngOnInit(): void {
@@ -307,7 +313,11 @@ export class EntidadDialogComponent implements OnInit {
     if (!this.entidadId) return;
     this.cargandoOportunidades = true;
     this.crmService.getOportunidades(this.entidadId).subscribe({
-      next: (data) => { this.oportunidades = data ?? []; this.cargandoOportunidades = false; },
+      next: (data) => {
+        this.oportunidades = data ?? [];
+        this.recalcularOportunidadOpciones();
+        this.cargandoOportunidades = false;
+      },
       error: () => { this.cargandoOportunidades = false; },
     });
   }

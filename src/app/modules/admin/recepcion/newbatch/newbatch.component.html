@@ -193,6 +193,7 @@
                       <th class="text-left">OC</th>
                       <th class="text-left">Fecha Ingreso</th>
                       <th class="text-left">Ubicación</th>
+                      <th class="text-left">Estado</th>
                       <th class="text-left">Observaciones</th>
                     </tr>
                   </ng-template>
@@ -211,6 +212,10 @@
                       </td>
                       <td class="text-left">
                         <span class="p-tag p-tag-warning">{{ item.paleta }}</span>
+                      </td>
+                      <td class="text-left">
+                        <span *ngIf="item.estado" class="p-tag p-tag-info">{{ item.estado }}</span>
+                        <span *ngIf="!item.estado" class="text-gray-400">—</span>
                       </td>
                       <td class="text-left text-red-600 font-semibold">{{ item.observaciones }}</td>
                     </tr>

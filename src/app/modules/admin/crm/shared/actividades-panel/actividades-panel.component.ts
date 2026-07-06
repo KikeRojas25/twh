@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -53,10 +53,15 @@ export class ActividadesPanelComponent implements OnChanges {
 
   get modoOportunidad(): boolean { return this.oportunidadId != null; }
 
-  ngOnChanges(): void {
-    this.form = this.formVacio();
+  ngOnChanges(changes: SimpleChanges): void {
     if (this.vendedores.length === 0) this.cargarVendedores();
-    if (this.entidadId || this.oportunidadId) this.recargar();
+    // Recargar SOLO cuando cambia la entidad/oportunidad objetivo (ver nota en
+    // ComunicacionesPanelComponent): evita un bucle de recargas HTTP que cuelga
+    // el navegador cuando un @Input llega con nueva referencia en cada ciclo.
+    if (changes['entidadId'] || changes['oportunidadId']) {
+      this.form = this.formVacio();
+      if (this.entidadId || this.oportunidadId) this.recargar();
+    }
   }
 
   private formVacio() {
