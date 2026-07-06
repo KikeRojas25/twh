@@ -1,0 +1,284 @@
+<div class="p-2">
+  <p-tabView>
+
+    <!-- ═══════════ Tab 1: Datos generales ═══════════ -->
+    <p-tabPanel header="Datos generales">
+      <div class="flex flex-col gap-5 pt-2">
+
+        <!-- Razón social -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            Razón Social <span class="text-red-500">*</span>
+          </label>
+          <input pInputText [(ngModel)]="model.razonSocial" placeholder="Razón social de la empresa"
+            class="w-full" [class.ng-invalid]="!model.razonSocial?.trim()" />
+        </div>
+
+        <!-- RUC + Nombre comercial -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              RUC / Documento <span class="text-red-500">*</span>
+            </label>
+            <input pInputText [(ngModel)]="model.ruc" placeholder="Ej: 20123456789"
+              class="w-full" [class.ng-invalid]="!model.ruc?.trim()" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Nombre Comercial</label>
+            <input pInputText [(ngModel)]="model.nombreComercial" placeholder="Nombre comercial" class="w-full" />
+          </div>
+        </div>
+
+        <!-- Giro + Origen -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Giro / Rubro</label>
+            <input pInputText [(ngModel)]="model.giro" placeholder="Rubro de la empresa" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Origen</label>
+            <input pInputText [(ngModel)]="model.origen" placeholder="Referido, web, evento, outbound…" class="w-full" />
+          </div>
+        </div>
+
+        <!-- Estado + Vendedor -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Estado</label>
+            <p-dropdown [options]="estadoOpciones" [(ngModel)]="model.estado"
+              optionLabel="label" optionValue="value" placeholder="Estado"
+              (onChange)="onEstadoChange()" styleClass="w-full">
+            </p-dropdown>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Vendedor / Propietario</label>
+            <p-dropdown [options]="vendedores" [(ngModel)]="model.propietarioUsuarioId"
+              optionLabel="nombre" optionValue="id" placeholder="Sin asignar"
+              [filter]="true" filterBy="nombre" [showClear]="true" styleClass="w-full">
+            </p-dropdown>
+          </div>
+        </div>
+
+        <!-- Enlace al Propietario operativo del WMS (bisagra) — solo relevante cuando ya es CLIENTE -->
+        <div class="flex flex-col gap-1" *ngIf="model.estado === 'CLIENTE'">
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Propietario WMS vinculado</label>
+          <p-autoComplete [(ngModel)]="propietarioSeleccionado" [suggestions]="propietariosSugeridos"
+            (completeMethod)="buscarPropietarios($event)" field="nombre" [dropdown]="true"
+            [forceSelection]="true" placeholder="Buscar propietario operativo… (opcional)"
+            styleClass="w-full" appendTo="body">
+          </p-autoComplete>
+          <span class="text-xs text-gray-400">Vacío = prospecto puro. Al vincularlo, la entidad queda ligada al propietario (cliente operativo) del WMS.</span>
+        </div>
+
+        <div class="border-t border-gray-100"></div>
+
+        <div class="flex justify-end gap-2">
+          <p-button label="Cerrar" severity="secondary" [outlined]="true" (click)="cerrar()"></p-button>
+          <p-button [label]="esEdicion ? 'Actualizar' : 'Crear Entidad'"
+            [icon]="guardando ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+            [disabled]="guardando" (click)="guardarEntidad()"></p-button>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ═══════════ Tab 2: Contactos ═══════════ -->
+    <p-tabPanel header="Contactos" [disabled]="!esEdicion">
+
+      <!-- Aviso si aún no se ha guardado la entidad -->
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Guarde primero los datos de la entidad para gestionar sus contactos.</span>
+      </div>
+
+      <div *ngIf="esEdicion" class="pt-2">
+
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">Contactos de la entidad</h4>
+          <p-button *ngIf="!mostrarFormContacto" label="Nuevo contacto" icon="fa fa-plus"
+            severity="success" (click)="nuevoContacto()"></p-button>
+        </div>
+
+        <!-- Formulario inline crear/editar contacto -->
+        <div *ngIf="mostrarFormContacto" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                Nombres <span class="text-red-500">*</span>
+              </label>
+              <input pInputText [(ngModel)]="formContacto.nombres" placeholder="Nombres" class="w-full" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Apellidos</label>
+              <input pInputText [(ngModel)]="formContacto.apellidos" placeholder="Apellidos" class="w-full" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Cargo</label>
+              <input pInputText [(ngModel)]="formContacto.cargo" placeholder="Cargo" class="w-full" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Rol</label>
+              <p-dropdown [options]="rolOpciones" [(ngModel)]="formContacto.rol"
+                optionLabel="label" optionValue="value" placeholder="Rol" styleClass="w-full">
+              </p-dropdown>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</label>
+              <input pInputText [(ngModel)]="formContacto.email" type="email" placeholder="correo@ejemplo.com" class="w-full" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Teléfono</label>
+                <input pInputText [(ngModel)]="formContacto.telefono" placeholder="Teléfono" class="w-full" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Celular</label>
+                <input pInputText [(ngModel)]="formContacto.celular" placeholder="Celular" class="w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 mt-4">
+            <p-inputSwitch [(ngModel)]="formContacto.esPrincipal" inputId="esPrincipal"></p-inputSwitch>
+            <label for="esPrincipal" class="text-sm text-gray-600 cursor-pointer select-none">Contacto principal</label>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-4">
+            <p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="cerrarFormContacto()"></p-button>
+            <p-button [label]="esEdicionContacto ? 'Actualizar' : 'Agregar'"
+              [icon]="guardandoContacto ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+              [disabled]="guardandoContacto" (click)="guardarContacto()"></p-button>
+          </div>
+        </div>
+
+        <!-- Tabla de contactos -->
+        <p-table [value]="contactos" [loading]="cargandoContactos" styleClass="p-datatable-sm" [rowHover]="true">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:110px; text-align:center;">ACCIONES</th>
+              <th style="width:60px; text-align:center;">PRINC.</th>
+              <th>NOMBRE</th>
+              <th style="width:130px;">CARGO</th>
+              <th style="width:120px;">ROL</th>
+              <th>EMAIL</th>
+              <th style="width:140px;">TELÉFONO</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-c>
+            <tr class="border-b border-gray-100">
+              <td class="text-center">
+                <div class="flex justify-center gap-1">
+                  <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                    pTooltip="Editar" tooltipPosition="top" (click)="editarContacto(c)"></p-button>
+                  <p-button severity="danger" icon="fa fa-trash" [raised]="true"
+                    pTooltip="Eliminar" tooltipPosition="top" (click)="eliminarContacto(c)"></p-button>
+                </div>
+              </td>
+              <td class="text-center">
+                <i *ngIf="c.esPrincipal" class="pi pi-star-fill text-amber-500" pTooltip="Principal"></i>
+                <span *ngIf="!c.esPrincipal" class="text-gray-300">—</span>
+              </td>
+              <td class="text-sm text-gray-700 font-medium">{{ c.nombres }} {{ c.apellidos || '' }}</td>
+              <td class="text-sm text-gray-600">{{ c.cargo || '—' }}</td>
+              <td class="text-sm">
+                <p-tag [value]="c.rol" severity="secondary"></p-tag>
+              </td>
+              <td class="text-sm text-gray-600">
+                <a *ngIf="c.email" [href]="'mailto:' + c.email" class="text-indigo-600 hover:underline">{{ c.email }}</a>
+                <span *ngIf="!c.email" class="text-gray-300">—</span>
+              </td>
+              <td class="text-sm text-gray-600">{{ c.celular || c.telefono || '—' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center p-6 text-gray-400 text-sm">Sin contactos registrados.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+
+    <!-- ═══════════ Tab 3: Comunicaciones (timeline) ═══════════ -->
+    <p-tabPanel header="Comunicaciones" [disabled]="!esEdicion">
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Guarde primero los datos de la entidad para registrar comunicaciones.</span>
+      </div>
+      <app-crm-comunicaciones-panel *ngIf="esEdicion && entidadId"
+        [entidadId]="entidadId" [contactos]="contactos" [oportunidades]="oportunidadOpciones"
+        (cambio)="onCambioComunicaciones()">
+      </app-crm-comunicaciones-panel>
+    </p-tabPanel>
+
+    <!-- ═══════════ Tab 4: Oportunidades ═══════════ -->
+    <p-tabPanel header="Oportunidades" [disabled]="!esEdicion">
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Guarde primero los datos de la entidad para registrar oportunidades.</span>
+      </div>
+      <div *ngIf="esEdicion" class="pt-2">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">Oportunidades del cliente</h4>
+          <p-button label="Nueva oportunidad" icon="fa fa-plus" severity="success" (click)="nuevaOportunidad()"></p-button>
+        </div>
+        <p-table [value]="oportunidades" [loading]="cargandoOportunidades" styleClass="p-datatable-sm" [rowHover]="true">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:90px; text-align:center;">ACCIÓN</th>
+              <th>NOMBRE</th>
+              <th style="width:130px;">ETAPA</th>
+              <th style="width:130px; text-align:right;">VALOR/MES</th>
+              <th style="width:70px; text-align:center;">PROB.</th>
+              <th style="width:70px; text-align:center;">COMS.</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-o>
+            <tr class="border-b border-gray-100">
+              <td class="text-center">
+                <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                  pTooltip="Ver / Editar" tooltipPosition="top" (click)="editarOportunidad(o)"></p-button>
+              </td>
+              <td class="text-sm text-gray-700 font-medium">{{ o.nombre }}</td>
+              <td><p-tag [value]="etapaLabels[o.etapa] || o.etapa" [severity]="etapaSeverity(o.etapa)"></p-tag></td>
+              <td class="text-sm text-gray-700 text-right font-semibold">S/ {{ o.valorEstimadoMensual | number:'1.0-0' }}</td>
+              <td class="text-center text-sm text-gray-600">{{ o.probabilidad }}%</td>
+              <td class="text-center text-sm text-gray-500">
+                <span class="inline-flex items-center gap-1"><i class="pi pi-comments text-xs"></i>{{ o.numComunicaciones }}</span>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center p-6 text-gray-400 text-sm">Sin oportunidades. Crea la primera.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+
+    <!-- ═══════════ Tab 5: Actividades ═══════════ -->
+    <p-tabPanel header="Actividades" [disabled]="!esEdicion">
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Guarde primero los datos de la entidad para agendar actividades.</span>
+      </div>
+      <app-crm-actividades-panel *ngIf="esEdicion && entidadId"
+        [entidadId]="entidadId" [oportunidades]="oportunidadOpciones"
+        (cambio)="huboCambios = true">
+      </app-crm-actividades-panel>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>
+
+<!-- Panel lateral (sidebar) con el detalle de la oportunidad -->
+<p-sidebar [(visible)]="oportSidebarVisible" position="right" [style]="{ width: '920px', 'max-width': '96vw' }"
+  appendTo="body" styleClass="crm-oport-sidebar">
+  <ng-template pTemplate="header">
+    <span class="text-lg font-semibold text-gray-800">{{ oportSel ? 'Detalle de oportunidad' : 'Nueva oportunidad' }}</span>
+  </ng-template>
+  <app-crm-oportunidad-dialog *ngIf="oportSidebarVisible"
+    [oportunidad]="oportSel" [entidadCtx]="oportEntidadCtx" (cerrado)="onOportSidebarCerrado($event)">
+  </app-crm-oportunidad-dialog>
+</p-sidebar>
+
+<p-toast position="top-right" />
+<p-confirmDialog />

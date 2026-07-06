@@ -93,12 +93,44 @@
   required
   class="flex-1" 
   autocomplete="on"
-  [(ngModel)]="model.descripcionLarga" 
-  name="descripcionLarga" 
-  #descripcionLarga="ngModel" 
+  [(ngModel)]="model.descripcionLarga"
+  name="descripcionLarga"
+  #descripcionLarga="ngModel"
   type="text"
   [readonly]="isEditMode">
 
+  </div>
+</div>
+
+<!-- Código EAN (unidad) -->
+<div class="flex flex-col">
+  <div class="flex items-center space-x-4">
+    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Código EAN</label>
+    <input
+      pInputText
+      maxlength="20"
+      class="flex-1"
+      autocomplete="off"
+      [(ngModel)]="model.codigoEAN"
+      name="codigoEAN"
+      type="text"
+      placeholder="EAN-13 (ej: 8412497875764)">
+  </div>
+</div>
+
+<!-- Código EAN Caja (case master) -->
+<div class="flex flex-col">
+  <div class="flex items-center space-x-4">
+    <label class="w-40 text-lg font-semibold text-gray-800 dark:text-gray-200">Código EAN Caja</label>
+    <input
+      pInputText
+      maxlength="20"
+      class="flex-1"
+      autocomplete="off"
+      [(ngModel)]="model.codigoEANCaja"
+      name="codigoEANCaja"
+      type="text"
+      placeholder="EAN-14 de la caja (ej: 68412497875766)">
   </div>
 </div>
 

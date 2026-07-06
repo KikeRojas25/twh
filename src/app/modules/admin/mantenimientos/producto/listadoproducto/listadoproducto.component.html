@@ -123,7 +123,7 @@
         [resizableColumns]="true"
         selectionMode="single"
         [loading]="loading"
-        [globalFilterFields]="['codigo','codigoTWH','codigoEAN','descripcionLarga','familia']"
+        [globalFilterFields]="['codigo','codigoTWH','codigoEAN','codigoEANCaja','descripcionLarga','familia']"
         styleClass="p-datatable-sm">
 
         <ng-template pTemplate="colgroup" let-columns>
@@ -164,6 +164,10 @@
             <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">
               <span *ngIf="rowData.codigoEAN">{{ rowData.codigoEAN }}</span>
               <span *ngIf="!rowData.codigoEAN" class="text-gray-300">—</span>
+            </td>
+            <td class="text-center px-4 py-2 text-gray-700 text-sm font-mono">
+              <span *ngIf="rowData.codigoEANCaja">{{ rowData.codigoEANCaja }}</span>
+              <span *ngIf="!rowData.codigoEANCaja" class="text-gray-300">—</span>
             </td>
             <td class="px-4 py-2 text-gray-700 text-sm">{{ rowData.descripcionLarga }}</td>
             <td class="text-center px-4 py-2 text-gray-700 text-sm">{{ rowData.canal }}</td>

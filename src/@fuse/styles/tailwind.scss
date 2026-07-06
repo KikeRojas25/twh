@@ -30,9 +30,9 @@
         -moz-osx-font-smoothing: auto;
     }
 
-    /* Font size */
+    /* Font size — base de escala de toda la app (rem). 16px = 100%, 14px ≈ 87%. */
     html {
-        font-size: 16px;
+        font-size: 14px;
     }
 
     body {

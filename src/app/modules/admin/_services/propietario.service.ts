@@ -40,6 +40,20 @@ export class PropietarioService {
     return this._httpClient.get<Cliente[]>(url, httpOptions);
   }
 
+  /**
+   * 🔹 Obtener TODOS los propietarios, sin filtrar por el usuario del token.
+   * (No envía usuarioId → el backend devuelve la lista completa.)
+   * Endpoint: GET /api/propietarios
+   */
+  getAllPropietariosGlobal(idGrupo?: number): Observable<Cliente[]> {
+    const qs = new URLSearchParams();
+    if (idGrupo !== undefined && idGrupo !== null) {
+      qs.set('idGrupo', String(idGrupo));
+    }
+    const url = qs.toString() ? `${this.baseUrl}?${qs.toString()}` : `${this.baseUrl}`;
+    return this._httpClient.get<Cliente[]>(url, httpOptions);
+  }
+
   private getUsuarioIdFromToken(): string | null {
     const token = localStorage.getItem('token');
     if (!token) return null;

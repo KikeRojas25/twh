@@ -404,10 +404,27 @@ export const appRoutes: Route[] = [
                                             },
                                     ]
                   },
-              
+
                 ]
               },
-            {   
+            {
+                path: 'crm',
+                loadComponent: () => import('./modules/admin/crm/crm.component')
+                                      .then(m => m.CrmComponent),
+                children: [
+                  {
+                    path: 'entidades',
+                    loadComponent: () => import('./modules/admin/crm/entidades/list/list.component')
+                                          .then(m => m.CrmEntidadesListComponent)
+                  },
+                  {
+                    path: 'oportunidades',
+                    loadComponent: () => import('./modules/admin/crm/oportunidades/board/board.component')
+                                          .then(m => m.CrmBoardComponent)
+                  },
+                ]
+              },
+            {
               path: 'transporte',
               loadComponent: () => import('./modules/admin/transporte/transporte.component')
                                     .then(m => m.TransporteComponent),

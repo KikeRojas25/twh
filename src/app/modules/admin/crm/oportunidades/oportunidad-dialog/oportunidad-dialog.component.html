@@ -1,0 +1,221 @@
+<div class="p-2">
+
+  <!-- ═══════════ Cabecera estilo TMS (solo al editar) ═══════════ -->
+  <div *ngIf="esEdicion" class="mb-4">
+    <!-- Banner -->
+    <div class="rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 text-white p-5 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <span class="flex w-12 h-12 items-center justify-center rounded-xl bg-white/10 flex-shrink-0">
+          <i class="pi pi-briefcase text-xl"></i>
+        </span>
+        <div class="min-w-0">
+          <div class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Oportunidad</div>
+          <div class="text-xl font-bold truncate">{{ model.nombre || '—' }}</div>
+          <div class="text-xs text-slate-400 truncate"><i class="pi pi-building mr-1"></i>{{ entidadFija }}</div>
+        </div>
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p-tag [value]="etapaLabels[etapaActual] || etapaActual" [severity]="etapaSeverity(etapaActual)"></p-tag>
+        <div class="text-lg font-bold mt-1.5">S/ {{ model.valorEstimadoMensual | number:'1.0-0' }}</div>
+        <div class="text-[11px] text-slate-400">valor mensual</div>
+      </div>
+    </div>
+
+    <!-- Tarjetas de info -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+      <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+        <span class="flex w-9 h-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 flex-shrink-0"><i class="pi pi-building"></i></span>
+        <div class="min-w-0">
+          <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Entidad</div>
+          <div class="text-sm font-semibold text-gray-800 truncate">{{ entidadFija }}</div>
+        </div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+        <span class="flex w-9 h-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 flex-shrink-0"><i class="pi pi-user"></i></span>
+        <div class="min-w-0">
+          <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Vendedor</div>
+          <div class="text-sm font-semibold text-gray-800 truncate">{{ propietarioNombreActual || '—' }}</div>
+        </div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+        <span class="flex w-9 h-9 items-center justify-center rounded-lg bg-green-50 text-green-600 flex-shrink-0"><i class="pi pi-percentage"></i></span>
+        <div class="min-w-0">
+          <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Probabilidad</div>
+          <div class="text-sm font-semibold text-gray-800">{{ model.probabilidad ?? 0 }}%</div>
+        </div>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-3">
+        <span class="flex w-9 h-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 flex-shrink-0"><i class="pi pi-calendar"></i></span>
+        <div class="min-w-0">
+          <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Cierre estimado</div>
+          <div class="text-sm font-semibold text-gray-800">{{ model.fechaCierreEstimada ? (model.fechaCierreEstimada | date:'dd/MM/yy') : '—' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p-tabView>
+
+    <!-- ═══════════ Datos ═══════════ -->
+    <p-tabPanel header="Datos">
+      <div class="flex flex-col gap-5 pt-2">
+
+        <!-- Entidad -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            Entidad <span class="text-red-500">*</span>
+          </label>
+          <p-autoComplete *ngIf="!esEdicion"
+            [(ngModel)]="entidadSeleccionada" [suggestions]="entidadesSugeridas"
+            (completeMethod)="buscarEntidades($event)" field="razonSocial" [dropdown]="true"
+            [forceSelection]="true" placeholder="Buscar prospecto/cliente…"
+            styleClass="w-full" appendTo="body">
+          </p-autoComplete>
+          <div *ngIf="esEdicion" class="px-3 py-2 rounded-md bg-gray-100 text-gray-700 text-sm">{{ entidadFija }}</div>
+        </div>
+
+        <!-- Nombre -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            Nombre de la oportunidad <span class="text-red-500">*</span>
+          </label>
+          <input pInputText [(ngModel)]="model.nombre" placeholder="Ej: Almacenaje + distribución Lima"
+            class="w-full" [class.ng-invalid]="!model.nombre?.trim()" />
+        </div>
+
+        <!-- Valor + Probabilidad -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Valor estimado mensual</label>
+            <p-inputNumber [(ngModel)]="model.valorEstimadoMensual" mode="currency" currency="PEN"
+              locale="es-PE" [min]="0" styleClass="w-full" inputStyleClass="w-full">
+            </p-inputNumber>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Probabilidad (%)</label>
+            <p-inputNumber [(ngModel)]="model.probabilidad" [min]="0" [max]="100" suffix=" %"
+              placeholder="Auto según etapa" styleClass="w-full" inputStyleClass="w-full">
+            </p-inputNumber>
+          </div>
+        </div>
+
+        <!-- Fecha cierre estimada + Vendedor -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Fecha cierre estimada</label>
+            <p-calendar [(ngModel)]="model.fechaCierreEstimada" dateFormat="dd/mm/yy"
+              [showIcon]="true" appendTo="body" styleClass="w-full" inputStyleClass="w-full"
+              placeholder="dd/mm/aaaa">
+            </p-calendar>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Vendedor</label>
+            <p-dropdown [options]="vendedores" [(ngModel)]="model.propietarioUsuarioId"
+              optionLabel="nombre" optionValue="id" placeholder="Sin asignar"
+              [filter]="true" filterBy="nombre" [showClear]="true" styleClass="w-full">
+            </p-dropdown>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-100"></div>
+
+        <div class="flex justify-end gap-2">
+          <p-button label="Cerrar" severity="secondary" [outlined]="true" (click)="cerrar()"></p-button>
+          <p-button [label]="esEdicion ? 'Actualizar' : 'Crear Oportunidad'"
+            [icon]="guardando ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+            [disabled]="guardando" (click)="guardar()"></p-button>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ═══════════ Comunicaciones del deal ═══════════ -->
+    <p-tabPanel header="Comunicaciones" [disabled]="!esEdicion">
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Las comunicaciones se registran sobre una oportunidad ya creada.</span>
+      </div>
+      <app-crm-comunicaciones-panel *ngIf="esEdicion && entidadId && oportunidadId"
+        [entidadId]="entidadId" [oportunidadId]="oportunidadId" [contactos]="contactos"
+        (cambio)="onCambioComunicaciones()">
+      </app-crm-comunicaciones-panel>
+    </p-tabPanel>
+
+    <!-- ═══════════ Propuestas + tarifario ═══════════ -->
+    <p-tabPanel header="Propuestas" [disabled]="!esEdicion">
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Las propuestas se arman sobre una oportunidad ya creada.</span>
+      </div>
+
+      <div *ngIf="esEdicion" class="pt-2">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">Propuestas (versiones)</h4>
+          <p-button label="Nueva propuesta" icon="fa fa-plus" severity="success" (click)="nuevaPropuesta()"></p-button>
+        </div>
+
+        <p-table [value]="propuestas" [loading]="cargandoPropuestas" styleClass="p-datatable-sm" [rowHover]="true">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:165px; text-align:center;">ACCIONES</th>
+              <th style="width:70px; text-align:center;">VER.</th>
+              <th style="width:120px;">ESTADO</th>
+              <th style="width:70px; text-align:center;">LÍNEAS</th>
+              <th style="text-align:right;">TOTAL MENSUAL</th>
+              <th style="width:120px;">ENVIADA</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-p>
+            <tr class="border-b border-gray-100">
+              <td class="text-center">
+                <div class="flex justify-center gap-1">
+                  <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                    pTooltip="Ver / Editar" tooltipPosition="top" (click)="editarPropuesta(p)"></p-button>
+                  <p-button severity="help" icon="fa fa-file-pdf" [raised]="true"
+                    pTooltip="Descargar PDF" tooltipPosition="top" (click)="descargarPdf(p)"></p-button>
+                  <p-button severity="info" icon="fa fa-copy" [raised]="true"
+                    pTooltip="Nueva versión" tooltipPosition="top" (click)="nuevaVersion(p)"></p-button>
+                  <p-button severity="danger" icon="fa fa-trash" [raised]="true"
+                    pTooltip="Eliminar" tooltipPosition="top" (click)="eliminarPropuesta(p)"></p-button>
+                </div>
+              </td>
+              <td class="text-center text-sm font-semibold text-gray-700">v{{ p.version }}</td>
+              <td><p-tag [value]="estadoPropLabels[p.estado] || p.estado" [severity]="estadoPropSeverity(p.estado)"></p-tag></td>
+              <td class="text-center text-sm text-gray-600">{{ p.numLineas }}</td>
+              <td class="text-right text-sm font-semibold text-gray-700 whitespace-nowrap">
+                <span>S/ {{ p.totalMensualPEN | number:'1.2-2' }}</span>
+                <span *ngIf="p.totalMensualUSD > 0" class="text-gray-500"> · US$ {{ p.totalMensualUSD | number:'1.2-2' }}</span>
+              </td>
+              <td class="text-sm text-gray-500">{{ p.fechaEnvio ? (p.fechaEnvio | date:'dd/MM/yy') : '—' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center p-6 text-gray-400 text-sm">Sin propuestas. Crea la primera.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+
+    <!-- ═══════════ Actividades del deal ═══════════ -->
+    <p-tabPanel header="Actividades" [disabled]="!esEdicion">
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Las actividades se agendan sobre una oportunidad ya creada.</span>
+      </div>
+      <app-crm-actividades-panel *ngIf="esEdicion && entidadId && oportunidadId"
+        [entidadId]="entidadId" [oportunidadId]="oportunidadId"
+        (cambio)="huboCambios = true">
+      </app-crm-actividades-panel>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>
+
+<p-toast position="top-right" />
+<p-confirmDialog>
+  <ng-template pTemplate="message" let-message>
+    <div class="flex flex-col items-center gap-3 p-2">
+      <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+      <p class="text-sm text-center" [innerHTML]="message.message"></p>
+    </div>
+  </ng-template>
+</p-confirmDialog>

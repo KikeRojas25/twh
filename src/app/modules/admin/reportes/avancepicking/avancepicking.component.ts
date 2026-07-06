@@ -160,18 +160,12 @@ export class AvancepickingComponent implements OnInit {
 
 
 
-    this.propietarioService.getAllPropietarios().subscribe(resp1 => {
+    this.propietarioService.getAllPropietariosGlobal().subscribe(resp1 => {
  
-      const propietarioFiltrado = resp1.find(element => element.id === 145); 
-
-      
-
-  if (propietarioFiltrado) {
-    this.propietarios.push({ 
-      label: propietarioFiltrado.razonSocial.toUpperCase(), 
-      value: propietarioFiltrado.id 
-    });
-  }
+      this.propietarios = resp1.map(p => ({
+        label: (p.razonSocial ?? '').toUpperCase(),
+        value: p.id
+      }));
 
       this.cargarFiltrosGuardados() ;
   

@@ -1,0 +1,165 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">CRM</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Entidades</a>
+        </div>
+      </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Prospectos y Clientes
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 m-4 overflow-hidden">
+    <div class="p-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="flex flex-col sm:col-span-2">
+          <label class="text-xs font-medium text-gray-700 mb-1">BÚSQUEDA:</label>
+          <input
+            pInputText
+            class="w-full text-sm border-gray-300"
+            placeholder="Razón social, RUC o nombre comercial..."
+            [(ngModel)]="criterio"
+            (keyup.enter)="buscar()" />
+        </div>
+        <div class="flex flex-col">
+          <label class="text-xs font-medium text-gray-700 mb-1">ESTADO:</label>
+          <p-dropdown
+            [options]="estadoOpciones"
+            [(ngModel)]="estado"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Todos"
+            (onChange)="buscar()"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50"
+          pButton
+          icon="fa fa-search"
+          label="Buscar"
+          iconPos="left"
+          [loading]="cargando"
+          (click)="buscar()">
+        </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm transition-all duration-150"
+          pButton
+          icon="fa fa-plus"
+          label="Nueva Entidad"
+          iconPos="left"
+          (click)="nueva()">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 mx-4 mb-4 overflow-hidden">
+    <div class="bg-gray-800 text-white px-4 py-2.5 border-b border-gray-700">
+      <h3 class="text-base font-semibold text-gray-100">Listado de Entidades</h3>
+      <p class="text-xs text-amber-300 mt-1">Total: {{ total }} entidad(es)</p>
+    </div>
+
+    <div class="p-4">
+      <p-table
+        #dt
+        [value]="entidades"
+        [lazy]="true"
+        (onLazyLoad)="cargar($event)"
+        [paginator]="true"
+        [rows]="pageSize"
+        [first]="first"
+        [totalRecords]="total"
+        [rowsPerPageOptions]="[20, 50, 100]"
+        [scrollable]="true"
+        scrollHeight="600px"
+        [loading]="cargando"
+        [rowHover]="true"
+        styleClass="p-datatable-sm">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:150px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ACCIONES</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">RAZÓN SOCIAL</th>
+            <th style="width:150px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">RUC / DOC.</th>
+            <th style="background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">NOMBRE COMERCIAL</th>
+            <th style="width:130px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ESTADO</th>
+            <th style="width:130px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">ORIGEN</th>
+            <th style="width:170px; background-color:#1f2937; color:#ffffff; text-align:left; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">VENDEDOR</th>
+            <th style="width:110px; background-color:#1f2937; color:#ffffff; text-align:center; padding:8px 16px; font-size:0.875rem; font-weight:600; border-bottom:1px solid #374151;">CONTACTOS</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-ent>
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
+            <td class="text-center px-4 py-2">
+              <div class="flex justify-center gap-1">
+                <p-button severity="primary" icon="fa fa-edit" [raised]="true"
+                  pTooltip="Ver / Editar" tooltipPosition="top"
+                  (click)="editar(ent)"></p-button>
+                <p-button severity="danger" icon="fa fa-trash" [raised]="true"
+                  pTooltip="Descartar" tooltipPosition="top"
+                  (click)="descartar(ent)"></p-button>
+              </div>
+            </td>
+            <td class="px-4 py-2 text-gray-700 text-sm font-medium">{{ ent.razonSocial }}</td>
+            <td class="px-4 py-2 text-gray-700 text-sm font-mono">{{ ent.ruc || '—' }}</td>
+            <td class="px-4 py-2 text-gray-600 text-sm">{{ ent.nombreComercial || '—' }}</td>
+            <td class="text-center px-4 py-2">
+              <p-tag [value]="ent.estado" [severity]="estadoSeverity(ent.estado)"></p-tag>
+            </td>
+            <td class="px-4 py-2 text-gray-600 text-sm">{{ ent.origen || '—' }}</td>
+            <td class="px-4 py-2 text-gray-600 text-sm">{{ ent.propietarioNombre || '—' }}</td>
+            <td class="text-center px-4 py-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                {{ ent.totalContactos }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="8" class="text-center p-8">
+              <div class="flex flex-col items-center">
+                <i class="pi pi-inbox text-4xl mb-3 text-gray-300"></i>
+                <span class="text-gray-500 text-sm">No se encontraron entidades</span>
+                <span class="text-gray-400 text-xs mt-1">Ajuste el filtro o cree una nueva entidad</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+</div>
+
+<p-confirmDialog>
+  <ng-template pTemplate="message" let-message>
+    <div class="flex flex-col items-center gap-3 p-2">
+      <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+      <p class="text-sm text-center" [innerHTML]="message.message"></p>
+    </div>
+  </ng-template>
+</p-confirmDialog>
+<p-toast />

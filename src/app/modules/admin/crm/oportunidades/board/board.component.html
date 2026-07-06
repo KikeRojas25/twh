@@ -1,0 +1,208 @@
+<div class="flex flex-col flex-auto min-w-0 bg-gray-50 h-full">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
+        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">CRM</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+          <a class="ml-1 text-gray-700 hover:text-gray-900">Pipeline</a>
+        </div>
+      </div>
+      <div class="mt-1">
+        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
+          Pipeline de Oportunidades
+        </h2>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 mt-4 sm:mt-0">
+      <button pButton icon="fa fa-refresh" label="Actualizar" [loading]="cargando"
+        class="px-3 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm"
+        (click)="cargar()"></button>
+      <button pButton icon="fa fa-plus" label="Nueva Oportunidad"
+        class="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm"
+        (click)="nueva()"></button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap items-center gap-3 px-4 pt-3">
+    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Filtrar:</span>
+    <p-dropdown [options]="vendedores" [(ngModel)]="filtroVendedorId"
+      optionLabel="nombre" optionValue="id" placeholder="Vendedor" [filter]="true" filterBy="nombre"
+      [showClear]="true" (onChange)="cargar()" styleClass="text-sm" [style]="{ 'min-width': '200px' }"></p-dropdown>
+    <p-autoComplete [(ngModel)]="filtroEntidad" [suggestions]="entidadesSugeridas"
+      (completeMethod)="buscarEntidadesFiltro($event)" field="razonSocial" [dropdown]="true"
+      placeholder="Entidad / cliente" (onSelect)="cargar()" (onClear)="cargar()"
+      styleClass="text-sm" [style]="{ 'min-width': '240px' }" appendTo="body"></p-autoComplete>
+    <button *ngIf="hayFiltros" pButton type="button" icon="pi pi-filter-slash" label="Limpiar"
+      class="p-button-text p-button-sm text-gray-500" (click)="limpiarFiltros()"></button>
+  </div>
+
+  <!-- Tablero -->
+  <div class="flex-auto overflow-x-auto px-4 pb-4 pt-3">
+    <div class="flex gap-4 items-start" style="min-width: max-content;">
+
+      <div *ngFor="let col of columnas"
+        class="w-[300px] flex-shrink-0 rounded-xl bg-gray-50 border border-gray-200 border-t-[3px] overflow-hidden flex flex-col"
+        [ngClass]="{
+          'border-t-blue-400':   col.etapa === 'PROSPECCION',
+          'border-t-indigo-400': col.etapa === 'VISITA',
+          'border-t-purple-400': col.etapa === 'PROPUESTA',
+          'border-t-amber-400':  col.etapa === 'NEGOCIACION',
+          'border-t-green-500':  col.etapa === 'GANADA',
+          'border-t-red-400':    col.etapa === 'PERDIDA'
+        }">
+
+        <!-- Cabecera de columna (tinte suave por etapa) -->
+        <div class="px-3.5 py-3 flex items-center justify-between" [ngClass]="colHeaderClass(col.etapa)">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-sm font-semibold truncate">{{ col.titulo }}</span>
+            <span class="text-xs font-semibold text-gray-600 bg-white/70 rounded-full px-2 py-0.5 flex-shrink-0">{{ col.cards.length }}</span>
+          </div>
+          <span class="text-xs font-semibold opacity-80 flex-shrink-0">S/ {{ totalColumna(col) | number:'1.0-0' }}</span>
+        </div>
+
+        <!-- Lista drag & drop -->
+        <div
+          class="lista px-2.5 pb-3 flex flex-col gap-2.5 min-h-[140px] flex-auto"
+          cdkDropList
+          [id]="'lista-' + col.etapa"
+          [cdkDropListData]="col.cards"
+          [cdkDropListConnectedTo]="listaIds"
+          (cdkDropListDropped)="drop($event, col.etapa)">
+
+          <div *ngFor="let card of col.cards" cdkDrag
+            class="group bg-white rounded-lg rounded-l-xl border border-gray-200 border-l-[3px] shadow-sm hover:shadow-md hover:border-gray-300 transition-all p-3.5 cursor-grab active:cursor-grabbing"
+            [ngClass]="cardAccentClass(col.etapa)">
+
+            <!-- Título + acciones (siempre visibles) -->
+            <div class="flex items-start justify-between gap-2">
+              <span class="text-sm font-semibold text-gray-800 leading-snug">{{ card.nombre }}</span>
+              <!-- mousedown/touchstart stopPropagation: presionar un botón no inicia el drag -->
+              <div class="flex gap-1 flex-shrink-0 -mr-1 -mt-0.5"
+                (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
+                <button type="button" pTooltip="Editar" tooltipPosition="top" (click)="editar(card)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white shadow-sm transition-colors">
+                  <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:pencil-square'"></mat-icon>
+                </button>
+                <button type="button" pTooltip="Eliminar" tooltipPosition="top" (click)="eliminar(card)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white shadow-sm transition-colors">
+                  <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:trash'"></mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Entidad -->
+            <div class="flex items-center gap-1.5 text-xs text-gray-400 mt-1.5 min-w-0">
+              <i class="pi pi-building text-[10px] flex-shrink-0"></i>
+              <span class="truncate">{{ card.entidadRazonSocial }}</span>
+            </div>
+
+            <!-- Valor + prob + comms -->
+            <div class="flex items-center justify-between mt-3">
+              <span class="text-base font-bold text-gray-800">S/ {{ card.valorEstimadoMensual | number:'1.0-0' }}</span>
+              <div class="flex items-center gap-2">
+                <span *ngIf="card.numComunicaciones > 0" class="text-xs text-gray-400 inline-flex items-center gap-1"
+                  pTooltip="Comunicaciones registradas" tooltipPosition="top">
+                  <i class="pi pi-comments"></i>{{ card.numComunicaciones }}
+                </span>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full" [ngClass]="probClass(card.probabilidad)"
+                  pTooltip="Probabilidad" tooltipPosition="top">{{ card.probabilidad }}%</span>
+              </div>
+            </div>
+
+            <!-- Footer: vendedor + fecha -->
+            <div *ngIf="card.propietarioNombre || card.fechaCierreEstimada"
+              class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
+              <div *ngIf="card.propietarioNombre" class="flex items-center gap-1.5 min-w-0">
+                <span class="flex w-5 h-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-[9px] font-bold flex-shrink-0">
+                  {{ iniciales(card.propietarioNombre) }}
+                </span>
+                <span class="text-xs text-gray-500 truncate">{{ card.propietarioNombre }}</span>
+              </div>
+              <span *ngIf="card.fechaCierreEstimada" class="text-xs text-gray-400 flex-shrink-0 ml-2 whitespace-nowrap">
+                <i class="pi pi-calendar mr-1"></i>{{ card.fechaCierreEstimada | date:'dd MMM' }}
+              </span>
+            </div>
+
+            <!-- Motivo de pérdida -->
+            <div *ngIf="card.etapa === 'PERDIDA' && card.motivoPerdida"
+              class="mt-2.5 text-xs text-red-600 bg-red-50 rounded-md px-2 py-1.5">
+              <i class="pi pi-info-circle mr-1"></i>{{ card.motivoPerdida }}
+            </div>
+          </div>
+
+          <div *ngIf="col.cards.length === 0"
+            class="flex flex-col items-center justify-center gap-1 text-center py-8 text-gray-300 select-none border-2 border-dashed border-gray-200 rounded-lg">
+            <i class="pi pi-inbox"></i>
+            <span class="text-xs">Sin oportunidades</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Diálogo: motivo de pérdida -->
+<p-dialog header="Motivo de pérdida" [(visible)]="mostrarMotivo" [modal]="true"
+  [style]="{ width: '460px' }" [closable]="false">
+  <div class="flex flex-col gap-2">
+    <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+      ¿Por qué se perdió esta oportunidad? <span class="text-red-500">*</span>
+    </label>
+    <textarea pInputTextarea [(ngModel)]="motivoTexto" rows="4"
+      placeholder="Ej: precio, competencia, timing, sin presupuesto…" class="w-full"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="cancelarMotivo()"></p-button>
+    <p-button label="Marcar como perdida" severity="danger" (click)="confirmarMotivo()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Diálogo: conversión al ganar (enlazar Propietario WMS) -->
+<p-dialog header="🎉 Oportunidad ganada" [(visible)]="mostrarConversion" [modal]="true"
+  [style]="{ width: '500px' }" appendTo="body">
+  <div class="flex flex-col gap-3">
+    <p class="text-sm text-gray-600">
+      Enlaza esta cuenta al <b>Propietario operativo del WMS</b> para marcarla como <b>cliente</b>.
+      Es opcional: puedes hacerlo después desde la ficha.
+    </p>
+    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Propietario WMS</label>
+    <p-autoComplete [(ngModel)]="propietarioSeleccionadoConv" [suggestions]="propietariosSugeridos"
+      (completeMethod)="buscarPropietarios($event)" field="nombre" [dropdown]="true"
+      [forceSelection]="true" placeholder="Buscar propietario operativo…"
+      styleClass="w-full" appendTo="body"></p-autoComplete>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Omitir" severity="secondary" [outlined]="true" (click)="cerrarConversion()"></p-button>
+    <p-button label="Enlazar y convertir" [icon]="convirtiendo ? 'pi pi-spin pi-spinner' : 'pi pi-link'"
+      [disabled]="!propietarioConvId || convirtiendo" (click)="confirmarConversion()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Panel lateral (sidebar) con el detalle de la oportunidad -->
+<p-sidebar [(visible)]="oportVisible" position="right" [style]="{ width: '920px', 'max-width': '96vw' }"
+  appendTo="body" styleClass="crm-oport-sidebar">
+  <ng-template pTemplate="header">
+    <span class="text-lg font-semibold text-gray-800">{{ oportSel ? 'Detalle de oportunidad' : 'Nueva oportunidad' }}</span>
+  </ng-template>
+  <app-crm-oportunidad-dialog *ngIf="oportVisible" [oportunidad]="oportSel" (cerrado)="onOportCerrado($event)">
+  </app-crm-oportunidad-dialog>
+</p-sidebar>
+
+<p-confirmDialog>
+  <ng-template pTemplate="message" let-message>
+    <div class="flex flex-col items-center gap-3 p-2">
+      <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+      <p class="text-sm text-center" [innerHTML]="message.message"></p>
+    </div>
+  </ng-template>
+</p-confirmDialog>
+<p-toast />

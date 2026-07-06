@@ -1,0 +1,111 @@
+<div class="p-2 flex flex-col gap-4">
+
+  <!-- ═══════════ Datos de la propuesta ═══════════ -->
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+    <div class="flex items-center gap-2.5 mb-4">
+      <span class="flex w-8 h-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+        <i class="pi pi-file-edit text-sm"></i>
+      </span>
+      <h4 class="text-sm font-semibold text-gray-800">Datos de la propuesta</h4>
+      <span *ngIf="version" class="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600">
+        Versión {{ version }}
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</label>
+        <p-dropdown [options]="estadoOpciones" [(ngModel)]="model.estado"
+          optionLabel="label" optionValue="value" styleClass="w-full"></p-dropdown>
+      </div>
+      <div class="flex flex-col gap-1.5 md:col-span-2">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Notas</label>
+        <input pInputText [(ngModel)]="model.notas" placeholder="Notas de la propuesta (opcional)" class="w-full" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ Tarifario ═══════════ -->
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2.5">
+        <span class="flex w-8 h-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+          <i class="pi pi-list text-sm"></i>
+        </span>
+        <h4 class="text-sm font-semibold text-gray-800">Líneas de tarifario</h4>
+      </div>
+      <p-button label="Agregar línea" icon="fa fa-plus" severity="success" size="small" (click)="agregarLinea()"></p-button>
+    </div>
+
+    <div class="overflow-x-auto -mx-1">
+      <table class="w-full text-sm border-collapse" style="min-width: 840px;">
+        <thead>
+          <tr class="text-gray-400 text-[11px] uppercase tracking-wider border-b border-gray-200">
+            <th class="text-left font-semibold px-2 py-2" style="width:168px;">Servicio</th>
+            <th class="text-left font-semibold px-2 py-2">Descripción</th>
+            <th class="text-left font-semibold px-2 py-2" style="width:88px;">Unidad</th>
+            <th class="text-right font-semibold px-2 py-2" style="width:104px;">Precio</th>
+            <th class="text-right font-semibold px-2 py-2" style="width:96px;">Cantidad</th>
+            <th class="text-center font-semibold px-2 py-2" style="width:82px;">Moneda</th>
+            <th class="text-right font-semibold px-2 py-2" style="width:108px;">Subtotal</th>
+            <th style="width:38px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let l of lineas; let i = index" class="border-b border-gray-100 hover:bg-gray-50/60">
+            <td class="px-1.5 py-1.5">
+              <p-dropdown [options]="tipoServicioOpciones" [(ngModel)]="l.tipoServicio"
+                optionLabel="label" optionValue="value" (onChange)="onTipoChange(l)"
+                styleClass="w-full" appendTo="body"></p-dropdown>
+            </td>
+            <td class="px-1.5 py-1.5">
+              <input pInputText [(ngModel)]="l.descripcion" placeholder="Detalle del servicio" class="w-full p-inputtext-sm" />
+            </td>
+            <td class="px-1.5 py-1.5">
+              <input pInputText [(ngModel)]="l.unidad" placeholder="unid." class="w-full p-inputtext-sm" />
+            </td>
+            <td class="px-1.5 py-1.5">
+              <p-inputNumber [(ngModel)]="l.precioUnitario" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="4"
+                [min]="0" styleClass="w-full" inputStyleClass="w-full text-right p-inputtext-sm"></p-inputNumber>
+            </td>
+            <td class="px-1.5 py-1.5">
+              <p-inputNumber [(ngModel)]="l.cantidadProyectada" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2"
+                [min]="0" placeholder="—" styleClass="w-full" inputStyleClass="w-full text-right p-inputtext-sm"></p-inputNumber>
+            </td>
+            <td class="px-1.5 py-1.5">
+              <p-dropdown [options]="monedaOpciones" [(ngModel)]="l.moneda"
+                optionLabel="label" optionValue="value" styleClass="w-full" appendTo="body"></p-dropdown>
+            </td>
+            <td class="px-2 py-1.5 text-right font-semibold text-gray-700 whitespace-nowrap">
+              {{ l.moneda === 'USD' ? 'US$' : 'S/' }} {{ subtotal(l) | number:'1.2-2' }}
+            </td>
+            <td class="px-1.5 py-1.5 text-center">
+              <i class="pi pi-trash text-gray-300 hover:text-red-500 cursor-pointer text-sm" pTooltip="Quitar" (click)="quitarLinea(i)"></i>
+            </td>
+          </tr>
+          <tr *ngIf="lineas.length === 0">
+            <td colspan="8" class="text-center text-sm text-gray-400 py-6">Agrega la primera línea con el botón de arriba.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════ Total + acciones ═══════════ -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-100 rounded-lg px-4 py-2.5">
+      <span class="text-xs font-semibold text-indigo-500 uppercase tracking-wide">Total mensual</span>
+      <span class="text-lg font-bold text-indigo-700">S/ {{ totalPEN | number:'1.2-2' }}</span>
+      <span *ngIf="totalUSD > 0" class="text-lg font-bold text-indigo-700">· US$ {{ totalUSD | number:'1.2-2' }}</span>
+    </div>
+    <div class="flex gap-2">
+      <p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="cerrar()"></p-button>
+      <p-button [label]="esEdicion ? 'Guardar cambios' : 'Crear Propuesta'"
+        [icon]="guardando ? 'pi pi-spin pi-spinner' : 'pi pi-check'"
+        [disabled]="guardando" (click)="guardar()" styleClass="px-5"></p-button>
+    </div>
+  </div>
+
+</div>
+
+<p-toast position="top-right" />

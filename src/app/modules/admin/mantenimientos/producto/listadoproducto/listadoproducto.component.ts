@@ -68,6 +68,7 @@ export class ListadoproductoComponent implements OnInit{
   {header: 'FAMILIA', field: 'familia' , width: '80px'  },
   {header: 'CODIGO', field: 'codigo' , width: '80px'  },
   {header: 'EAN 13', field: 'codigoEAN' , width: '110px'  },
+  {header: 'EAN CAJA', field: 'codigoEANCaja' , width: '120px'  },
   {header: 'DESCRIPCION', field: 'descripcionLarga' , width: '160px'  },
   {header: 'CANAL', field: 'canal', width: '80px'},
   {header: 'VOLUMEN', field: 'volumen', width: '80px'},
