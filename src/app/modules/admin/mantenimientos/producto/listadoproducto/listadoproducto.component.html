@@ -98,6 +98,17 @@
           tooltipPosition="bottom"
           (click)="cargarMasivoExcel()">
         </button>
+        <button
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm transition-all duration-150 disabled:opacity-50"
+          pButton
+          icon="pi pi-download"
+          label="Exportar Excel"
+          iconPos="left"
+          [disabled]="!productos?.length"
+          pTooltip="Descarga el resultado actual de la grilla a Excel"
+          tooltipPosition="bottom"
+          (click)="exportarExcel(dt)">
+        </button>
       </div>
     </div>
   </div>

@@ -18,6 +18,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { PropietarioService } from 'app/modules/admin/_services/propietario.service';
 import { CargaProductosDialogComponent } from '../../clientes/carga-productos-dialog/carga-productos-dialog.component';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 
 @Component({
@@ -111,6 +113,53 @@ export class ListadoproductoComponent implements OnInit{
 console.log(list);
 
       this.loading = false;
+    });
+  }
+
+  /**
+   * Exporta a Excel el resultado actual de la grilla. Si hay un filtro global
+   * activo, exporta solo las filas filtradas; si no, todo lo cargado.
+   */
+  exportarExcel(dt: any) {
+    const data: any[] = (dt?.filteredValue ?? this.productos) ?? [];
+    if (!data.length) {
+      this.messageService.add({
+        severity: 'warn', summary: 'Sin datos',
+        detail: 'No hay productos para exportar. Realiza una búsqueda primero.'
+      });
+      return;
+    }
+
+    const rows = data.map((p: any) => ({
+      'CLIENTE': p.cliente ?? '',
+      'FAMILIA': p.familia ?? '',
+      'CODIGO': p.codigo ?? '',
+      'EAN 13': p.codigoEAN ?? '',
+      'EAN CAJA': p.codigoEANCaja ?? '',
+      'DESCRIPCION': p.descripcionLarga ?? '',
+      'CANAL': p.canal ?? '',
+      'VOLUMEN': p.volumen ?? '',
+      'ANCHO': p.ancho ?? '',
+      'ALTO': p.alto ?? '',
+      'LARGO': p.largo ?? '',
+      'SOBREDIMENSIONADO': p.sobredimensionado ?? '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+    const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}`;
+    saveAs(blob, `Productos_${stamp}.xlsx`);
+
+    this.messageService.add({
+      severity: 'success', summary: 'Exportado',
+      detail: `${rows.length} producto(s) exportados a Excel.`
     });
   }
 
