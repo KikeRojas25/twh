@@ -56,6 +56,9 @@ export class NewbatchComponent implements OnInit {
   IdCarga: number;
   public correcto = false;
 
+  /** Informe de la última carga de ingreso procesada (se muestra al terminar). */
+  resumenIngreso: { ordenes: number; lineas: number; unidades: number; numerosOrden: string[]; fecha: Date } | null = null;
+
 
 
   constructor(
@@ -221,30 +224,41 @@ uploadSelectedFiles() {
     this.model.idcarga   = this.IdCarga;
 
     this.recepcionService.procesarCarga ( this.model.idcarga
-      , this.model.IdAlmacen 
-      , this.model.PropietarioId ).subscribe(resp => {
-  
-  
+      , this.model.IdAlmacen
+      , this.model.PropietarioId ).subscribe({
+      next: (resp: any) => {
+        // Informe devuelto por el backend al terminar el proceso.
+        this.resumenIngreso = {
+          ordenes: resp?.ordenesGeneradas ?? 0,
+          lineas: resp?.lineas ?? 0,
+          unidades: resp?.unidades ?? 0,
+          numerosOrden: resp?.numerosOrden ?? [],
+          fecha: new Date()
+        };
 
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Exitoso',
-        detail: 'Archivo cargado con éxito',
-        life: 3000
-      });
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Ingreso procesado',
+          detail: `Se generaron ${this.resumenIngreso.ordenes} orden(es) de recibo · ${this.resumenIngreso.lineas} línea(s) · ${this.resumenIngreso.unidades} unidad(es).`,
+          life: 8000
+        });
 
-
-      // success('Se han generado las ordenes de ingreso'
-      // , 'Subir File', {
-      //   closeButton: true
-      // });
-  
-     // this.router.navigate(['/recibo/listaordenrecibo',  this.model ]);
-  
-  
-     
+        // Limpiar para una nueva carga.
+        this.files = [];
+        this.datos = [];
+        this.IdCarga = null;
+        this.correcto = false;
+      },
+      error: (err) => {
+        // Muestra el mensaje del backend (p. ej. "…no tiene UBICACIÓN…").
+        const msg = (typeof err?.error === 'string' ? err.error : err?.error?.message) || err?.message || 'No se pudo procesar la carga.';
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error al procesar',
+          detail: msg,
+          life: 10000
+        });
+      }
     });
-  
-  
   }
 }
