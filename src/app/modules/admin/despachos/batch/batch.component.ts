@@ -71,6 +71,9 @@ export class BatchComponent {
   clientes: SelectItem[] = [];
   model: any = {};
 
+  /** Resumen de la última carga procesada, para el mensaje de confirmación. */
+  resumenCarga: { ordenes: number; lineas: number; unidades: number; fecha: Date } | null = null;
+
   public mySelection: number[] = [];
 
   divvisible = false;
@@ -270,12 +273,25 @@ procesar(): void {
   };
 
   this.despachosService.procesarMasivo(carga).subscribe({
-    next: () => {
+    next: (result: any) => {
+      // ProcesarMasivo devuelve las filas procesadas: calculamos el resumen.
+      const filas: any[] = Array.isArray(result) ? result : [];
+      const totalLineas = filas.length;
+      const totalOrdenes = new Set(filas.map(r => r?.pedido)).size;
+      const totalUnidades = filas.reduce((acc, r) => acc + (Number(r?.stock) || 0), 0);
+
+      this.resumenCarga = {
+        ordenes: totalOrdenes,
+        lineas: totalLineas,
+        unidades: totalUnidades,
+        fecha: new Date()
+      };
+
       this.messageService.add({
         severity: 'success',
-        summary: 'Procesado',
-        detail: 'Órdenes de salida generadas correctamente',
-        life: 3000
+        summary: 'Carga procesada',
+        detail: `Se generaron ${totalOrdenes} orden(es) de salida · ${totalLineas} línea(s) · ${totalUnidades} unidad(es).`,
+        life: 8000
       });
 
       // 👇 limpiar el listado de archivos porque ya procesó

@@ -145,12 +145,27 @@
     </p-fileUpload>
   </div>
   
-  <!-- Sección de Errores -->
-  <div #appendTo class="flex flex-col p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-    <div class="grow w-64">
-      <h2 class="font-bold">Errores</h2>
-      <p>{{ errors }}</p>
+  <!-- Resultado de la última carga procesada -->
+  <div *ngIf="resumenCarga" class="mx-6 my-4 p-5 border border-green-200 rounded-2xl bg-green-50 dark:bg-green-900/20 shadow-sm">
+    <div class="flex items-center gap-2 mb-4">
+      <i class="pi pi-check-circle text-green-600 text-2xl"></i>
+      <h3 class="font-bold text-green-800 dark:text-green-300 text-lg">Carga procesada correctamente</h3>
     </div>
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="p-4 bg-white dark:bg-slate-800 rounded-xl border">
+        <div class="text-3xl font-bold text-green-700 dark:text-green-400">{{ resumenCarga.ordenes }}</div>
+        <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Órdenes de salida</div>
+      </div>
+      <div class="p-4 bg-white dark:bg-slate-800 rounded-xl border">
+        <div class="text-3xl font-bold text-green-700 dark:text-green-400">{{ resumenCarga.lineas }}</div>
+        <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Líneas</div>
+      </div>
+      <div class="p-4 bg-white dark:bg-slate-800 rounded-xl border">
+        <div class="text-3xl font-bold text-green-700 dark:text-green-400">{{ resumenCarga.unidades | number }}</div>
+        <div class="text-xs text-gray-500 uppercase tracking-wide mt-1">Unidades</div>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Procesado el {{ resumenCarga.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
   </div>
 
 </div>
