@@ -1,0 +1,44 @@
+<div class="px-6 pb-6">
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <div class="rounded-lg p-4 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Valor activo</div>
+      <div class="text-2xl font-bold mt-1">S/ {{ totalActivo | number:'1.0-0' }}</div>
+    </div>
+    <div class="rounded-lg p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-sm">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Forecast (ponderado)</div>
+      <div class="text-2xl font-bold mt-1">S/ {{ forecast | number:'1.0-0' }}</div>
+    </div>
+    <div class="rounded-lg p-4 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Ganadas</div>
+      <div class="text-2xl font-bold mt-1 text-green-600">S/ {{ ganadasValor | number:'1.0-0' }}</div>
+      <div class="text-xs text-[color:var(--pg-muted)] mt-0.5">{{ ganadasCount }} deal(s)</div>
+    </div>
+    <div class="rounded-lg p-4 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Perdidas</div>
+      <div class="text-2xl font-bold mt-1 text-red-500">{{ perdidasCount }}</div>
+      <div class="text-xs text-[color:var(--pg-muted)] mt-0.5">deal(s)</div>
+    </div>
+  </div>
+
+  <!-- Embudo -->
+  <div class="rounded-lg p-5 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+    <h3 class="text-sm font-semibold text-[color:var(--pg-strong)] mb-4">Embudo del pipeline activo</h3>
+    <div class="flex flex-col gap-3 items-center">
+      <div *ngFor="let e of etapas" class="w-full flex flex-col items-center">
+        <div class="rounded-lg text-white px-4 py-3 flex items-center justify-between shadow-sm transition-all" [ngClass]="e.barra"
+          [style.width.%]="e.ancho" [style.min-width.px]="180"
+          [pTooltip]="e.count + ' oportunidad(es) · Ponderado S/ ' + (e.ponderado | number:'1.0-0')" tooltipPosition="top">
+          <span class="text-sm font-semibold truncate">{{ e.label }}</span>
+          <span class="text-sm font-bold whitespace-nowrap ml-3">S/ {{ e.valor | number:'1.0-0' }}</span>
+        </div>
+        <div class="text-[11px] text-[color:var(--pg-muted)] mt-1">{{ e.count }} oport. · pond. S/ {{ e.ponderado | number:'1.0-0' }}</div>
+      </div>
+
+      <div *ngIf="totalActivo === 0" class="text-center text-sm text-[color:var(--pg-muted)] py-6">
+        <i class="pi pi-filter text-3xl block mb-2 opacity-50"></i>
+        No hay oportunidades activas en el embudo.
+      </div>
+    </div>
+  </div>
+</div>

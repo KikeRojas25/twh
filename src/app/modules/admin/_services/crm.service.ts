@@ -4,16 +4,21 @@ import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import {
   Actividad,
+  Adjunto,
   ApiResponse,
+  BandejaCorreo,
   Comunicacion,
   Contacto,
   EntidadDetail,
   EntidadListItem,
+  EstadoCorreo,
+  MetaVendedor,
   OportunidadCard,
   PagedResult,
   PropietarioWmsRef,
   PropuestaDetail,
   PropuestaSummary,
+  RucInfo,
   Vendedor,
 } from '../crm/crm.types';
 
@@ -31,6 +36,8 @@ export class CrmService {
   private comuUrl = environment.baseUrl + '/api/crm/comunicaciones';
   private propUrl = environment.baseUrl + '/api/crm/propuestas';
   private actUrl = environment.baseUrl + '/api/crm/actividades';
+  private adjUrl = environment.baseUrl + '/api/crm/adjuntos';
+  private gmailUrl = environment.baseUrl + '/api/crm/gmail';
   private _httpClient = inject(HttpClient);
 
   // ─── Entidades ───────────────────────────────────────────────────────────
@@ -62,6 +69,11 @@ export class CrmService {
 
   eliminarEntidad(id: number): Observable<ApiResponse> {
     return this._httpClient.delete<ApiResponse>(`${this.baseUrl}/${id}`, httpOptions);
+  }
+
+  /** Consulta SUNAT por RUC para autocompletar razón social/dirección. */
+  consultarRuc(ruc: string): Observable<RucInfo> {
+    return this._httpClient.get<RucInfo>(`${this.baseUrl}/consultar-ruc/${encodeURIComponent(ruc)}`, httpOptions);
   }
 
   // ─── Catálogos para selectores ───────────────────────────────────────────
@@ -123,6 +135,38 @@ export class CrmService {
 
   eliminarOportunidad(id: number): Observable<ApiResponse> {
     return this._httpClient.delete<ApiResponse>(`${this.oportUrl}/${id}`, httpOptions);
+  }
+
+  // ─── Metas por vendedor (vista Resumen) ──────────────────────────────────
+
+  getMetasVendedor(anio: number, mes: number): Observable<MetaVendedor[]> {
+    return this._httpClient.get<MetaVendedor[]>(`${this.oportUrl}/metas?anio=${anio}&mes=${mes}`, httpOptions);
+  }
+
+  guardarMetaVendedor(dto: { vendedorUsuarioId: number; anio: number; mes: number; monto: number }): Observable<ApiResponse> {
+    return this._httpClient.put<ApiResponse>(`${this.oportUrl}/metas`, dto, httpOptions);
+  }
+
+  // ─── Correo / Gmail (Fase 3) ─────────────────────────────────────────────
+
+  gmailEstado(): Observable<EstadoCorreo> {
+    return this._httpClient.get<EstadoCorreo>(`${this.gmailUrl}/estado`, httpOptions);
+  }
+
+  gmailConnectUrl(): Observable<{ url: string }> {
+    return this._httpClient.get<{ url: string }>(`${this.gmailUrl}/connect`, httpOptions);
+  }
+
+  gmailBandeja(): Observable<BandejaCorreo[]> {
+    return this._httpClient.get<BandejaCorreo[]>(`${this.gmailUrl}/bandeja`, httpOptions);
+  }
+
+  gmailVincular(dto: { messageId: string; oportunidadId: number }): Observable<ApiResponse> {
+    return this._httpClient.post<ApiResponse>(`${this.gmailUrl}/vincular`, dto, httpOptions);
+  }
+
+  gmailDesconectar(): Observable<any> {
+    return this._httpClient.post<any>(`${this.gmailUrl}/desconectar`, {}, httpOptions);
   }
 
   // ─── Comunicaciones (Fase 3 — timeline) ──────────────────────────────────
@@ -208,9 +252,37 @@ export class CrmService {
     return this._httpClient.delete<ApiResponse>(`${this.actUrl}/${id}`, httpOptions);
   }
 
+  /** Dispara manualmente el envío de recordatorios de actividades vencidas (correo). */
+  enviarRecordatorios(): Observable<ApiResponse> {
+    return this._httpClient.post<ApiResponse>(`${this.actUrl}/enviar-recordatorios`, {}, httpOptions);
+  }
+
   // ─── Conversión al ganar (bisagra) ───────────────────────────────────────
 
   convertirOportunidad(oportunidadId: number, propietarioWmsId: number): Observable<ApiResponse> {
     return this._httpClient.post<ApiResponse>(`${this.oportUrl}/${oportunidadId}/convertir`, { propietarioWmsId }, httpOptions);
+  }
+
+  // ─── Adjuntos / archivos (Fase 2 workspace) ──────────────────────────────
+
+  getAdjuntos(oportunidadId: number): Observable<Adjunto[]> {
+    return this._httpClient.get<Adjunto[]>(`${this.oportUrl}/${oportunidadId}/adjuntos`, httpOptions);
+  }
+
+  subirAdjunto(oportunidadId: number, file: File): Observable<ApiResponse> {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    // Sin 'Content-Type': el navegador fija el boundary del multipart.
+    const headers = new HttpHeaders({ Authorization: 'Bearer ' + localStorage.getItem('token') });
+    return this._httpClient.post<ApiResponse>(`${this.oportUrl}/${oportunidadId}/adjuntos`, fd, { headers });
+  }
+
+  descargarAdjunto(adjuntoId: number): Observable<Blob> {
+    const headers = new HttpHeaders({ Authorization: 'Bearer ' + localStorage.getItem('token') });
+    return this._httpClient.get(`${this.adjUrl}/${adjuntoId}/descargar`, { headers, responseType: 'blob' });
+  }
+
+  eliminarAdjunto(adjuntoId: number): Observable<ApiResponse> {
+    return this._httpClient.delete<ApiResponse>(`${this.adjUrl}/${adjuntoId}`, httpOptions);
   }
 }

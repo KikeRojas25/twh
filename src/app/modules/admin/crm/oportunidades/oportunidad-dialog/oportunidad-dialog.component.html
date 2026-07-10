@@ -14,10 +14,16 @@
           <div class="text-xs text-slate-400 truncate"><i class="pi pi-building mr-1"></i>{{ entidadFija }}</div>
         </div>
       </div>
-      <div class="text-right flex-shrink-0">
-        <p-tag [value]="etapaLabels[etapaActual] || etapaActual" [severity]="etapaSeverity(etapaActual)"></p-tag>
-        <div class="text-lg font-bold mt-1.5">S/ {{ model.valorEstimadoMensual | number:'1.0-0' }}</div>
-        <div class="text-[11px] text-slate-400">valor mensual</div>
+      <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="text-right">
+          <p-tag [value]="etapaLabels[etapaActual] || etapaActual" [severity]="etapaSeverity(etapaActual)"></p-tag>
+          <div class="text-lg font-bold mt-1.5">S/ {{ model.valorEstimadoMensual | number:'1.0-0' }}</div>
+          <div class="text-[11px] text-slate-400">valor mensual</div>
+        </div>
+        <button type="button" (click)="eliminar()" pTooltip="Eliminar oportunidad" tooltipPosition="left"
+          class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/10 text-red-300 hover:bg-red-500 hover:text-white transition-colors">
+          <i class="pi pi-trash"></i>
+        </button>
       </div>
     </div>
 
@@ -205,6 +211,66 @@
         [entidadId]="entidadId" [oportunidadId]="oportunidadId"
         (cambio)="huboCambios = true">
       </app-crm-actividades-panel>
+    </p-tabPanel>
+
+    <!-- ═══════════ Archivos / adjuntos ═══════════ -->
+    <p-tabPanel [disabled]="!esEdicion">
+      <ng-template pTemplate="header">
+        <span class="inline-flex items-center gap-2">
+          <i class="pi pi-paperclip"></i> Archivos
+          <span *ngIf="adjuntos.length" class="text-[11px] font-semibold bg-indigo-100 text-indigo-700 rounded-full px-1.5">{{ adjuntos.length }}</span>
+        </span>
+      </ng-template>
+
+      <div *ngIf="!esEdicion" class="flex flex-col items-center text-center gap-2 p-8 text-gray-500">
+        <i class="pi pi-info-circle text-3xl text-gray-300"></i>
+        <span class="text-sm">Los archivos se adjuntan sobre una oportunidad ya creada.</span>
+      </div>
+
+      <div *ngIf="esEdicion" class="pt-2">
+        <!-- Zona drag & drop -->
+        <div (drop)="onDrop($event)" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
+          (click)="fileInput.click()"
+          class="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
+          [ngClass]="arrastrando ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 bg-gray-50 hover:border-indigo-300'">
+          <i class="pi pi-cloud-upload text-4xl" [ngClass]="arrastrando ? 'text-indigo-500' : 'text-gray-400'"></i>
+          <div class="text-sm text-gray-600">
+            <span class="font-semibold text-indigo-600">Haz clic</span> o arrastra archivos aquí
+          </div>
+          <div class="text-xs text-gray-400">PDF, Word, Excel, imágenes, correos (.eml/.msg)… — máx. 25 MB c/u</div>
+          <input #fileInput type="file" class="hidden" multiple (change)="onArchivosInput($event)"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.txt,.eml,.msg,.zip,.rar" />
+        </div>
+
+        <div *ngIf="subiendoAdjunto" class="flex items-center gap-2 text-sm text-indigo-600 mt-3">
+          <i class="pi pi-spin pi-spinner"></i> Subiendo archivo(s)…
+        </div>
+
+        <!-- Lista de adjuntos -->
+        <div class="mt-4 flex flex-col gap-2">
+          <div *ngFor="let a of adjuntos"
+            class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-white hover:shadow-sm transition-shadow">
+            <i class="text-2xl flex-shrink-0" [ngClass]="iconoArchivo(a.extension)"></i>
+            <div class="min-w-0 flex-auto">
+              <div class="text-sm font-medium text-gray-800 truncate">{{ a.nombreArchivo }}</div>
+              <div class="text-xs text-gray-400">
+                {{ formatoTamano(a.tamano) }} · {{ a.fechaCreacion | date:'dd MMM y, HH:mm' }}<span *ngIf="a.subidoPorNombre"> · {{ a.subidoPorNombre }}</span>
+              </div>
+            </div>
+            <div class="flex gap-1 flex-shrink-0">
+              <p-button severity="primary" icon="pi pi-download" [rounded]="true" [text]="true"
+                pTooltip="Descargar" tooltipPosition="top" (click)="descargarAdjunto(a)"></p-button>
+              <p-button severity="danger" icon="pi pi-trash" [rounded]="true" [text]="true"
+                pTooltip="Eliminar" tooltipPosition="top" (click)="eliminarAdjunto(a)"></p-button>
+            </div>
+          </div>
+
+          <div *ngIf="!cargandoAdjuntos && adjuntos.length === 0" class="text-center text-sm text-gray-400 py-6">
+            <i class="pi pi-inbox text-2xl block mb-1 text-gray-300"></i>
+            Aún no hay archivos adjuntos.
+          </div>
+        </div>
+      </div>
     </p-tabPanel>
 
   </p-tabView>

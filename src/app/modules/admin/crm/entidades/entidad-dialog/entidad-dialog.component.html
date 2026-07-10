@@ -20,8 +20,14 @@
             <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">
               RUC / Documento <span class="text-red-500">*</span>
             </label>
-            <input pInputText [(ngModel)]="model.ruc" placeholder="Ej: 20123456789"
-              class="w-full" [class.ng-invalid]="!model.ruc?.trim()" />
+            <div class="p-inputgroup">
+              <input pInputText [(ngModel)]="model.ruc" placeholder="Ej: 20123456789"
+                class="w-full" [class.ng-invalid]="!model.ruc?.trim()"
+                (keyup.enter)="consultarRuc()" />
+              <button type="button" pButton icon="pi pi-search" class="p-button-secondary"
+                [loading]="consultandoRuc" (click)="consultarRuc()"
+                pTooltip="Consultar SUNAT" tooltipPosition="top"></button>
+            </div>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Nombre Comercial</label>

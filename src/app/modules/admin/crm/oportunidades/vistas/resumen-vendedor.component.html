@@ -1,0 +1,82 @@
+<div class="px-6 pb-6">
+  <!-- KPIs de equipo -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+    <div class="rounded-lg p-4 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Cerrado equipo</div>
+      <div class="text-2xl font-bold mt-1 text-[color:var(--pg-strong)]">S/ {{ cerradoEquipo | number:'1.0-0' }}</div>
+      <div class="text-xs mt-0.5" [ngClass]="avanceEquipo() >= 100 ? 'text-green-600' : 'text-[color:var(--pg-muted)]'">
+        {{ avanceEquipo() }}% de la meta (S/ {{ metaEquipo | number:'1.0-0' }})
+      </div>
+    </div>
+    <div class="rounded-lg p-4 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">En pipeline</div>
+      <div class="text-2xl font-bold mt-1 text-[color:var(--pg-strong)]">S/ {{ pipelineEquipo | number:'1.0-0' }}</div>
+      <div class="text-xs text-[color:var(--pg-muted)] mt-0.5">oportunidades activas</div>
+    </div>
+    <div class="rounded-lg p-4 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Actividades</div>
+      <div class="text-2xl font-bold mt-1 text-[color:var(--pg-strong)]">{{ actividadesEquipo }}</div>
+      <div class="text-xs text-[color:var(--pg-muted)] mt-0.5">llamadas, visitas, correos</div>
+    </div>
+  </div>
+
+  <!-- Tarjetas por vendedor -->
+  <div class="flex flex-col gap-3">
+    <div *ngFor="let f of filas" class="rounded-lg p-4 bg-[var(--pg-surface)] border border-[color:var(--pg-border)]">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="flex w-11 h-11 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600 text-sm font-bold flex-shrink-0">{{ iniciales(f.nombre) }}</span>
+          <div class="min-w-0">
+            <div class="text-base font-semibold text-[color:var(--pg-strong)] truncate">{{ f.nombre }}</div>
+            <div class="text-xs text-[color:var(--pg-muted)] inline-flex items-center gap-1">
+              Meta: S/ {{ f.meta | number:'1.0-0' }}
+              <button *ngIf="f.vendedorId != null" type="button" class="text-indigo-600 hover:text-indigo-500"
+                pTooltip="Editar meta" tooltipPosition="top" (click)="abrirEditarMeta(f)">
+                <i class="pi pi-pencil text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-lg font-bold" [ngClass]="f.avance >= 100 ? 'text-green-600' : 'text-[color:var(--pg-strong)]'">{{ f.avance }}%</div>
+          <div class="text-xs" [ngClass]="f.cerrado > 0 ? 'text-green-600' : 'text-[color:var(--pg-muted)]'">S/ {{ f.cerrado | number:'1.0-0' }} cerrado</div>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="h-2 rounded-full bg-[var(--pg-chip)] mt-3 overflow-hidden">
+        <div class="h-full rounded-full transition-all" [ngClass]="barraClass(f.avance)"
+          [style.width.%]="f.avance > 100 ? 100 : f.avance"></div>
+      </div>
+
+      <!-- Métricas -->
+      <div class="flex items-center flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-[color:var(--pg-muted)]">
+        <span class="inline-flex items-center gap-1"><i class="pi pi-phone text-[11px]"></i>{{ f.actividades }} actividades</span>
+        <span class="inline-flex items-center gap-1"><i class="pi pi-check-circle text-[11px]"></i>{{ f.ganadas }} ganada(s)</span>
+        <span class="inline-flex items-center gap-1"><i class="pi pi-clock text-[11px]"></i>{{ f.enCurso }} en curso</span>
+        <span class="inline-flex items-center gap-1"><i class="pi pi-percentage text-[11px]"></i>{{ f.tasaCierre }}% cierre</span>
+        <span *ngIf="f.estancadaDias > 14" class="inline-flex items-center gap-1 text-red-600 font-medium">
+          <i class="pi pi-exclamation-triangle text-[11px]"></i>estancada {{ f.estancadaDias }}d
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="filas.length === 0" class="text-center text-sm text-[color:var(--pg-muted)] py-10 border-2 border-dashed border-[color:var(--pg-border)] rounded-lg">
+      <i class="pi pi-users text-3xl block mb-2 opacity-50"></i>
+      Sin oportunidades en el periodo.
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: editar meta del vendedor -->
+<p-dialog header="Meta del vendedor" [(visible)]="editando" [modal]="true" [style]="{ width: '380px' }" appendTo="body">
+  <div class="flex flex-col gap-2">
+    <span class="text-sm text-gray-600">{{ metaEditVendedor?.nombre }} — {{ mes }}/{{ anio }}</span>
+    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Meta mensual (S/)</label>
+    <p-inputNumber [(ngModel)]="metaEditMonto" mode="decimal" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" styleClass="w-full"></p-inputNumber>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="editando = false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" (click)="guardarMetaEdit()"></p-button>
+  </ng-template>
+</p-dialog>

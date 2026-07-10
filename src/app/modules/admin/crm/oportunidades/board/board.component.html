@@ -1,153 +1,193 @@
-<div class="flex flex-col flex-auto min-w-0 bg-gray-50 h-full">
+<div class="flex flex-col flex-auto min-w-0 h-full bg-[var(--pg-bg)] text-[color:var(--pg-text)]">
 
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-4 sm:px-10 border-b border-gray-200 bg-white shadow-sm">
-    <div class="flex-1 min-w-0">
-      <div class="flex flex-wrap items-center font-medium text-sm text-gray-600">
-        <a class="whitespace-nowrap text-gray-700 hover:text-gray-900">TWH</a>
-        <div class="flex items-center ml-1 whitespace-nowrap">
-          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-gray-700 hover:text-gray-900">CRM</a>
-        </div>
-        <div class="flex items-center ml-1 whitespace-nowrap">
-          <mat-icon class="fuse-horizontal-navigation-item-icon text-gray-400" [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
-          <a class="ml-1 text-gray-700 hover:text-gray-900">Pipeline</a>
-        </div>
-      </div>
-      <div class="mt-1">
-        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight leading-7 sm:leading-10 truncate text-gray-900">
-          Pipeline de Oportunidades
-        </h2>
-      </div>
+  <!-- Título -->
+  <div class="px-6 pt-5 pb-2">
+    <h2 class="text-2xl font-bold tracking-tight text-[color:var(--pg-title)]">Pipeline de Oportunidades</h2>
+  </div>
+
+  <!-- Toolbar: vistas + periodo/filtros + acciones -->
+  <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 pb-3 border-b border-[color:var(--pg-border)]">
+    <!-- Tabs de vista (estilo Notion) -->
+    <div class="flex items-center gap-1">
+      <button *ngFor="let v of vistaOpciones" type="button" (click)="cambiarVista(v.value)"
+        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors"
+        [ngClass]="vista === v.value ? 'bg-[var(--pg-active)] text-[color:var(--pg-strong)]' : 'text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]'">
+        <i [class]="v.icon + ' text-xs'"></i>{{ v.label }}
+      </button>
     </div>
-    <div class="flex items-center gap-2 mt-4 sm:mt-0">
-      <button pButton icon="fa fa-refresh" label="Actualizar" [loading]="cargando"
-        class="px-3 py-2 text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 rounded-md shadow-sm"
-        (click)="cargar()"></button>
-      <button pButton icon="fa fa-plus" label="Nueva Oportunidad"
-        class="px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md shadow-sm"
-        (click)="nueva()"></button>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Periodo (vista Por vendedor) -->
+      <ng-container *ngIf="vista === 'vendedor'">
+        <p-dropdown [options]="mesesOpciones" [(ngModel)]="mes" optionLabel="label" optionValue="value"
+          (onChange)="cambiarPeriodo()" styleClass="text-sm" [style]="{ 'min-width': '130px' }"></p-dropdown>
+        <p-dropdown [options]="aniosOpciones" [(ngModel)]="anio" optionLabel="label" optionValue="value"
+          (onChange)="cambiarPeriodo()" styleClass="text-sm" [style]="{ 'min-width': '90px' }"></p-dropdown>
+      </ng-container>
+
+      <!-- Filtros (otras vistas) -->
+      <ng-container *ngIf="vista !== 'vendedor'">
+        <p-dropdown [options]="vendedores" [(ngModel)]="filtroVendedorId" optionLabel="nombre" optionValue="id"
+          placeholder="Vendedor" [filter]="true" filterBy="nombre" [showClear]="true" (onChange)="cargar()"
+          styleClass="text-sm" [style]="{ 'min-width': '180px' }"></p-dropdown>
+        <p-autoComplete [(ngModel)]="filtroEntidad" [suggestions]="entidadesSugeridas"
+          (completeMethod)="buscarEntidadesFiltro($event)" field="razonSocial" [dropdown]="true"
+          placeholder="Entidad" (onSelect)="cargar()" (onClear)="cargar()"
+          styleClass="text-sm" [style]="{ 'min-width': '200px' }" appendTo="body"></p-autoComplete>
+        <button *ngIf="hayFiltros" type="button" (click)="limpiarFiltros()"
+          class="inline-flex items-center gap-1 px-2 h-9 rounded-md text-sm text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]">
+          <i class="pi pi-filter-slash text-xs"></i>
+        </button>
+      </ng-container>
+
+      <!-- Toggle claro / oscuro -->
+      <button type="button" (click)="cambiarModo()" [pTooltip]="modo === 'oscuro' ? 'Modo claro' : 'Modo oscuro'" tooltipPosition="bottom"
+        class="inline-flex items-center justify-center w-9 h-9 rounded-md text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]">
+        <i class="pi text-sm" [ngClass]="modo === 'oscuro' ? 'pi-sun' : 'pi-moon'"></i>
+      </button>
+
+      <button type="button" (click)="cargar()" pTooltip="Actualizar" tooltipPosition="bottom"
+        class="inline-flex items-center justify-center w-9 h-9 rounded-md text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]">
+        <i class="pi text-sm" [ngClass]="cargando ? 'pi-spin pi-spinner' : 'pi-refresh'"></i>
+      </button>
+      <button type="button" (click)="nueva()"
+        class="inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-medium text-white bg-[#2383e2] hover:bg-[#1a72c9] transition-colors">
+        <i class="pi pi-plus text-xs"></i> Nuevo
+      </button>
     </div>
   </div>
 
-  <!-- Filtros -->
-  <div class="flex flex-wrap items-center gap-3 px-4 pt-3">
-    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Filtrar:</span>
-    <p-dropdown [options]="vendedores" [(ngModel)]="filtroVendedorId"
-      optionLabel="nombre" optionValue="id" placeholder="Vendedor" [filter]="true" filterBy="nombre"
-      [showClear]="true" (onChange)="cargar()" styleClass="text-sm" [style]="{ 'min-width': '200px' }"></p-dropdown>
-    <p-autoComplete [(ngModel)]="filtroEntidad" [suggestions]="entidadesSugeridas"
-      (completeMethod)="buscarEntidadesFiltro($event)" field="razonSocial" [dropdown]="true"
-      placeholder="Entidad / cliente" (onSelect)="cargar()" (onClear)="cargar()"
-      styleClass="text-sm" [style]="{ 'min-width': '240px' }" appendTo="body"></p-autoComplete>
-    <button *ngIf="hayFiltros" pButton type="button" icon="pi pi-filter-slash" label="Limpiar"
-      class="p-button-text p-button-sm text-gray-500" (click)="limpiarFiltros()"></button>
+  <!-- Resumen (KPIs) — solo Kanban -->
+  <div *ngIf="vista === 'kanban'" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 px-6 pt-3">
+    <div class="rounded-lg p-3 shadow-sm text-white bg-gradient-to-br from-indigo-500 to-indigo-600">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Pipeline activo</div>
+      <div class="text-xl font-bold mt-0.5">S/ {{ totalPipeline | number:'1.0-0' }}</div>
+      <div class="text-xs text-white/70 mt-0.5">{{ countActivas }} oportunidad(es)</div>
+    </div>
+    <div class="rounded-lg p-3 shadow-sm text-white bg-gradient-to-br from-emerald-500 to-emerald-600">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Ponderado</div>
+      <div class="text-xl font-bold mt-0.5">S/ {{ totalPonderado | number:'1.0-0' }}</div>
+      <div class="text-xs text-white/70 mt-0.5">valor × probabilidad</div>
+    </div>
+    <div class="rounded-lg p-3 shadow-sm text-white bg-gradient-to-br from-green-500 to-green-600">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Ganadas</div>
+      <div class="text-xl font-bold mt-0.5">S/ {{ valorGanadas | number:'1.0-0' }}</div>
+      <div class="text-xs text-white/70 mt-0.5">{{ countGanadas }} deal(s)</div>
+    </div>
+    <div class="rounded-lg p-3 bg-[var(--pg-surface-2)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Tasa de éxito</div>
+      <div class="text-xl font-bold mt-0.5 text-[color:var(--pg-strong)]">{{ tasaGanadas }}%</div>
+      <div class="text-xs text-[color:var(--pg-muted)] mt-0.5">ganadas / cerradas</div>
+    </div>
   </div>
 
-  <!-- Tablero -->
-  <div class="flex-auto overflow-x-auto px-4 pb-4 pt-3">
-    <div class="flex gap-4 items-start" style="min-width: max-content;">
+  <!-- Tablero (Kanban) -->
+  <div *ngIf="vista === 'kanban'" class="flex-auto overflow-x-auto notion-scroll px-6 pb-6 pt-4">
+    <div class="flex gap-3 items-start" style="min-width: max-content;">
 
       <div *ngFor="let col of columnas"
-        class="w-[300px] flex-shrink-0 rounded-xl bg-gray-50 border border-gray-200 border-t-[3px] overflow-hidden flex flex-col"
-        [ngClass]="{
-          'border-t-blue-400':   col.etapa === 'PROSPECCION',
-          'border-t-indigo-400': col.etapa === 'VISITA',
-          'border-t-purple-400': col.etapa === 'PROPUESTA',
-          'border-t-amber-400':  col.etapa === 'NEGOCIACION',
-          'border-t-green-500':  col.etapa === 'GANADA',
-          'border-t-red-400':    col.etapa === 'PERDIDA'
-        }">
+        class="w-[290px] flex-shrink-0 flex flex-col rounded-xl border border-[color:var(--pg-border)] p-2"
+        [ngClass]="colBgClass(col.etapa)">
 
-        <!-- Cabecera de columna (tinte suave por etapa) -->
-        <div class="px-3.5 py-3 flex items-center justify-between" [ngClass]="colHeaderClass(col.etapa)">
+        <!-- Cabecera de columna: etiqueta de color + conteo -->
+        <div class="flex items-center justify-between px-1.5 pt-1 pb-2.5">
           <div class="flex items-center gap-2 min-w-0">
-            <span class="text-sm font-semibold truncate">{{ col.titulo }}</span>
-            <span class="text-xs font-semibold text-gray-600 bg-white/70 rounded-full px-2 py-0.5 flex-shrink-0">{{ col.cards.length }}</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded truncate" [ngClass]="colPillClass(col.etapa)">{{ col.titulo }}</span>
+            <span class="text-xs font-semibold" [ngClass]="colCountClass(col.etapa)">{{ col.cards.length }}</span>
           </div>
-          <span class="text-xs font-semibold opacity-80 flex-shrink-0">S/ {{ totalColumna(col) | number:'1.0-0' }}</span>
+          <span class="text-[11px] text-[color:var(--pg-muted)] flex-shrink-0">S/ {{ totalColumna(col) | number:'1.0-0' }}</span>
         </div>
 
         <!-- Lista drag & drop -->
-        <div
-          class="lista px-2.5 pb-3 flex flex-col gap-2.5 min-h-[140px] flex-auto"
-          cdkDropList
-          [id]="'lista-' + col.etapa"
-          [cdkDropListData]="col.cards"
-          [cdkDropListConnectedTo]="listaIds"
-          (cdkDropListDropped)="drop($event, col.etapa)">
+        <div class="lista flex flex-col gap-2 min-h-[100px]"
+          cdkDropList [id]="'lista-' + col.etapa" [cdkDropListData]="col.cards"
+          [cdkDropListConnectedTo]="listaIds" (cdkDropListDropped)="drop($event, col.etapa)">
 
           <div *ngFor="let card of col.cards" cdkDrag
-            class="group bg-white rounded-lg rounded-l-xl border border-gray-200 border-l-[3px] shadow-sm hover:shadow-md hover:border-gray-300 transition-all p-3.5 cursor-grab active:cursor-grabbing"
-            [ngClass]="cardAccentClass(col.etapa)">
+            (cdkDragStarted)="onCardDragStarted()" (cdkDragEnded)="onCardDragEnded()" (click)="abrirDetalle(card)"
+            class="group rounded-lg border shadow-sm transition-colors p-3 cursor-pointer active:cursor-grabbing bg-[var(--pg-surface)] hover:bg-[var(--pg-hover)] border-[color:var(--pg-border)]">
 
-            <!-- Título + acciones (siempre visibles) -->
-            <div class="flex items-start justify-between gap-2">
-              <span class="text-sm font-semibold text-gray-800 leading-snug">{{ card.nombre }}</span>
-              <!-- mousedown/touchstart stopPropagation: presionar un botón no inicia el drag -->
-              <div class="flex gap-1 flex-shrink-0 -mr-1 -mt-0.5"
-                (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
-                <button type="button" pTooltip="Editar" tooltipPosition="top" (click)="editar(card)"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white shadow-sm transition-colors">
-                  <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:pencil-square'"></mat-icon>
-                </button>
-                <button type="button" pTooltip="Eliminar" tooltipPosition="top" (click)="eliminar(card)"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white shadow-sm transition-colors">
-                  <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:trash'"></mat-icon>
-                </button>
-              </div>
+            <!-- Título + salud -->
+            <div class="flex items-start gap-2 min-w-0">
+              <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" [ngClass]="healthClass(card)"
+                [pTooltip]="healthTitle(card)" tooltipPosition="top"></span>
+              <span class="text-sm font-medium leading-snug text-[color:var(--pg-strong)]">{{ card.nombre }}</span>
             </div>
 
             <!-- Entidad -->
-            <div class="flex items-center gap-1.5 text-xs text-gray-400 mt-1.5 min-w-0">
+            <div class="flex items-center gap-1.5 mt-2 min-w-0 text-[color:var(--pg-muted)]">
               <i class="pi pi-building text-[10px] flex-shrink-0"></i>
-              <span class="truncate">{{ card.entidadRazonSocial }}</span>
+              <span class="text-xs truncate">{{ card.entidadRazonSocial }}</span>
             </div>
 
-            <!-- Valor + prob + comms -->
-            <div class="flex items-center justify-between mt-3">
-              <span class="text-base font-bold text-gray-800">S/ {{ card.valorEstimadoMensual | number:'1.0-0' }}</span>
-              <div class="flex items-center gap-2">
-                <span *ngIf="card.numComunicaciones > 0" class="text-xs text-gray-400 inline-flex items-center gap-1"
-                  pTooltip="Comunicaciones registradas" tooltipPosition="top">
-                  <i class="pi pi-comments"></i>{{ card.numComunicaciones }}
-                </span>
-                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full" [ngClass]="probClass(card.probabilidad)"
-                  pTooltip="Probabilidad" tooltipPosition="top">{{ card.probabilidad }}%</span>
+            <!-- Valor + ponderado + probabilidad -->
+            <div class="flex items-end justify-between mt-2.5 gap-2">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold leading-none text-[color:var(--pg-strong)]">
+                  S/ {{ card.valorEstimadoMensual | number:'1.0-0' }}<span class="text-[10px] font-normal text-[color:var(--pg-muted)]">/mes</span>
+                </div>
+                <div class="text-[11px] text-[color:var(--pg-muted)] mt-1">Pond.&nbsp;S/ {{ valorPonderado(card) | number:'1.0-0' }}</div>
               </div>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0" [ngClass]="probClass(card.probabilidad)"
+                pTooltip="Probabilidad" tooltipPosition="top">{{ card.probabilidad }}%</span>
             </div>
 
-            <!-- Footer: vendedor + fecha -->
+            <!-- Chips -->
+            <div class="flex items-center flex-wrap gap-1.5 mt-2.5">
+              <span *ngIf="card.numComunicaciones > 0" class="inline-flex items-center gap-1 text-[11px] text-[color:var(--pg-muted)] bg-[var(--pg-chip)] rounded-full px-2 py-0.5"
+                pTooltip="Comunicaciones" tooltipPosition="top"><i class="pi pi-comments text-[10px]"></i>{{ card.numComunicaciones }}</span>
+              <span *ngIf="card.numActividadesPendientes" class="inline-flex items-center gap-1 text-[11px] text-blue-600 bg-blue-500/15 rounded-full px-2 py-0.5"
+                pTooltip="Actividades pendientes" tooltipPosition="top"><i class="pi pi-check-square text-[10px]"></i>{{ card.numActividadesPendientes }}</span>
+              <span *ngIf="card.numAdjuntos" class="inline-flex items-center gap-1 text-[11px] text-[color:var(--pg-muted)] bg-[var(--pg-chip)] rounded-full px-2 py-0.5"
+                pTooltip="Archivos adjuntos" tooltipPosition="top"><i class="pi pi-paperclip text-[10px]"></i>{{ card.numAdjuntos }}</span>
+              <span *ngIf="card.proximaActividadTitulo"
+                class="inline-flex items-center gap-1 text-[11px] rounded-full px-2 py-0.5 truncate max-w-[160px]"
+                [ngClass]="actividadVencida(card) ? 'text-red-600 bg-red-500/15' : 'text-emerald-600 bg-emerald-500/15'"
+                [pTooltip]="card.proximaActividadTitulo" tooltipPosition="top"><i class="pi pi-clock text-[10px]"></i>{{ card.proximaActividadFecha | date:'dd MMM' }}</span>
+            </div>
+
+            <!-- Footer: vendedor + fecha de cierre -->
             <div *ngIf="card.propietarioNombre || card.fechaCierreEstimada"
-              class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
+              class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-[color:var(--pg-border)]">
               <div *ngIf="card.propietarioNombre" class="flex items-center gap-1.5 min-w-0">
-                <span class="flex w-5 h-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-[9px] font-bold flex-shrink-0">
-                  {{ iniciales(card.propietarioNombre) }}
-                </span>
-                <span class="text-xs text-gray-500 truncate">{{ card.propietarioNombre }}</span>
+                <span class="flex w-5 h-5 items-center justify-center rounded-full bg-[var(--pg-chip)] text-[color:var(--pg-muted)] text-[9px] font-bold flex-shrink-0">{{ iniciales(card.propietarioNombre) }}</span>
+                <span class="text-xs text-[color:var(--pg-muted)] truncate">{{ card.propietarioNombre }}</span>
               </div>
-              <span *ngIf="card.fechaCierreEstimada" class="text-xs text-gray-400 flex-shrink-0 ml-2 whitespace-nowrap">
-                <i class="pi pi-calendar mr-1"></i>{{ card.fechaCierreEstimada | date:'dd MMM' }}
-              </span>
+              <span *ngIf="card.fechaCierreEstimada" class="text-xs text-[color:var(--pg-muted)] flex-shrink-0 ml-2 whitespace-nowrap inline-flex items-center gap-1"
+                pTooltip="Cierre estimado" tooltipPosition="top"><i class="pi pi-flag"></i>{{ card.fechaCierreEstimada | date:'dd MMM' }}</span>
             </div>
 
             <!-- Motivo de pérdida -->
             <div *ngIf="card.etapa === 'PERDIDA' && card.motivoPerdida"
-              class="mt-2.5 text-xs text-red-600 bg-red-50 rounded-md px-2 py-1.5">
-              <i class="pi pi-info-circle mr-1"></i>{{ card.motivoPerdida }}
-            </div>
+              class="mt-2.5 text-xs text-red-600 bg-red-500/10 rounded-md px-2 py-1.5"><i class="pi pi-info-circle mr-1"></i>{{ card.motivoPerdida }}</div>
           </div>
 
           <div *ngIf="col.cards.length === 0"
-            class="flex flex-col items-center justify-center gap-1 text-center py-8 text-gray-300 select-none border-2 border-dashed border-gray-200 rounded-lg">
-            <i class="pi pi-inbox"></i>
-            <span class="text-xs">Sin oportunidades</span>
+            class="flex items-center justify-center gap-1 text-center py-6 text-[color:var(--pg-muted)] select-none rounded-lg border border-dashed border-[color:var(--pg-border)]">
+            <span class="text-xs">Vacío</span>
           </div>
         </div>
       </div>
 
     </div>
   </div>
+
+  <!-- Vista: Por vendedor -->
+  <app-crm-resumen-vendedor *ngIf="vista === 'vendedor'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+    [cards]="todasCards" [vendedores]="vendedores" [metas]="metas" [anio]="anio" [mes]="mes"
+    (guardarMeta)="onGuardarMeta($event)"></app-crm-resumen-vendedor>
+
+  <!-- Vista: Lista -->
+  <app-crm-lista-oportunidades *ngIf="vista === 'lista'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+    [cards]="todasCards"></app-crm-lista-oportunidades>
+
+  <!-- Vista: Embudo / forecast -->
+  <app-crm-embudo *ngIf="vista === 'embudo'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+    [cards]="todasCards"></app-crm-embudo>
+
+  <!-- Vista: Correos (Gmail) -->
+  <app-crm-correos *ngIf="vista === 'correos'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+    [cards]="todasCards"></app-crm-correos>
 </div>
 
 <!-- Diálogo: motivo de pérdida -->

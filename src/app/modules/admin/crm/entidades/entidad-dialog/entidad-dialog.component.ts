@@ -177,6 +177,37 @@ export class EntidadDialogComponent implements OnInit {
     });
   }
 
+  consultandoRuc = false;
+
+  /** Consulta SUNAT y autocompleta razón social / nombre comercial. */
+  consultarRuc(): void {
+    const ruc = (this.model.ruc || '').trim();
+    if (!/^\d{11}$/.test(ruc)) { this.warn('Ingrese un RUC válido de 11 dígitos.'); return; }
+    this.consultandoRuc = true;
+    this.crmService.consultarRuc(ruc).subscribe({
+      next: (info) => {
+        this.consultandoRuc = false;
+        if (!info?.encontrado) {
+          this.warn(info?.mensaje || 'No se encontró información para ese RUC.');
+          return;
+        }
+        if (info.razonSocial) {
+          this.model.razonSocial = info.razonSocial;
+          if (!this.model.nombreComercial?.trim()) this.model.nombreComercial = info.razonSocial;
+        }
+        const detalle = [info.estado, info.condicion].filter(Boolean).join(' · ');
+        this.messageService.add({
+          severity: 'success', summary: 'SUNAT',
+          detail: `Datos cargados: ${info.razonSocial}${detalle ? ` (${detalle})` : ''}.`,
+        });
+      },
+      error: (err) => {
+        this.consultandoRuc = false;
+        this.messageService.add({ severity: 'error', summary: 'SUNAT', detail: err?.error?.mensaje || 'No se pudo consultar el RUC.' });
+      },
+    });
+  }
+
   guardarEntidad(): void {
     if (!this.model.razonSocial?.trim()) { this.warn('La razón social es obligatoria.'); return; }
     if (!this.model.ruc?.trim()) { this.warn('El RUC / documento es obligatorio.'); return; }

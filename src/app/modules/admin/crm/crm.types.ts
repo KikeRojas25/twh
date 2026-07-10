@@ -95,10 +95,16 @@ export interface OportunidadCard {
   probabilidad: number;
   motivoPerdida?: string | null;
   fechaCierreEstimada?: string | null;
+  fechaCierreReal?: string | null;
   propietarioUsuarioId?: number | null;
   propietarioNombre?: string | null;
   orden: number;
   numComunicaciones: number;
+  numAdjuntos?: number;
+  numActividadesPendientes?: number;
+  proximaActividadFecha?: string | null;
+  proximaActividadTitulo?: string | null;
+  fechaUltimoCambio?: string;
 }
 
 export type TipoActividad = 'LLAMAR' | 'ENVIAR_PROPUESTA' | 'VISITAR' | 'SEGUIMIENTO' | 'OTRO';
@@ -176,4 +182,54 @@ export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
   data?: T;
+}
+
+export interface EstadoCorreo {
+  conectado: boolean;
+  email?: string | null;
+}
+
+export interface BandejaCorreo {
+  messageId: string;
+  de?: string | null;
+  deNombre?: string | null;
+  asunto?: string | null;
+  fecha?: string | null;
+  snippet?: string | null;
+  conocido: boolean;
+  contactoId?: number | null;
+  contactoNombre?: string | null;
+  entidadId?: number | null;
+  entidadRazonSocial?: string | null;
+  yaVinculado: boolean;
+}
+
+export interface MetaVendedor {
+  vendedorUsuarioId: number;
+  vendedorNombre?: string | null;
+  anio: number;
+  mes: number;
+  monto: number;
+}
+
+export interface RucInfo {
+  ruc: string;
+  encontrado: boolean;
+  razonSocial?: string | null;
+  direccion?: string | null;
+  estado?: string | null;
+  condicion?: string | null;
+  mensaje?: string | null;
+}
+
+export interface Adjunto {
+  adjuntoId: number;
+  oportunidadId: number;
+  nombreArchivo: string;
+  contentType?: string | null;
+  extension?: string | null;
+  tamano: number;
+  subidoPorUsuarioId?: number | null;
+  subidoPorNombre?: string | null;
+  fechaCreacion: string;
 }
