@@ -2,9 +2,11 @@ import {
   CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem,
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
+import { FuseConfigService } from '@fuse/services/config';
+import { Subject, takeUntil } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
@@ -66,29 +68,42 @@ const PROBABILIDAD: Record<EtapaOportunidad, number> = {
     .notion-scroll::-webkit-scrollbar { height: 10px; width: 10px; }
     .notion-scroll::-webkit-scrollbar-thumb { background: var(--pg-border); border-radius: 6px; }
     .notion-scroll::-webkit-scrollbar-track { background: transparent; }
-    /* Controles PrimeNG acordes al tema, planos (estilo Notion, sin efecto 3D) */
+    /* Controles PrimeNG estilo Notion: planos y transparentes; el fondo/borde se
+       revela sutil al pasar el mouse o al enfocar (no cajas permanentes). */
     :host ::ng-deep .p-dropdown,
     :host ::ng-deep .p-autocomplete .p-inputtext {
-      background: var(--pg-surface); border: 1px solid var(--pg-border); color: var(--pg-strong);
-      border-radius: 6px; box-shadow: none !important;
+      background: transparent; border: 1px solid transparent; color: var(--pg-strong);
+      border-radius: 6px; box-shadow: none !important; transition: background-color .12s, border-color .12s;
     }
     :host ::ng-deep .p-dropdown .p-dropdown-label { color: var(--pg-strong); }
+    :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder { color: var(--pg-muted); }
     :host ::ng-deep .p-dropdown .p-dropdown-trigger,
-    :host ::ng-deep .p-autocomplete .p-autocomplete-dropdown { color: var(--pg-muted); }
-    /* Sin glow/sombra en focus ni hover */
-    :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus,
+    :host ::ng-deep .p-autocomplete .p-autocomplete-dropdown {
+      color: var(--pg-muted); background: transparent !important; border: 0 !important; width: 2rem;
+    }
+    /* Hover: fondo tenue tipo Notion, sin borde */
     :host ::ng-deep .p-dropdown:not(.p-disabled):hover,
-    :host ::ng-deep .p-autocomplete .p-inputtext:enabled:focus,
-    :host ::ng-deep .p-autocomplete .p-inputtext:enabled:hover {
-      box-shadow: none !important; border-color: var(--pg-active) !important; outline: none !important;
+    :host ::ng-deep .p-autocomplete:hover .p-inputtext:enabled {
+      background: var(--pg-chip); border-color: transparent !important;
+    }
+    /* Focus / abierto: leve borde para indicar que se está editando */
+    :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus,
+    :host ::ng-deep .p-autocomplete .p-inputtext:enabled:focus {
+      background: var(--pg-surface); border-color: var(--pg-border) !important;
+      box-shadow: none !important; outline: none !important;
     }
     :host ::ng-deep .p-button { box-shadow: none !important; }
+    /* Botones nativos de la barra (tabs, íconos, Nuevo): sin chrome del SO, con manita.
+       NO fija background aquí, para no pisar el color activo/azul de Tailwind. */
+    :host .crm-view-tab,
+    :host .crm-tool-btn { -webkit-appearance: none; appearance: none; border: 0; box-shadow: none; outline: none; cursor: pointer; }
   `],
 })
-export class CrmBoardComponent implements OnInit {
+export class CrmBoardComponent implements OnInit, OnDestroy {
 
   cargando = false;
   ref: DynamicDialogRef | undefined;
+  private _destroy$ = new Subject<void>();
 
   columnas: Columna[] = [
     { etapa: 'PROSPECCION', titulo: 'Prospección', cards: [] },
@@ -126,13 +141,16 @@ export class CrmBoardComponent implements OnInit {
     return [y - 2, y - 1, y, y + 1].map(a => ({ label: '' + a, value: a }));
   }
 
-  // Tema: oscuro por defecto (look Notion que el usuario prefiere)
+  // Tema del pipeline: NO tiene toggle propio; sigue al esquema GLOBAL de la app
+  // (botón general de Fuse, scheme light/dark). Se sincroniza en ngOnInit.
   modo: 'oscuro' | 'claro' = 'oscuro';
   @HostBinding('class.tema-claro') get esTemaClaro(): boolean { return this.modo === 'claro'; }
 
-  cambiarModo(): void {
-    this.modo = this.modo === 'oscuro' ? 'claro' : 'oscuro';
-    localStorage.setItem('crmTemaPipeline', this.modo);
+  private resolverModo(scheme: string | undefined): 'oscuro' | 'claro' {
+    if (scheme === 'dark') return 'oscuro';
+    if (scheme === 'light') return 'claro';
+    // 'auto' → según el sistema operativo
+    return (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) ? 'oscuro' : 'claro';
   }
 
   // Datos compartidos con las vistas
@@ -166,16 +184,26 @@ export class CrmBoardComponent implements OnInit {
     private messageService: MessageService,
     public dialogService: DialogService,
     private confirmationService: ConfirmationService,
+    private fuseConfigService: FuseConfigService,
   ) {}
 
   ngOnInit(): void {
     const v = localStorage.getItem('crmVistaPipeline');
     if (v === 'kanban' || v === 'vendedor' || v === 'lista' || v === 'embudo' || v === 'correos') this.vista = v;
-    const t = localStorage.getItem('crmTemaPipeline');
-    if (t === 'claro' || t === 'oscuro') this.modo = t;
+
+    // El tema del pipeline sigue al esquema GLOBAL (botón general de Fuse).
+    this.fuseConfigService.config$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe((cfg: any) => { this.modo = this.resolverModo(cfg?.scheme); });
+
     this.crmService.getVendedores().subscribe({ next: (d) => this.vendedores = d ?? [], error: () => {} });
     this.cargar();
     this.cargarMetas();
+  }
+
+  ngOnDestroy(): void {
+    this._destroy$.next();
+    this._destroy$.complete();
   }
 
   cambiarVista(v: 'kanban' | 'vendedor' | 'lista' | 'embudo' | 'correos'): void {

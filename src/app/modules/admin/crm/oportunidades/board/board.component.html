@@ -7,12 +7,14 @@
 
   <!-- Toolbar: vistas + periodo/filtros + acciones -->
   <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 pb-3 border-b border-[color:var(--pg-border)]">
-    <!-- Tabs de vista (estilo Notion) -->
+    <!-- Tabs de vista (estilo Notion: activo = pastilla gris PLANA, inactivos sin borde/caja) -->
     <div class="flex items-center gap-1">
       <button *ngFor="let v of vistaOpciones" type="button" (click)="cambiarVista(v.value)"
-        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors"
-        [ngClass]="vista === v.value ? 'bg-[var(--pg-active)] text-[color:var(--pg-strong)]' : 'text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]'">
-        <i [class]="v.icon + ' text-xs'"></i>{{ v.label }}
+        class="crm-view-tab cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm transition-colors appearance-none !border-0 !shadow-none focus:outline-none"
+        [ngClass]="vista === v.value
+          ? 'bg-[var(--pg-active)] text-[color:var(--pg-title)] font-medium'
+          : '!bg-transparent text-[color:var(--pg-muted)] font-normal hover:!bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]'">
+        <i [class]="v.icon + ' text-xs opacity-70'"></i>{{ v.label }}
       </button>
     </div>
 
@@ -34,24 +36,18 @@
           (completeMethod)="buscarEntidadesFiltro($event)" field="razonSocial" [dropdown]="true"
           placeholder="Entidad" (onSelect)="cargar()" (onClear)="cargar()"
           styleClass="text-sm" [style]="{ 'min-width': '200px' }" appendTo="body"></p-autoComplete>
-        <button *ngIf="hayFiltros" type="button" (click)="limpiarFiltros()"
-          class="inline-flex items-center gap-1 px-2 h-9 rounded-md text-sm text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]">
-          <i class="pi pi-filter-slash text-xs"></i>
+        <button *ngIf="hayFiltros" type="button" (click)="limpiarFiltros()" pTooltip="Limpiar filtros" tooltipPosition="bottom"
+          class="crm-tool-btn inline-flex items-center justify-center w-9 h-9 rounded-md text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)] transition-colors">
+          <i class="pi pi-filter-slash text-sm"></i>
         </button>
       </ng-container>
 
-      <!-- Toggle claro / oscuro -->
-      <button type="button" (click)="cambiarModo()" [pTooltip]="modo === 'oscuro' ? 'Modo claro' : 'Modo oscuro'" tooltipPosition="bottom"
-        class="inline-flex items-center justify-center w-9 h-9 rounded-md text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]">
-        <i class="pi text-sm" [ngClass]="modo === 'oscuro' ? 'pi-sun' : 'pi-moon'"></i>
-      </button>
-
       <button type="button" (click)="cargar()" pTooltip="Actualizar" tooltipPosition="bottom"
-        class="inline-flex items-center justify-center w-9 h-9 rounded-md text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)]">
+        class="crm-tool-btn inline-flex items-center justify-center w-9 h-9 rounded-md text-[color:var(--pg-muted)] hover:bg-[var(--pg-chip)] hover:text-[color:var(--pg-strong)] transition-colors">
         <i class="pi text-sm" [ngClass]="cargando ? 'pi-spin pi-spinner' : 'pi-refresh'"></i>
       </button>
       <button type="button" (click)="nueva()"
-        class="inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-medium text-white bg-[#2383e2] hover:bg-[#1a72c9] transition-colors">
+        class="crm-tool-btn inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-medium text-white bg-[#2383e2] hover:bg-[#1a72c9] transition-colors">
         <i class="pi pi-plus text-xs"></i> Nuevo
       </button>
     </div>

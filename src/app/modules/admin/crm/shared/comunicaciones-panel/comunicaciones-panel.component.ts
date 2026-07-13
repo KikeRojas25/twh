@@ -54,6 +54,7 @@ export class ComunicacionesPanelComponent implements OnChanges {
   comunicaciones: Comunicacion[] = [];
   cargando = false;
   guardando = false;
+  mostrarForm = false;   // el formulario de registro se despliega bajo demanda
   form: any = this.formVacio();
 
   readonly tipoOpciones = [
@@ -86,9 +87,18 @@ export class ComunicacionesPanelComponent implements OnChanges {
     // de recargas HTTP que cuelga el navegador.
     if (changes['entidadId'] || changes['oportunidadId']) {
       this.form = this.formVacio();
+      this.mostrarForm = false;
       if (this.entidadId || this.oportunidadId) this.recargar();
     }
   }
+
+  /** Abre/cierra el formulario de registro; al abrir, parte de un formulario limpio. */
+  toggleForm(): void {
+    this.mostrarForm = !this.mostrarForm;
+    if (this.mostrarForm) this.form = this.formVacio();
+  }
+
+  abrirForm(): void { this.form = this.formVacio(); this.mostrarForm = true; }
 
   private formVacio() {
     return {
@@ -153,6 +163,7 @@ export class ComunicacionesPanelComponent implements OnChanges {
         this.guardando = false;
         if (res && res.success === false) { this.warn(res.message || 'No se pudo registrar.'); return; }
         this.form = this.formVacio();
+        this.mostrarForm = false;   // al registrar, se colapsa y se ve el historial actualizado
         this.messageService.add({ severity: 'success', summary: 'Registrada', detail: 'Comunicación registrada.' });
         this.recargar();
         this.cambio.emit();

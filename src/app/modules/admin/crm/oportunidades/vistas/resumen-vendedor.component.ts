@@ -7,6 +7,9 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
 import { MetaVendedor, OportunidadCard, Vendedor } from '../../crm.types';
 
+interface EtapaResumen { etapa: string; label: string; count: number; valor: number; }
+interface DealResumen { nombre: string; etapa: string; valor: number; probabilidad: number; }
+
 interface FilaVendedor {
   vendedorId: number | null;
   nombre: string;
@@ -20,6 +23,11 @@ interface FilaVendedor {
   tasaCierre: number;
   estancadaDias: number;
   avance: number;
+  // Detalle (acordeón)
+  ponderado: number;
+  ticketProm: number;
+  porEtapa: EtapaResumen[];
+  topDeals: DealResumen[];
 }
 
 /**
@@ -52,7 +60,48 @@ export class ResumenVendedorComponent implements OnChanges {
   metaEditVendedor: FilaVendedor | null = null;
   metaEditMonto: number | null = null;
 
+  // Acordeón: qué vendedores están expandidos (persiste al recalcular)
+  private expandidos = new Set<number | string>();
+
   ngOnChanges(): void { this.recalcular(); }
+
+  private clave(f: FilaVendedor): number | string { return f.vendedorId ?? 'sin'; }
+  estaExpandido(f: FilaVendedor): boolean { return this.expandidos.has(this.clave(f)); }
+  toggleExpandir(f: FilaVendedor): void {
+    const k = this.clave(f);
+    this.expandidos.has(k) ? this.expandidos.delete(k) : this.expandidos.add(k);
+  }
+
+  private readonly etapasActivas = [
+    { etapa: 'PROSPECCION', label: 'Prospección' },
+    { etapa: 'VISITA',      label: 'Visita' },
+    { etapa: 'PROPUESTA',   label: 'Propuesta' },
+    { etapa: 'NEGOCIACION', label: 'Negociación' },
+  ];
+
+  /** Pill con tinte por etapa (legible en claro/oscuro). */
+  etapaPillClass(e: string): string {
+    switch (e) {
+      case 'PROSPECCION': return 'bg-blue-500/15 text-blue-600';
+      case 'VISITA':      return 'bg-indigo-500/15 text-indigo-600';
+      case 'PROPUESTA':   return 'bg-purple-500/15 text-purple-600';
+      case 'NEGOCIACION': return 'bg-amber-500/15 text-amber-700';
+      default:            return 'bg-gray-500/15 text-gray-500';
+    }
+  }
+  /** Color sólido para el segmento de la barra de distribución. */
+  etapaBarClass(e: string): string {
+    switch (e) {
+      case 'PROSPECCION': return 'bg-blue-500';
+      case 'VISITA':      return 'bg-indigo-500';
+      case 'PROPUESTA':   return 'bg-purple-500';
+      case 'NEGOCIACION': return 'bg-amber-500';
+      default:            return 'bg-gray-400';
+    }
+  }
+  etapaLabel(e: string): string {
+    return this.etapasActivas.find(x => x.etapa === e)?.label ?? e;
+  }
 
   private enMes(fecha?: string | null): boolean {
     if (!fecha) return false;
@@ -85,6 +134,15 @@ export class ResumenVendedorComponent implements OnChanges {
       const estancadaDias = activas.reduce((m, c) => Math.max(m, this.diasSinCambios(c)), 0);
       const meta = this.metas.find(m => m.vendedorUsuarioId === vendedorId)?.monto ?? 0;
       const totCerradas = ganadasMes.length + perdidasMes.length;
+      const ponderado = activas.reduce((s, c) => s + (c.valorEstimadoMensual || 0) * (c.probabilidad || 0) / 100, 0);
+      const porEtapa: EtapaResumen[] = this.etapasActivas.map(x => {
+        const cs = activas.filter(c => c.etapa === x.etapa);
+        return { etapa: x.etapa, label: x.label, count: cs.length, valor: cs.reduce((s, c) => s + (c.valorEstimadoMensual || 0), 0) };
+      }).filter(x => x.count > 0);
+      const topDeals: DealResumen[] = [...activas]
+        .sort((a, b) => (b.valorEstimadoMensual || 0) - (a.valorEstimadoMensual || 0))
+        .slice(0, 5)
+        .map(c => ({ nombre: c.nombre, etapa: c.etapa, valor: c.valorEstimadoMensual || 0, probabilidad: c.probabilidad || 0 }));
       filas.push({
         vendedorId,
         nombre: cards[0]?.propietarioNombre ?? (vendedorId ? `#${vendedorId}` : 'Sin asignar'),
@@ -98,6 +156,10 @@ export class ResumenVendedorComponent implements OnChanges {
         tasaCierre: totCerradas ? Math.round(ganadasMes.length / totCerradas * 100) : 0,
         estancadaDias,
         avance: meta > 0 ? Math.round(cerrado / meta * 100) : 0,
+        ponderado,
+        ticketProm: activas.length ? Math.round(pipeline / activas.length) : 0,
+        porEtapa,
+        topDeals,
       });
     });
 
@@ -114,6 +176,9 @@ export class ResumenVendedorComponent implements OnChanges {
     const p = nombre.trim().split(/\s+/);
     return (((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase()) || '?';
   }
+
+  private readonly nombresMes = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  nombreMes(m: number): string { return this.nombresMes[m - 1] ?? ''; }
   avanceEquipo(): number { return this.metaEquipo > 0 ? Math.round(this.cerradoEquipo / this.metaEquipo * 100) : 0; }
   barraClass(avance: number): string {
     if (avance >= 100) return 'bg-green-500';

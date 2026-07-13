@@ -40,6 +40,7 @@ export class ActividadesPanelComponent implements OnChanges {
   actividades: Actividad[] = [];
   cargando = false;
   guardando = false;
+  mostrarForm = false;   // el formulario de nueva actividad se despliega bajo demanda
   form: any = this.formVacio();
   vendedores: Vendedor[] = [];
 
@@ -60,9 +61,18 @@ export class ActividadesPanelComponent implements OnChanges {
     // el navegador cuando un @Input llega con nueva referencia en cada ciclo.
     if (changes['entidadId'] || changes['oportunidadId']) {
       this.form = this.formVacio();
+      this.mostrarForm = false;
       if (this.entidadId || this.oportunidadId) this.recargar();
     }
   }
+
+  /** Abre/cierra el formulario de nueva actividad; al abrir, parte limpio. */
+  toggleForm(): void {
+    this.mostrarForm = !this.mostrarForm;
+    if (this.mostrarForm) this.form = this.formVacio();
+  }
+
+  abrirForm(): void { this.form = this.formVacio(); this.mostrarForm = true; }
 
   private formVacio() {
     return {
@@ -124,6 +134,7 @@ export class ActividadesPanelComponent implements OnChanges {
         this.guardando = false;
         if (res && res.success === false) { this.warn(res.message || 'No se pudo crear.'); return; }
         this.form = this.formVacio();
+        this.mostrarForm = false;   // al crear, se colapsa y se ve la lista actualizada
         this.messageService.add({ severity: 'success', summary: 'Creada', detail: 'Actividad registrada.' });
         this.recargar();
         this.cambio.emit();

@@ -17,6 +17,7 @@ import { LanguagesComponent } from 'app/layout/common/languages/languages.compon
 import { MessagesComponent } from 'app/layout/common/messages/messages.component';
 import { NotificationsComponent } from 'app/layout/common/notifications/notifications.component';
 import { QuickChatComponent } from 'app/layout/common/quick-chat/quick-chat.component';
+import { SchemeToggleComponent } from 'app/layout/common/scheme-toggle/scheme-toggle.component';
 import { SearchComponent } from 'app/layout/common/search/search.component';
 import { ShortcutsComponent } from 'app/layout/common/shortcuts/shortcuts.component';
 import { UserComponent } from 'app/layout/common/user/user.component';
@@ -43,6 +44,7 @@ import { Subject, takeUntil } from 'rxjs';
         FuseVerticalNavigationComponent,
         ChatIaButtonComponent,
         ChatIaPanelComponent,
+        SchemeToggleComponent,
     ],
 })
 export class CompactLayoutComponent implements OnInit, OnDestroy {
