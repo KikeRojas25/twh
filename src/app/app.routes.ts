@@ -193,8 +193,7 @@ export const appRoutes: Route[] = [
                   {
                     path: '',
                     pathMatch: 'full',
-                    loadComponent: () => import('./modules/admin/analitica/dashboard/dashboard.component')
-                                          .then(m => m.DashboardAnaliticaComponent)
+                    redirectTo: 'dashboard'
                   },
                   {
                     path: 'dashboard',

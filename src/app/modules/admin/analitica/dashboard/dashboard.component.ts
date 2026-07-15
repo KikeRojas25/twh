@@ -8,12 +8,18 @@ import { SelectItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { DropdownModule } from 'primeng/dropdown';
+import { SidebarModule } from 'primeng/sidebar';
 import { TagModule } from 'primeng/tag';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { PropietarioService } from '../../_services/propietario.service';
+import { AbcProductoComponent } from '../abc-producto/abc-producto.component';
+import { AnaliticaContextService } from '../analitica-context.service';
 import { AnaliticaService } from '../analitica.service';
+import { InventarioClienteComponent } from '../inventario-cliente/inventario-cliente.component';
+import { ParetoClientesComponent } from '../pareto-clientes/pareto-clientes.component';
+import { ProyeccionComponent } from '../proyeccion/proyeccion.component';
 import {
     AbcProductoResumen,
     InventarioClienteResumen,
@@ -32,17 +38,30 @@ import {
     styleUrls: ['./dashboard.component.css'],
     standalone: true,
     imports: [CommonModule, FormsModule, ChartModule, DropdownModule, ButtonModule,
-              TagModule, MatIcon, RouterLink],
+              TagModule, MatIcon, RouterLink, SidebarModule,
+              ProyeccionComponent, InventarioClienteComponent, ParetoClientesComponent, AbcProductoComponent],
 })
 export class DashboardAnaliticaComponent implements OnInit, OnDestroy {
     private analiticaService = inject(AnaliticaService);
     private propietarioService = inject(PropietarioService);
+    private ctx = inject(AnaliticaContextService);
     private el = inject(ElementRef);
 
     // ---------- Filtros (una sola fila, arriba de todo lo que afectan) ----------
     clientes: SelectItem[] = [];
     propietarioId: number | null = null;
     meses = 6;
+
+    // ---------- Drawer: ver el reporte completo sin salir del dashboard ----------
+    reporteAbierto: 'proyeccion' | 'inventario-cliente' | 'pareto-clientes' | 'abc-producto' | null = null;
+    drawerVisible = false;
+
+    private readonly titulosReporte: Record<string, string> = {
+        'proyeccion': 'Proyección de ocupación',
+        'inventario-cliente': 'Inventario por cliente',
+        'pareto-clientes': 'Pareto de clientes',
+        'abc-producto': 'ABC por producto',
+    };
 
     horizontes: SelectItem[] = [
         { value: 3, label: '3 meses' },
@@ -86,7 +105,11 @@ export class DashboardAnaliticaComponent implements OnInit, OnDestroy {
             this.clientes = resp.map((c: any) => ({ value: c.id, label: c.razonSocial }));
         });
 
-        this.cargarAlmacen(true);
+        // Retomar el contexto compartido: el cliente/horizonte que venías usando en otro reporte.
+        this.meses = this.ctx.meses();
+        this.propietarioId = this.ctx.propietarioId();
+        this.cargarAlmacen(this.propietarioId == null);   // autoselecciona el más grande solo si no hay contexto
+        if (this.propietarioId != null) { this.cargarCliente(); }
 
         // El tema de Fuse se cambia en caliente. Chart.js congela los colores al
         // construirse, así que hay que reconstruir los gráficos cuando cambia.
@@ -119,12 +142,15 @@ export class DashboardAnaliticaComponent implements OnInit, OnDestroy {
             // El dashboard nunca arranca vacío: entra con el cliente más grande.
             if (autoseleccionar && !this.propietarioId && this.pareto.length) {
                 this.propietarioId = this.pareto[0].propietarioId;
+                this.ctx.setCliente(this.propietarioId);
                 this.cargarCliente();
             }
         });
     }
 
     cargarCliente(): void {
+        this.ctx.setCliente(this.propietarioId);   // que el cliente elegido siga a los otros reportes
+
         if (!this.propietarioId) {
             this.clienteResumen = null;
             this.inventarioResumen = null;
@@ -155,8 +181,38 @@ export class DashboardAnaliticaComponent implements OnInit, OnDestroy {
     }
 
     onHorizonteChange(): void {
+        this.ctx.setMeses(this.meses);
         this.cargarAlmacen();
         this.cargarCliente();
+    }
+
+    // ---------- Drawer ----------
+    get tituloReporte(): string {
+        return this.reporteAbierto ? this.titulosReporte[this.reporteAbierto] : '';
+    }
+
+    /** Abre el reporte completo en el panel lateral. El cliente elegido ya viaja por el
+     *  contexto compartido, así que el reporte entra con él seleccionado. */
+    abrirReporte(reporte: 'proyeccion' | 'inventario-cliente' | 'pareto-clientes' | 'abc-producto'): void {
+        this.reporteAbierto = reporte;
+        this.drawerVisible = true;
+    }
+
+    /** Al cerrar, el dashboard se re-sincroniza por si dentro del drawer cambiaron el
+     *  cliente o el horizonte, para no quedar mostrando datos viejos. */
+    alCerrarDrawer(): void {
+        this.reporteAbierto = null;
+
+        const clienteCtx = this.ctx.propietarioId();
+        const mesesCtx = this.ctx.meses();
+        const cambioCliente = clienteCtx !== this.propietarioId;
+        const cambioMeses = mesesCtx !== this.meses;
+
+        this.propietarioId = clienteCtx;
+        this.meses = mesesCtx;
+
+        if (cambioMeses) { this.cargarAlmacen(); }
+        if (cambioCliente || cambioMeses) { this.cargarCliente(); }
     }
 
     // ===================== Derivados para la vista =====================

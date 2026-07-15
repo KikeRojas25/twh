@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import moment from 'moment';
@@ -11,8 +11,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+
+import * as FileSaver from 'file-saver';
 
 import { PropietarioService } from '../../_services/propietario.service';
+import { AnaliticaContextService } from '../analitica-context.service';
 import { exportarCsv, exportarExcel } from '../analitica-export';
 import { AnaliticaService } from '../analitica.service';
 import { AbcProducto, AbcProductoResumen, CriterioAbc } from '../analitica.types';
@@ -24,9 +28,12 @@ import { AbcProducto, AbcProductoResumen, CriterioAbc } from '../analitica.types
     standalone: true,
     providers: [MessageService],
     imports: [CommonModule, FormsModule, TableModule, ButtonModule, DropdownModule,
-              InputTextModule, ChartModule, TagModule, ToastModule, MatIcon],
+              InputTextModule, ChartModule, TagModule, ToastModule, TooltipModule, MatIcon],
 })
 export class AbcProductoComponent implements OnInit {
+    /** true dentro del drawer del dashboard: oculta el encabezado de página. */
+    @Input() embedded = false;
+
     clientes: SelectItem[] = [];
     propietarioId: number | null = null;
     criterio: CriterioAbc = 'MOVIMIENTOS';
@@ -54,6 +61,7 @@ export class AbcProductoComponent implements OnInit {
     resumen: AbcProductoResumen | null = null;
     cargando = false;
     recalculando = false;
+    descargandoPdf = false;
 
     chartPareto: any;
     opcionesPareto: any;
@@ -64,6 +72,7 @@ export class AbcProductoComponent implements OnInit {
         private analiticaService: AnaliticaService,
         private propietarioService: PropietarioService,
         private messageService: MessageService,
+        private ctx: AnaliticaContextService,
     ) {}
 
     ngOnInit(): void {
@@ -90,11 +99,16 @@ export class AbcProductoComponent implements OnInit {
         this.propietarioService.getAllPropietarios().subscribe((resp) => {
             this.clientes = resp.map((c: any) => ({ value: c.id, label: c.razonSocial }));
         });
+
+        // Retomar el cliente que venía del dashboard u otro reporte.
+        this.propietarioId = this.ctx.propietarioId();
+        if (this.propietarioId != null) { this.buscar(); }
     }
 
     buscar(): void {
         if (!this.propietarioId) { return; }
 
+        this.ctx.setCliente(this.propietarioId);   // que la elección siga a los demás reportes
         this.cargando = true;
         this.analiticaService.getAbcProducto(this.propietarioId, this.criterio, this.dias).subscribe({
             next: (resp) => {
@@ -137,6 +151,34 @@ export class AbcProductoComponent implements OnInit {
 
     severidadClase(clase: string): string {
         return clase === 'A' ? 'success' : clase === 'B' ? 'warning' : clase === 'C' ? 'danger' : 'secondary';
+    }
+
+    /** Descarga el informe ABC de una página en PDF (generado en el backend con QuestPDF). */
+    descargarPdf(): void {
+        if (!this.propietarioId) { return; }
+
+        this.descargandoPdf = true;
+        this.analiticaService.descargarAbcPdf(this.propietarioId, this.criterio, this.dias).subscribe({
+            next: (resp) => {
+                this.descargandoPdf = false;
+                const nombre = this.nombreDesdeContentDisposition(resp) ?? `${this.nombreArchivo}.pdf`;
+                if (resp.body) { FileSaver.saveAs(resp.body, nombre); }
+            },
+            error: () => {
+                this.descargandoPdf = false;
+                this.messageService.add({
+                    severity: 'error', summary: 'No se pudo generar el PDF',
+                    detail: 'Vuelve a intentar o revisa que el ABC esté calculado.',
+                });
+            },
+        });
+    }
+
+    /** El backend nombra el archivo en Content-Disposition; lo respetamos si viene. */
+    private nombreDesdeContentDisposition(resp: { headers: { get(name: string): string | null } }): string | null {
+        const cd = resp.headers.get('content-disposition');
+        const m = cd?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+        return m ? decodeURIComponent(m[1]) : null;
     }
 
     /** La columna que importa cambia según el criterio elegido. */

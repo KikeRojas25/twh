@@ -93,7 +93,7 @@
                 <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
                     <div class="flex items-start justify-between mb-1">
                         <h4 class="text-lg font-semibold">Ocupación del almacén</h4>
-                        <a routerLink="/analitica/proyeccion" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                        <a (click)="abrirReporte('proyeccion')" class="text-sm text-primary-600 hover:underline whitespace-nowrap cursor-pointer">
                             Ver reporte →
                         </a>
                     </div>
@@ -120,7 +120,7 @@
                 <div class="p-6 rounded-2xl shadow bg-card">
                     <div class="flex items-start justify-between mb-1">
                         <h4 class="text-lg font-semibold">Quién ocupa el almacén</h4>
-                        <a routerLink="/analitica/pareto-clientes" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                        <a (click)="abrirReporte('pareto-clientes')" class="text-sm text-primary-600 hover:underline whitespace-nowrap cursor-pointer">
                             Ver reporte →
                         </a>
                     </div>
@@ -162,7 +162,7 @@
                 <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
                     <div class="flex items-start justify-between mb-1">
                         <h4 class="text-lg font-semibold">Su ocupación proyectada</h4>
-                        <a routerLink="/analitica/proyeccion" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                        <a (click)="abrirReporte('proyeccion')" class="text-sm text-primary-600 hover:underline whitespace-nowrap cursor-pointer">
                             Ver reporte →
                         </a>
                     </div>
@@ -199,7 +199,7 @@
                 <div class="p-6 rounded-2xl shadow bg-card">
                     <div class="flex items-start justify-between mb-1">
                         <h4 class="text-lg font-semibold">Rotación (ABC)</h4>
-                        <a routerLink="/analitica/abc-producto" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                        <a (click)="abrirReporte('abc-producto')" class="text-sm text-primary-600 hover:underline whitespace-nowrap cursor-pointer">
                             Ver reporte →
                         </a>
                     </div>
@@ -213,7 +213,7 @@
 
                     <div *ngIf="!chartAbc && !cargandoCliente" class="text-center text-secondary py-12">
                         <p class="mb-3 text-sm">Este cliente no tiene el ABC calculado para los últimos 3 meses.</p>
-                        <a routerLink="/analitica/abc-producto" class="text-primary-600 hover:underline text-sm">
+                        <a (click)="abrirReporte('abc-producto')" class="text-primary-600 hover:underline text-sm cursor-pointer">
                             Calcularlo →
                         </a>
                     </div>
@@ -227,7 +227,7 @@
                 <div class="lg:col-span-3 p-6 rounded-2xl shadow bg-card">
                     <div class="flex items-start justify-between mb-1">
                         <h4 class="text-lg font-semibold">Qué productos ocupan su espacio</h4>
-                        <a routerLink="/analitica/inventario-cliente" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                        <a (click)="abrirReporte('inventario-cliente')" class="text-sm text-primary-600 hover:underline whitespace-nowrap cursor-pointer">
                             Ver reporte →
                         </a>
                     </div>
@@ -258,4 +258,20 @@
             </div>
         </div>
     </div>
+
+    <!-- Reporte completo en panel lateral. Reusa el componente real en modo embedded; el
+         cliente elegido llega por el contexto compartido, así que entra ya seleccionado. -->
+    <p-sidebar [(visible)]="drawerVisible" position="right" [modal]="true" [dismissible]="true"
+               styleClass="w-full md:w-4/5" (onHide)="alCerrarDrawer()">
+        <ng-template pTemplate="header">
+            <span class="text-xl font-bold">{{ tituloReporte }}</span>
+        </ng-template>
+
+        @switch (reporteAbierto) {
+            @case ('proyeccion')         { <app-proyeccion [embedded]="true"></app-proyeccion> }
+            @case ('inventario-cliente') { <app-inventario-cliente [embedded]="true"></app-inventario-cliente> }
+            @case ('pareto-clientes')    { <app-pareto-clientes [embedded]="true"></app-pareto-clientes> }
+            @case ('abc-producto')       { <app-abc-producto [embedded]="true"></app-abc-producto> }
+        }
+    </p-sidebar>
 </div>

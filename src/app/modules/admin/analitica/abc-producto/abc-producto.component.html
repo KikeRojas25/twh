@@ -2,8 +2,8 @@
 
 <div class="flex flex-col flex-auto min-w-0">
 
-    <!-- Encabezado -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+    <!-- Encabezado (se oculta cuando el reporte va dentro del drawer del dashboard) -->
+    <div *ngIf="!embedded" class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
         <div class="flex-1">
             <div class="flex items-center space-x-2 text-primary-500 font-medium">
                 <a>TWH</a>
@@ -82,6 +82,9 @@
 
                 <div class="flex-1"></div>
 
+                <p-button icon="pi pi-file-pdf" label="Informe PDF" (onClick)="descargarPdf()"
+                          [loading]="descargandoPdf" class="p-button-sm p-button-danger"
+                          pTooltip="Informe de una página para el cliente" tooltipPosition="top" />
                 <p-button icon="pi pi-file" label="Exportar CSV" (onClick)="exportarACsv()" class="p-button-sm p-button-secondary" />
                 <p-button icon="pi pi-file-excel" label="Exportar Excel" (onClick)="exportarAExcel()" class="p-button-sm p-button-success" />
                 <p-button icon="pi pi-refresh" label="Actualizar" (onClick)="recalcular()"

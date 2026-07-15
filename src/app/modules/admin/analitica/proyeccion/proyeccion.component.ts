@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import moment from 'moment';
@@ -12,6 +12,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
 import { PropietarioService } from '../../_services/propietario.service';
+import { AnaliticaContextService } from '../analitica-context.service';
 import { exportarCsv, exportarExcel } from '../analitica-export';
 import { AnaliticaService } from '../analitica.service';
 import { ProyeccionMes, ProyeccionResumen } from '../analitica.types';
@@ -25,6 +26,9 @@ import { ProyeccionMes, ProyeccionResumen } from '../analitica.types';
               InputTextModule, ChartModule, TagModule, MatIcon],
 })
 export class ProyeccionComponent implements OnInit {
+    /** true cuando se muestra dentro del drawer del dashboard: oculta el encabezado de página. */
+    @Input() embedded = false;
+
     clientes: SelectItem[] = [];
     propietarioId: number | null = null;
     meses = 3;
@@ -49,6 +53,7 @@ export class ProyeccionComponent implements OnInit {
     constructor(
         private analiticaService: AnaliticaService,
         private propietarioService: PropietarioService,
+        private ctx: AnaliticaContextService,
     ) {}
 
     ngOnInit(): void {
@@ -57,11 +62,18 @@ export class ProyeccionComponent implements OnInit {
         this.propietarioService.getAllPropietarios().subscribe((resp) => {
             this.clientes = resp.map((c: any) => ({ value: c.id, label: c.razonSocial }));
         });
+
+        // Retomar el cliente/horizonte que venía del dashboard u otro reporte.
+        this.meses = this.ctx.meses();
+        this.propietarioId = this.ctx.propietarioId();
+        if (this.propietarioId != null) { this.buscar(); }
     }
 
     buscar(): void {
         if (!this.propietarioId) { return; }
 
+        this.ctx.setCliente(this.propietarioId);   // que la elección siga a los demás reportes
+        this.ctx.setMeses(this.meses);
         this.cargando = true;
         this.analiticaService.getProyeccion(this.propietarioId, this.meses).subscribe({
             next: (resp) => {

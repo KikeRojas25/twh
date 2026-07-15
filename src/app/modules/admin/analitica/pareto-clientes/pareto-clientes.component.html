@@ -1,7 +1,7 @@
 <div class="flex flex-col flex-auto min-w-0">
 
-    <!-- Encabezado -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+    <!-- Encabezado (se oculta cuando el reporte va dentro del drawer del dashboard) -->
+    <div *ngIf="!embedded" class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
         <div class="flex-1">
             <div class="flex items-center space-x-2 text-primary-500 font-medium">
                 <a>TWH</a>

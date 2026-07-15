@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
@@ -71,5 +71,17 @@ export class AnaliticaService {
             .set('dias', String(dias));
 
         return this._http.post(`${this._api}/abc-producto/recalcular`, {}, { params });
+    }
+
+    /** Informe ABC de una página en PDF (para entregar al cliente). Devuelve el archivo como blob. */
+    descargarAbcPdf(propietarioId: number, criterio: CriterioAbc, dias: number): Observable<HttpResponse<Blob>> {
+        const params = new HttpParams()
+            .set('propietarioId', String(propietarioId))
+            .set('criterio', criterio)
+            .set('dias', String(dias));
+
+        return this._http.get(`${this._api}/abc-producto/pdf`, {
+            params, observe: 'response', responseType: 'blob',
+        });
     }
 }

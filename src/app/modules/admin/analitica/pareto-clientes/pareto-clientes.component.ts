@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import moment from 'moment';
@@ -25,6 +25,9 @@ import { ParetoCliente, ParetoClientesResumen } from '../analitica.types';
               InputTextModule, ChartModule, TagModule, CalendarModule, MatIcon],
 })
 export class ParetoClientesComponent implements OnInit {
+    /** true dentro del drawer del dashboard: oculta el encabezado de página. */
+    @Input() embedded = false;
+
     /** null = última foto disponible. InventarioDiario guarda foto diaria, así que
      *  cualquier fecha pasada se puede reconstruir. */
     fecha: Date | null = null;
