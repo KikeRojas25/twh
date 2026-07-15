@@ -282,7 +282,7 @@ export class WorkListComponent {
         }  else if ([148 ,126 ].includes(pid)) {
             endpoint = 'reportePickingLdc.aspx';
         }
-         else if ([153 ,155 ].includes(pid)) {
+         else if ([153  ].includes(pid)) {
             endpoint = 'reportePickingMedidas.aspx';
         }
      
