@@ -51,6 +51,25 @@
 
         <!-- Splash screen styles -->
         <link href="styles/splash-screen.css" rel="stylesheet" />
+
+        <!-- Tema de PrimeNG conmutable (claro/oscuro). El href lo cambia scheme-toggle. -->
+        <link id="primeng-theme" rel="stylesheet" href="primeng-light.css" />
+
+        <!--
+            Aplica la hoja de PrimeNG guardada ANTES de pintar, para evitar el flash de
+            tema claro al recargar. Corre aquí (no en Angular) porque Angular arranca después.
+            NO toca clases: de la clase `dark` del <body> se encarga Fuse (layout).
+        -->
+        <script>
+            (function () {
+                try {
+                    if (localStorage.getItem('appScheme') === 'dark') {
+                        var link = document.getElementById('primeng-theme');
+                        if (link) link.setAttribute('href', 'primeng-dark.css');
+                    }
+                } catch (e) {}
+            })();
+        </script>
     </head>
 
     <body>

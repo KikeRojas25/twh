@@ -1,4 +1,8 @@
-<div class="flex flex-col flex-auto min-w-0 h-full bg-[var(--pg-bg)] text-[color:var(--pg-text)]">
+<div class="flex flex-col flex-auto min-w-0 min-h-0 h-full overflow-hidden bg-[var(--pg-bg)] text-[color:var(--pg-text)]">
+
+  <!-- ═══ Cabecera FIJA (no scrollea): título + toolbar + KPIs ═══
+       Al ser flex-0 dentro de una columna flex acotada, solo scrollea el hermano de abajo. -->
+  <div class="flex-0 bg-[var(--pg-bg)] z-30">
 
   <!-- Título -->
   <div class="px-6 pt-5 pb-2">
@@ -27,8 +31,8 @@
           (onChange)="cambiarPeriodo()" styleClass="text-sm" [style]="{ 'min-width': '90px' }"></p-dropdown>
       </ng-container>
 
-      <!-- Filtros (otras vistas) -->
-      <ng-container *ngIf="vista !== 'vendedor'">
+      <!-- Filtros de oportunidad (no aplican en Por vendedor ni en Actividades) -->
+      <ng-container *ngIf="!vistaSinFiltrosOportunidad">
         <p-dropdown [options]="vendedores" [(ngModel)]="filtroVendedorId" optionLabel="nombre" optionValue="id"
           placeholder="Vendedor" [filter]="true" filterBy="nombre" [showClear]="true" (onChange)="cargar()"
           styleClass="text-sm" [style]="{ 'min-width': '180px' }"></p-dropdown>
@@ -77,21 +81,29 @@
     </div>
   </div>
 
-  <!-- Tablero (Kanban) -->
-  <div *ngIf="vista === 'kanban'" class="flex-auto overflow-x-auto notion-scroll px-6 pb-6 pt-4">
+  </div><!-- ═══ fin cabecera fija ═══ -->
+
+  <!-- Tablero (Kanban) — ÚNICO contenedor de scroll (ambos ejes) -->
+  <div *ngIf="vista === 'kanban'" class="flex-auto min-h-0 overflow-auto notion-scroll px-6 pb-6 pt-4">
     <div class="flex gap-3 items-start" style="min-width: max-content;">
 
       <div *ngFor="let col of columnas"
         class="w-[290px] flex-shrink-0 flex flex-col rounded-xl border border-[color:var(--pg-border)] p-2"
         [ngClass]="colBgClass(col.etapa)">
 
-        <!-- Cabecera de columna: etiqueta de color + conteo -->
-        <div class="flex items-center justify-between px-1.5 pt-1 pb-2.5">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="text-xs font-semibold px-2 py-0.5 rounded truncate" [ngClass]="colPillClass(col.etapa)">{{ col.titulo }}</span>
-            <span class="text-xs font-semibold" [ngClass]="colCountClass(col.etapa)">{{ col.cards.length }}</span>
+        <!-- Cabecera de columna STICKY: etiqueta de color + conteo + total.
+             Va en 2 capas: la exterior es OPACA (bg-[var(--pg-bg)]) y cancela el p-2 de la
+             columna con -mx-2/-mt-2; la interior repone el tinte de la etapa. Es necesario
+             porque el tinte de la columna es translúcido (~6%): si el header fuera transparente,
+             se verían las tarjetas pasando por debajo al scrollear. -->
+        <div class="sticky top-0 z-10 -mx-2 -mt-2 px-2 pt-2 bg-[var(--pg-bg)]">
+          <div class="flex items-center justify-between px-1.5 pt-1 pb-2.5 rounded-t-lg" [ngClass]="colBgClass(col.etapa)">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded truncate" [ngClass]="colPillClass(col.etapa)">{{ col.titulo }}</span>
+              <span class="text-xs font-semibold" [ngClass]="colCountClass(col.etapa)">{{ col.cards.length }}</span>
+            </div>
+            <span class="text-[11px] text-[color:var(--pg-muted)] flex-shrink-0">S/ {{ totalColumna(col) | number:'1.0-0' }}</span>
           </div>
-          <span class="text-[11px] text-[color:var(--pg-muted)] flex-shrink-0">S/ {{ totalColumna(col) | number:'1.0-0' }}</span>
         </div>
 
         <!-- Lista drag & drop -->
@@ -169,20 +181,24 @@
   </div>
 
   <!-- Vista: Por vendedor -->
-  <app-crm-resumen-vendedor *ngIf="vista === 'vendedor'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+  <app-crm-resumen-vendedor *ngIf="vista === 'vendedor'" class="block flex-auto min-h-0 overflow-y-auto notion-scroll pt-3"
     [cards]="todasCards" [vendedores]="vendedores" [metas]="metas" [anio]="anio" [mes]="mes"
     (guardarMeta)="onGuardarMeta($event)"></app-crm-resumen-vendedor>
 
   <!-- Vista: Lista -->
-  <app-crm-lista-oportunidades *ngIf="vista === 'lista'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+  <app-crm-lista-oportunidades *ngIf="vista === 'lista'" class="block flex-auto min-h-0 overflow-y-auto notion-scroll pt-3"
     [cards]="todasCards"></app-crm-lista-oportunidades>
 
   <!-- Vista: Embudo / forecast -->
-  <app-crm-embudo *ngIf="vista === 'embudo'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+  <app-crm-embudo *ngIf="vista === 'embudo'" class="block flex-auto min-h-0 overflow-y-auto notion-scroll pt-3"
     [cards]="todasCards"></app-crm-embudo>
 
+  <!-- Vista: Actividades por vendedor -->
+  <app-crm-actividades *ngIf="vista === 'actividades'" class="block flex-auto min-h-0 overflow-y-auto notion-scroll pt-3"
+    [vendedores]="vendedores" (cambio)="cargar()"></app-crm-actividades>
+
   <!-- Vista: Correos (Gmail) -->
-  <app-crm-correos *ngIf="vista === 'correos'" class="block flex-auto overflow-y-auto notion-scroll pt-3"
+  <app-crm-correos *ngIf="vista === 'correos'" class="block flex-auto min-h-0 overflow-y-auto notion-scroll pt-3"
     [cards]="todasCards"></app-crm-correos>
 </div>
 

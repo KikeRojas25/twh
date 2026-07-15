@@ -1,0 +1,261 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+        <div class="flex-1">
+            <div class="flex items-center space-x-2 text-primary-500 font-medium">
+                <a>TWH</a>
+                <mat-icon svgIcon="heroicons_solid:chevron-right"></mat-icon>
+                <a>Analítica</a>
+            </div>
+            <h2 class="mt-2 text-3xl sm:text-4xl font-bold leading-tight">Dashboard</h2>
+            <p class="text-secondary mt-1" *ngIf="almacenResumen">
+                Modelo corrido el {{ almacenResumen.fechaEjecucion | date:'dd/MM/yyyy HH:mm' }} ·
+                {{ almacenResumen.clientesVigentes }} clientes vigentes de {{ almacenResumen.clientesModelados }} modelados
+            </p>
+        </div>
+    </div>
+
+    <!-- Una sola fila de filtros, arriba de todo lo que afecta -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:px-10 border-b bg-card">
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Cliente</label>
+            <p-dropdown [options]="clientes" [(ngModel)]="propietarioId" [filter]="true" filterBy="label"
+                        [showClear]="true" placeholder="Todos" [style]="{'width':'100%'}"
+                        (onChange)="cargarCliente()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Horizonte de proyección</label>
+            <p-dropdown [options]="horizontes" [(ngModel)]="meses" [style]="{'width':'100%'}"
+                        (onChange)="onHorizonteChange()"></p-dropdown>
+        </div>
+    </div>
+
+    <div class="p-6 sm:px-10">
+
+        <!-- ======================= EL ALMACÉN ======================= -->
+        <h3 class="text-xl font-bold mb-4">El almacén</h3>
+
+        <div [class.is-loading]="cargandoAlmacen">
+
+            <!-- KPIs. Cada tarjeta se guarda sola: si una fuente falla, la otra sigue viéndose. -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+                 *ngIf="almacenResumen || paretoResumen">
+
+                <div class="p-5 rounded-2xl shadow bg-card" *ngIf="almacenResumen">
+                    <div class="text-xs font-medium text-secondary uppercase tracking-wide">Ocupación actual</div>
+                    <div class="text-4xl font-bold mt-1 leading-none">{{ almacenResumen.actual | number:'1.0-0' }}</div>
+                    <div class="text-sm text-secondary mt-1">
+                        posiciones · promedio de {{ etiquetaMes(almacenResumen.periodoActual) }}
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl shadow bg-card" *ngIf="almacenResumen">
+                    <div class="text-xs font-medium text-secondary uppercase tracking-wide">
+                        Proyectado a {{ meses }} meses
+                    </div>
+                    <div class="text-4xl font-bold mt-1 leading-none">{{ almacenResumen.proyectado | number:'1.0-0' }}</div>
+                    <div class="text-sm mt-1 flex items-center gap-1"
+                         [ngClass]="(almacenResumen.variacionPct ?? 0) >= 0 ? 'text-orange-600' : 'text-green-700'">
+                        <mat-icon class="icon-size-4"
+                                  [svgIcon]="(almacenResumen.variacionPct ?? 0) >= 0
+                                             ? 'heroicons_solid:arrow-trending-up'
+                                             : 'heroicons_solid:arrow-trending-down'"></mat-icon>
+                        {{ (almacenResumen.variacionPct ?? 0) > 0 ? '+' : '' }}{{ almacenResumen.variacionPct | number:'1.1-1' }}%
+                        <span class="text-secondary">a {{ etiquetaMes(almacenResumen.periodoProyectado) }}</span>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl shadow bg-card" *ngIf="paretoResumen">
+                    <div class="text-xs font-medium text-secondary uppercase tracking-wide">Ubicaciones ocupadas hoy</div>
+                    <div class="text-4xl font-bold mt-1 leading-none">{{ paretoResumen.totalUbicaciones | number }}</div>
+                    <div class="text-sm text-secondary mt-1">
+                        {{ paretoResumen.clientesActivos }} clientes con inventario
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl shadow bg-card" *ngIf="paretoResumen">
+                    <div class="text-xs font-medium text-secondary uppercase tracking-wide">Pallets almacenados</div>
+                    <div class="text-4xl font-bold mt-1 leading-none">
+                        {{ paretoResumen.simple + paretoResumen.doble + paretoResumen.stage | number }}
+                    </div>
+                    <div class="text-sm text-secondary mt-1">
+                        {{ paretoResumen.simple | number }} simple ·
+                        {{ paretoResumen.doble | number }} doble ·
+                        {{ paretoResumen.stage | number }} stage
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+                <!-- Proyección del almacén -->
+                <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
+                    <div class="flex items-start justify-between mb-1">
+                        <h4 class="text-lg font-semibold">Ocupación del almacén</h4>
+                        <a routerLink="/analitica/proyeccion" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                            Ver reporte →
+                        </a>
+                    </div>
+                    <p class="text-sm text-secondary mb-4">
+                        Posiciones ocupadas, promedio mensual. El pasado es lo que realmente ocurrió;
+                        el futuro, la suma de las proyecciones de los {{ almacenResumen?.clientesVigentes }} clientes vigentes.
+                    </p>
+
+                    <div style="height: 340px;" *ngIf="chartAlmacen">
+                        <p-chart type="line" [data]="chartAlmacen" [options]="opcionesLinea" height="340px"></p-chart>
+                    </div>
+                    <div *ngIf="!chartAlmacen && !cargandoAlmacen"
+                         class="flex flex-col items-center justify-center text-center text-secondary py-20 gap-2">
+                        <mat-icon class="icon-size-8 text-hint" svgIcon="heroicons_outline:chart-bar"></mat-icon>
+                        <p>No se pudo cargar la proyección del almacén.</p>
+                        <p class="text-sm">
+                            Verifica que el WebApi esté actualizado: este panel necesita el endpoint
+                            <code>/api/analitica/proyeccion-almacen</code>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Concentración de clientes -->
+                <div class="p-6 rounded-2xl shadow bg-card">
+                    <div class="flex items-start justify-between mb-1">
+                        <h4 class="text-lg font-semibold">Quién ocupa el almacén</h4>
+                        <a routerLink="/analitica/pareto-clientes" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                            Ver reporte →
+                        </a>
+                    </div>
+                    <p class="text-sm text-secondary mb-4" *ngIf="concentracionTop5 != null">
+                        Los 5 primeros concentran el
+                        <strong class="text-default">{{ concentracionTop5 | number:'1.0-0' }}%</strong>
+                        de las ubicaciones.
+                    </p>
+
+                    <!-- Ranking: el valor va siempre visible al lado, no escondido en un tooltip -->
+                    <div *ngIf="topClientes.length">
+                        <div class="rank-row" *ngFor="let c of topClientes">
+                            <span class="text-sm truncate" [title]="c.cliente">{{ c.cliente }}</span>
+                            <span class="rank-value text-sm font-semibold">{{ c.ubicaciones | number }}</span>
+                            <div class="rank-track">
+                                <div class="rank-fill" [style.width]="anchoBarra(c.ubicaciones, maxUbicClientes)"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="!topClientes.length && !cargandoAlmacen" class="text-center text-secondary py-16">
+                        No hay inventario en la última foto.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================= EL CLIENTE ======================= -->
+        <div class="flex items-baseline gap-3 mb-4">
+            <h3 class="text-xl font-bold">{{ nombreCliente || 'Cliente' }}</h3>
+            <span class="text-sm text-secondary" *ngIf="!propietarioId">— elige un cliente arriba</span>
+        </div>
+
+        <div *ngIf="propietarioId" [class.is-loading]="cargandoCliente">
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Proyección del cliente -->
+                <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
+                    <div class="flex items-start justify-between mb-1">
+                        <h4 class="text-lg font-semibold">Su ocupación proyectada</h4>
+                        <a routerLink="/analitica/proyeccion" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                            Ver reporte →
+                        </a>
+                    </div>
+
+                    <p class="text-sm text-secondary mb-4" *ngIf="clienteResumen">
+                        {{ clienteResumen.actual | number:'1.0-0' }} posiciones hoy →
+                        <strong class="text-default">{{ clienteResumen.proyectado | number:'1.0-0' }}</strong>
+                        en {{ etiquetaMes(clienteResumen.periodoProyectado) }}
+                        ({{ (clienteResumen.variacionPct ?? 0) > 0 ? '+' : '' }}{{ clienteResumen.variacionPct | number:'1.1-1' }}%)
+                    </p>
+
+                    <div style="height: 280px;" *ngIf="chartCliente">
+                        <p-chart type="line" [data]="chartCliente" [options]="opcionesLinea" height="280px"></p-chart>
+                    </div>
+                    <div *ngIf="!chartCliente && !cargandoCliente" class="text-center text-secondary py-16">
+                        Este cliente todavía no tiene corrida del modelo.
+                    </div>
+
+                    <p class="text-xs text-secondary mt-3" *ngIf="clienteResumen">
+                        Modelo {{ clienteResumen.modelo }} v{{ clienteResumen.version }}
+                        <ng-container *ngIf="clienteResumen.mae != null">
+                            · error típico ±{{ clienteResumen.mae | number:'1.0-0' }} posiciones
+                        </ng-container>
+                        <ng-container *ngIf="clienteResumen.estado === 'FALLBACK'">
+                            · poca historia: se usó regresión lineal, no Prophet
+                        </ng-container>
+                        <ng-container *ngIf="clienteResumen.estado === 'SIN_CALIBRAR'">
+                            · banda sin calibrar: tómala como referencial
+                        </ng-container>
+                    </p>
+                </div>
+
+                <!-- ABC -->
+                <div class="p-6 rounded-2xl shadow bg-card">
+                    <div class="flex items-start justify-between mb-1">
+                        <h4 class="text-lg font-semibold">Rotación (ABC)</h4>
+                        <a routerLink="/analitica/abc-producto" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                            Ver reporte →
+                        </a>
+                    </div>
+                    <p class="text-sm text-secondary mb-2">
+                        Productos por frecuencia de picking, últimos 3 meses.
+                    </p>
+
+                    <div style="height: 260px;" *ngIf="chartAbc">
+                        <p-chart type="doughnut" [data]="chartAbc" [options]="opcionesDona" height="260px"></p-chart>
+                    </div>
+
+                    <div *ngIf="!chartAbc && !cargandoCliente" class="text-center text-secondary py-12">
+                        <p class="mb-3 text-sm">Este cliente no tiene el ABC calculado para los últimos 3 meses.</p>
+                        <a routerLink="/analitica/abc-producto" class="text-primary-600 hover:underline text-sm">
+                            Calcularlo →
+                        </a>
+                    </div>
+
+                    <p class="text-xs text-secondary mt-2" *ngIf="abcResumen?.calculado">
+                        {{ abcResumen?.totalProductos | number }} productos · cortes 80 / 95
+                    </p>
+                </div>
+
+                <!-- Productos que más espacio ocupan -->
+                <div class="lg:col-span-3 p-6 rounded-2xl shadow bg-card">
+                    <div class="flex items-start justify-between mb-1">
+                        <h4 class="text-lg font-semibold">Qué productos ocupan su espacio</h4>
+                        <a routerLink="/analitica/inventario-cliente" class="text-sm text-primary-600 hover:underline whitespace-nowrap">
+                            Ver reporte →
+                        </a>
+                    </div>
+                    <p class="text-sm text-secondary mb-4" *ngIf="inventarioResumen">
+                        {{ inventarioResumen.totalUbicaciones | number }} ubicaciones ocupadas ·
+                        {{ inventarioResumen.productosAlmacenados | number }} productos distintos
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10">
+                        <div class="rank-row" *ngFor="let p of topProductos">
+                            <span class="text-sm truncate" [title]="p.descripcionLarga ?? ''">
+                                <span class="font-medium">{{ p.codigo }}</span>
+                                <span class="text-secondary"> · {{ p.descripcionLarga }}</span>
+                            </span>
+                            <span class="rank-value text-sm font-semibold whitespace-nowrap">
+                                {{ p.ubicaciones | number }} ubic
+                            </span>
+                            <div class="rank-track">
+                                <div class="rank-fill" [style.width]="anchoBarra(p.ubicaciones, maxUbicProductos)"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="!inventario.length && !cargandoCliente" class="text-center text-secondary py-10">
+                        Este cliente no tiene inventario en la última foto.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

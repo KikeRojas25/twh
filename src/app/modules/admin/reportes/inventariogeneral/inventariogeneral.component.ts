@@ -11,9 +11,19 @@ import { TableModule } from 'primeng/table';
 import { InventarioGeneral } from '../../_models/inventariogeneral';
 import { ReportesService } from '../reportes.service';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { PropietarioService } from '../../_services/propietario.service';
 import * as FileSaver from 'file-saver';
+
+/** Una condición del filtro avanzado (campo + operador + valor(es)). */
+interface CondicionFiltro {
+  campo: string;
+  tipo: 'texto' | 'numero';
+  operador: string;
+  valor: any;
+  valor2: any;   // solo para el operador "entre"
+}
 
 @Component({
   selector: 'app-inventariogeneral',
@@ -27,7 +37,8 @@ import * as FileSaver from 'file-saver';
     ButtonModule,
     DropdownModule,
     TableModule,
-    InputTextModule
+    InputTextModule,
+    TooltipModule
   ]
 })
 export class InventariogeneralComponent implements OnInit {
@@ -42,6 +53,45 @@ export class InventariogeneralComponent implements OnInit {
   inventariosFiltrados: InventarioGeneral[] = [] ;
   grupos: SelectItem[] = [];
   filtroGeneral: string = '';
+
+  // ─── Filtro avanzado (condiciones campo/operador/valor) ───────────────────
+  // Las condiciones se combinan siempre con Y (deben cumplirse todas).
+  mostrarAvanzado = false;
+  condiciones: CondicionFiltro[] = [];
+
+  /** Campos filtrables y su tipo (define qué operadores aplican). */
+  readonly camposFiltro: { label: string; value: string; tipo: 'texto' | 'numero' }[] = [
+    { label: 'Código',            value: 'codigo',           tipo: 'texto'  },
+    { label: 'Descripción',       value: 'descripcionLarga', tipo: 'texto'  },
+    { label: 'Lote',              value: 'lotNum',           tipo: 'texto'  },
+    { label: 'LPN',               value: 'lodNum',           tipo: 'texto'  },
+    { label: 'Estado',            value: 'estado',           tipo: 'texto'  },
+    { label: 'Ubicación',         value: 'ubicacion',        tipo: 'texto'  },
+    { label: 'Cantidad',          value: 'untQty',           tipo: 'numero' },
+    { label: 'Cantidad separada', value: 'cantidadSeparada', tipo: 'numero' },
+    { label: 'Stock disponible',  value: 'stockDisponible',  tipo: 'numero' },
+  ];
+
+  readonly operadoresTexto: SelectItem[] = [
+    { value: 'contiene',   label: 'Contiene' },
+    { value: 'nocontiene', label: 'No contiene' },
+    { value: 'igual',      label: 'Igual a (exacto)' },
+    { value: 'distinto',   label: 'Distinto de' },
+    { value: 'empieza',    label: 'Empieza con' },
+    { value: 'termina',    label: 'Termina con' },
+    { value: 'vacio',      label: 'Está vacío' },
+    { value: 'novacio',    label: 'No está vacío' },
+  ];
+
+  readonly operadoresNumero: SelectItem[] = [
+    { value: 'eq',      label: 'Igual a (=)' },
+    { value: 'neq',     label: 'Distinto de (≠)' },
+    { value: 'gt',      label: 'Mayor que (>)' },
+    { value: 'gte',     label: 'Mayor o igual (≥)' },
+    { value: 'lt',      label: 'Menor que (<)' },
+    { value: 'lte',     label: 'Menor o igual (≤)' },
+    { value: 'between', label: 'Entre' },
+  ];
 
 
     jwtHelper = new JwtHelperService();
@@ -177,18 +227,116 @@ export class InventariogeneralComponent implements OnInit {
     }
   }
 
-  aplicarFiltro(): void {
-    if (!this.filtroGeneral || this.filtroGeneral.trim() === '') {
-      this.inventariosFiltrados = [...this.inventarios];
-    } else {
-      const filtro = this.filtroGeneral.toLowerCase().trim();
-      this.inventariosFiltrados = this.inventarios.filter(item => {
-        const codigo = (item.codigo || '').toLowerCase();
-        const descripcion = (item.descripcionLarga || '').toLowerCase();
-        const lote = (item.lotNum || '').toLowerCase();
-        return codigo.includes(filtro) || descripcion.includes(filtro) || lote.includes(filtro);
-      });
+  // ─── Filtro avanzado: gestión de condiciones ─────────────────────────────
+
+  agregarCondicion(): void {
+    this.condiciones.push({ campo: 'codigo', tipo: 'texto', operador: 'contiene', valor: null, valor2: null });
+    this.mostrarAvanzado = true;
+  }
+
+  quitarCondicion(i: number): void {
+    this.condiciones.splice(i, 1);
+    this.aplicarFiltro();
+  }
+
+  /** Al cambiar el campo, se reajusta el operador por defecto según su tipo. */
+  onCampoChange(c: CondicionFiltro): void {
+    const campo = this.camposFiltro.find(x => x.value === c.campo);
+    c.tipo = campo?.tipo ?? 'texto';
+    c.operador = c.tipo === 'numero' ? 'eq' : 'contiene';
+    c.valor = null;
+    c.valor2 = null;
+    this.aplicarFiltro();
+  }
+
+  operadoresPara(c: CondicionFiltro): SelectItem[] {
+    return c.tipo === 'numero' ? this.operadoresNumero : this.operadoresTexto;
+  }
+
+  esEntre(c: CondicionFiltro): boolean { return c.operador === 'between'; }
+
+  /** "Está vacío" / "No está vacío" no necesitan valor. */
+  requiereValor(c: CondicionFiltro): boolean {
+    return c.operador !== 'vacio' && c.operador !== 'novacio';
+  }
+
+  /** Una condición se aplica solo si tiene los valores necesarios. */
+  private condicionActiva(c: CondicionFiltro): boolean {
+    if (!this.requiereValor(c)) return true;
+    const tieneValor = c.valor !== null && c.valor !== undefined && `${c.valor}`.trim() !== '';
+    if (!this.esEntre(c)) return tieneValor;
+    const tieneValor2 = c.valor2 !== null && c.valor2 !== undefined && `${c.valor2}`.trim() !== '';
+    return tieneValor && tieneValor2;
+  }
+
+  get condicionesActivas(): number {
+    return this.condiciones.filter(c => this.condicionActiva(c)).length;
+  }
+
+  get hayFiltroActivo(): boolean {
+    return !!(this.filtroGeneral && this.filtroGeneral.trim()) || this.condicionesActivas > 0;
+  }
+
+  limpiarFiltros(): void {
+    this.filtroGeneral = '';
+    this.condiciones = [];
+    this.aplicarFiltro();
+  }
+
+  private cumpleCondicion(item: any, c: CondicionFiltro): boolean {
+    const bruto = item?.[c.campo];
+
+    if (c.tipo === 'numero') {
+      const v = Number(bruto ?? 0);
+      const a = Number(c.valor);
+      if (isNaN(v) || isNaN(a)) return true;
+      switch (c.operador) {
+        case 'eq':  return v === a;
+        case 'neq': return v !== a;
+        case 'gt':  return v > a;
+        case 'gte': return v >= a;
+        case 'lt':  return v < a;
+        case 'lte': return v <= a;
+        case 'between': {
+          const b = Number(c.valor2);
+          if (isNaN(b)) return true;
+          return v >= Math.min(a, b) && v <= Math.max(a, b);
+        }
+        default: return true;
+      }
     }
+
+    const s = (bruto ?? '').toString().toLowerCase().trim();
+    const q = (c.valor ?? '').toString().toLowerCase().trim();
+    switch (c.operador) {
+      case 'contiene':   return s.includes(q);
+      case 'nocontiene': return !s.includes(q);
+      case 'igual':      return s === q;
+      case 'distinto':   return s !== q;
+      case 'empieza':    return s.startsWith(q);
+      case 'termina':    return s.endsWith(q);
+      case 'vacio':      return s === '';
+      case 'novacio':    return s !== '';
+      default: return true;
+    }
+  }
+
+  aplicarFiltro(): void {
+    const rapida = (this.filtroGeneral || '').toLowerCase().trim();
+    const activas = this.condiciones.filter(c => this.condicionActiva(c));
+
+    this.inventariosFiltrados = this.inventarios.filter((item: any) => {
+      // 1) Búsqueda rápida (contiene, sobre código / descripción / lote)
+      if (rapida) {
+        const coincide = ['codigo', 'descripcionLarga', 'lotNum']
+          .some(f => (item[f] ?? '').toString().toLowerCase().includes(rapida));
+        if (!coincide) return false;
+      }
+
+      // 2) Condiciones avanzadas (deben cumplirse todas)
+      if (activas.length === 0) return true;
+      return activas.every(c => this.cumpleCondicion(item, c));
+    });
   }
 
   onFiltroChange(): void {

@@ -1,0 +1,127 @@
+<div class="px-6 pb-6">
+
+  <!-- Filtro por vendedor (se aplica en el backend) -->
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <p-dropdown [options]="vendedores" [(ngModel)]="filtroVendedorId" optionLabel="nombre" optionValue="id"
+      placeholder="Todo el equipo" [filter]="true" filterBy="nombre" [showClear]="true"
+      (onChange)="onCambiarVendedor()" styleClass="text-sm" [style]="{ 'min-width': '220px' }"
+      appendTo="body"></p-dropdown>
+    <span *ngIf="cargando" class="text-xs text-[color:var(--pg-muted)]">
+      <i class="pi pi-spin pi-spinner mr-1"></i>Cargando…
+    </span>
+  </div>
+
+  <!-- KPIs de equipo -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+    <div class="rounded-lg p-3 shadow-sm text-white bg-gradient-to-br from-red-500 to-red-600">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Vencidas</div>
+      <div class="text-xl font-bold mt-0.5">{{ totalVencidas }}</div>
+    </div>
+    <div class="rounded-lg p-3 shadow-sm text-white bg-gradient-to-br from-amber-500 to-amber-600">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-white/70">Vencen hoy</div>
+      <div class="text-xl font-bold mt-0.5">{{ totalHoy }}</div>
+    </div>
+    <div class="rounded-lg p-3 bg-[var(--pg-surface-2)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Próximas</div>
+      <div class="text-xl font-bold mt-0.5 text-[color:var(--pg-strong)]">{{ totalProximas }}</div>
+    </div>
+    <div class="rounded-lg p-3 bg-[var(--pg-surface-2)] border border-[color:var(--pg-border)]">
+      <div class="text-[11px] font-medium uppercase tracking-wide text-[color:var(--pg-muted)]">Completadas</div>
+      <div class="text-xl font-bold mt-0.5 text-green-600">{{ totalCompletadas }}</div>
+    </div>
+  </div>
+
+  <!-- Tarjeta acordeón por vendedor -->
+  <div class="flex flex-col gap-3">
+    <div *ngFor="let g of grupos" class="rounded-lg bg-[var(--pg-surface)] border border-[color:var(--pg-border)] overflow-hidden">
+
+      <!-- Cabecera (clic para expandir) -->
+      <div class="p-4 cursor-pointer hover:bg-[var(--pg-hover)] transition-colors select-none" (click)="toggleExpandir(g)">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="flex w-10 h-10 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-600 text-xs font-bold flex-shrink-0">{{ iniciales(g.nombre) }}</span>
+            <div class="min-w-0">
+              <div class="text-base font-semibold text-[color:var(--pg-strong)] truncate">{{ g.nombre }}</div>
+              <div class="text-xs text-[color:var(--pg-muted)]">{{ pendientes(g) }} pendiente(s) · {{ g.completadas.length }} completada(s)</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span *ngIf="g.vencidas.length > 0" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-500/15 text-red-600">
+              {{ g.vencidas.length }} vencida(s)
+            </span>
+            <span *ngIf="g.hoy.length > 0" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700">
+              {{ g.hoy.length }} hoy
+            </span>
+            <i class="pi pi-chevron-down text-xs text-[color:var(--pg-muted)] transition-transform" [class.rotate-180]="estaExpandido(g)"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle expandible: 4 bloques -->
+      <div *ngIf="estaExpandido(g)" class="px-4 pb-4 border-t border-[color:var(--pg-border)]">
+
+        <ng-container
+          *ngTemplateOutlet="bloque; context: { lista: g.vencidas, titulo: 'Vencidas', clase: 'text-red-600' }"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="bloque; context: { lista: g.hoy, titulo: 'Vencen hoy', clase: 'text-amber-700' }"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="bloque; context: { lista: g.proximas, titulo: 'Próximas', clase: 'text-[color:var(--pg-muted)]' }"></ng-container>
+        <ng-container
+          *ngTemplateOutlet="bloque; context: { lista: g.completadas, titulo: 'Completadas', clase: 'text-green-600', completado: true }"></ng-container>
+
+        <div *ngIf="pendientes(g) === 0 && g.completadas.length === 0"
+          class="mt-3 text-xs text-[color:var(--pg-muted)] italic">Sin actividades registradas.</div>
+      </div>
+    </div>
+
+    <div *ngIf="grupos.length === 0 && !cargando"
+      class="text-center text-sm text-[color:var(--pg-muted)] py-10 border-2 border-dashed border-[color:var(--pg-border)] rounded-lg">
+      <i class="pi pi-check-square text-3xl block mb-2 opacity-50"></i>
+      Sin actividades registradas.
+    </div>
+  </div>
+</div>
+
+<!-- Plantilla reutilizable de bloque (Vencidas / Hoy / Próximas / Completadas) -->
+<ng-template #bloque let-lista="lista" let-titulo="titulo" let-clase="clase" let-completado="completado">
+  <div *ngIf="lista.length > 0" class="mt-4">
+    <div class="text-[10px] uppercase tracking-wide mb-1.5 font-semibold" [ngClass]="clase">
+      {{ titulo }} · {{ lista.length }}
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <div *ngFor="let a of lista"
+        class="flex items-center gap-2 text-xs rounded-md px-2 py-1.5 bg-[var(--pg-chip)]"
+        [class.opacity-60]="completado">
+
+        <!-- Completar inline -->
+        <i *ngIf="!completado"
+          class="pi pi-circle text-[color:var(--pg-muted)] hover:text-green-600 cursor-pointer flex-shrink-0"
+          pTooltip="Completar" tooltipPosition="top" (click)="completar(a, $event)"></i>
+        <i *ngIf="completado" class="pi pi-check-circle text-green-500 flex-shrink-0"></i>
+
+        <!-- Tipo -->
+        <i [class]="iconoTipo(a.tipo) + ' text-[10px] text-[color:var(--pg-muted)] flex-shrink-0'"
+          [pTooltip]="a.tipo" tooltipPosition="top"></i>
+
+        <!-- Título -->
+        <span class="truncate text-[color:var(--pg-text)] flex-auto" [class.line-through]="completado">{{ a.titulo }}</span>
+
+        <!-- Contexto (oportunidad o entidad) -->
+        <span *ngIf="a.oportunidadNombre || a.entidadRazonSocial"
+          class="truncate max-w-[180px] text-[color:var(--pg-muted)] flex-shrink-0 hidden md:inline"
+          [pTooltip]="a.oportunidadNombre || a.entidadRazonSocial" tooltipPosition="top">
+          <i class="pi pi-flag text-[9px] mr-1"></i>{{ a.oportunidadNombre || a.entidadRazonSocial }}
+        </span>
+
+        <!-- Fecha + días de retraso -->
+        <span class="flex-shrink-0 whitespace-nowrap"
+          [ngClass]="a.estado === 'VENCIDA' ? 'text-red-600 font-semibold' : 'text-[color:var(--pg-muted)]'">
+          {{ a.fechaVencimiento | date:'dd MMM' }}
+          <span *ngIf="a.estado === 'VENCIDA'"> · {{ diasRetraso(a) }}d</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</ng-template>

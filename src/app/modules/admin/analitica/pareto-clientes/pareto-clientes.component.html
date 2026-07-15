@@ -1,0 +1,144 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+        <div class="flex-1">
+            <div class="flex items-center space-x-2 text-primary-500 font-medium">
+                <a>TWH</a>
+                <mat-icon svgIcon="heroicons_solid:chevron-right"></mat-icon>
+                <a>Analítica</a>
+            </div>
+            <h2 class="mt-2 text-3xl sm:text-4xl font-bold leading-tight">Pareto de clientes</h2>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 sm:px-10 border-b bg-card">
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Fecha de la foto</label>
+            <p-calendar [(ngModel)]="fecha" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true"
+                        placeholder="Última foto disponible" (onSelect)="buscar()" (onClear)="buscar()"
+                        styleClass="w-full"></p-calendar>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Mostrar en el gráfico</label>
+            <p-dropdown [options]="opcionesTop" [(ngModel)]="top" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col justify-end">
+            <p-button icon="pi pi-search" label="Consultar" (onClick)="buscar()" />
+        </div>
+    </div>
+
+    <div class="p-6 sm:px-10">
+        <ng-container *ngIf="resumen && clientesData.length">
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <div class="p-5 rounded-2xl shadow bg-gray-900 text-white col-span-2 lg:col-span-1">
+                    <div class="text-xs font-medium uppercase opacity-70">Cliente con más ubicaciones</div>
+                    <div class="text-xl font-bold mt-1">{{ resumen.topCliente }}</div>
+                    <div class="text-sm text-red-400">{{ resumen.topUbicaciones | number }} ubicaciones</div>
+                </div>
+                <div class="p-5 rounded-2xl shadow bg-card">
+                    <div class="text-xs font-medium text-secondary uppercase">Clientes activos</div>
+                    <div class="text-3xl font-bold mt-1">{{ resumen.clientesActivos }}</div>
+                </div>
+                <div class="p-5 rounded-2xl shadow bg-card">
+                    <div class="text-xs font-medium text-secondary uppercase">Pallets — Simple</div>
+                    <div class="text-3xl font-bold mt-1">{{ resumen.simple | number }}</div>
+                    <div class="text-sm text-secondary">{{ resumen.simplePct | number:'1.1-1' }}%</div>
+                </div>
+                <div class="p-5 rounded-2xl shadow bg-card">
+                    <div class="text-xs font-medium text-secondary uppercase">Pallets — Doble</div>
+                    <div class="text-3xl font-bold mt-1">{{ resumen.doble | number }}</div>
+                    <div class="text-sm text-secondary">{{ resumen.doblePct | number:'1.1-1' }}%</div>
+                </div>
+                <div class="p-5 rounded-2xl shadow bg-card">
+                    <div class="text-xs font-medium text-secondary uppercase">Pallets — Stage</div>
+                    <div class="text-3xl font-bold mt-1">{{ resumen.stage | number }}</div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-sm text-secondary">
+                    Foto del {{ resumen.fecha | date:'dd/MM/yyyy' }} ·
+                    {{ resumen.totalUbicaciones | number }} ubicaciones ocupadas
+                </span>
+                <div class="flex gap-3">
+                    <p-button icon="pi pi-file" label="Exportar CSV" (onClick)="exportarACsv()" class="p-button-sm p-button-secondary" />
+                    <p-button icon="pi pi-file-excel" label="Exportar Excel" (onClick)="exportarAExcel()" class="p-button-sm p-button-success" />
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
+                    <h3 class="text-lg font-semibold mb-1">Pareto — Ubicaciones vs % Acumulado</h3>
+                    <p class="text-sm text-secondary mb-4">
+                        mostrando {{ top >= clientesData.length ? clientesData.length : top }} de {{ clientesData.length }} clientes
+                    </p>
+                    <div style="height: 380px;">
+                        <p-chart type="bar" [data]="chartPareto" [options]="opcionesPareto" height="380px"></p-chart>
+                    </div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card">
+                    <h3 class="text-lg font-semibold mb-4">Cantidad de clientes por clase</h3>
+                    <div style="height: 380px;">
+                        <p-chart type="doughnut" [data]="chartClases" [options]="opcionesClases" height="380px"></p-chart>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="p-6 rounded-2xl shadow bg-card">
+                <p-table #tabla [value]="clientesData" [paginator]="true" [rows]="20" class="p-datatable-sm"
+                         [globalFilterFields]="['cliente']">
+                    <ng-template pTemplate="caption">
+                        <div class="flex items-center gap-4">
+                            <input pInputText type="text" placeholder="Buscar cliente…"
+                                   (input)="tabla.filterGlobal($any($event.target).value, 'contains')"
+                                   class="w-full sm:w-96" />
+                            <span class="text-sm text-secondary whitespace-nowrap">{{ clientesData.length }} clientes</span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th pSortableColumn="cliente">Cliente <p-sortIcon field="cliente" /></th>
+                            <th class="text-right" pSortableColumn="ubicaciones">Ubicaciones <p-sortIcon field="ubicaciones" /></th>
+                            <th class="text-right" pSortableColumn="simple">Simple <p-sortIcon field="simple" /></th>
+                            <th class="text-right" pSortableColumn="doble">Doble <p-sortIcon field="doble" /></th>
+                            <th class="text-right" pSortableColumn="stage">Stage <p-sortIcon field="stage" /></th>
+                            <th class="text-right">%</th>
+                            <th class="text-right">% Acum</th>
+                            <th class="text-center">Clase</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-c>
+                        <tr>
+                            <td>{{ c.cliente }}</td>
+                            <td class="text-right font-medium">{{ c.ubicaciones | number }}</td>
+                            <td class="text-right">{{ c.simple | number }}</td>
+                            <td class="text-right">{{ c.doble | number }}</td>
+                            <td class="text-right">{{ c.stage | number }}</td>
+                            <td class="text-right">{{ c.pct | number:'1.1-1' }}%</td>
+                            <td class="text-right">{{ c.pctAcum | number:'1.1-1' }}%</td>
+                            <td class="text-center">
+                                <p-tag [value]="c.clase" [severity]="severidadClase(c.clase)"></p-tag>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr><td colspan="8" class="text-center py-6 text-secondary">Sin datos para esa fecha.</td></tr>
+                    </ng-template>
+                </p-table>
+                <p class="text-xs text-secondary mt-4">
+                    Simple / Doble / Stage cuentan <strong>pallets</strong> según el tipo de la ubicación
+                    donde están (rack simple, rack doble, zona de stage). "Ubicaciones" cuenta ubicaciones distintas.
+                </p>
+            </div>
+
+        </ng-container>
+    </div>
+</div>

@@ -1,0 +1,147 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+        <div class="flex-1">
+            <div class="flex items-center space-x-2 text-primary-500 font-medium">
+                <a>TWH</a>
+                <mat-icon svgIcon="heroicons_solid:chevron-right"></mat-icon>
+                <a>Analítica</a>
+            </div>
+            <h2 class="mt-2 text-3xl sm:text-4xl font-bold leading-tight">Proyección de ocupación</h2>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 p-6 sm:px-10 border-b bg-card">
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Cliente</label>
+            <p-dropdown [options]="clientes" [(ngModel)]="propietarioId" [filter]="true" filterBy="label"
+                        [showClear]="true" placeholder="Seleccione un cliente" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Horizonte</label>
+            <p-dropdown [options]="horizontes" [(ngModel)]="meses" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Umbral de capacidad</label>
+            <input pInputText type="number" [(ngModel)]="umbral" (change)="buscar()" placeholder="ej. 700" />
+        </div>
+        <div class="flex flex-col justify-end">
+            <p-button icon="pi pi-search" label="Consultar" (onClick)="buscar()" [disabled]="!propietarioId" />
+        </div>
+    </div>
+
+    <div class="p-6 sm:px-10">
+
+        <!-- Estados vacíos -->
+        <div *ngIf="!propietarioId" class="text-center text-secondary py-16">
+            Seleccione un cliente para ver su proyección.
+        </div>
+        <div *ngIf="propietarioId && sinDatos && !cargando" class="text-center text-secondary py-16">
+            No hay una corrida del modelo para este cliente todavía.
+        </div>
+
+        <ng-container *ngIf="resumen && !sinDatos">
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                <div class="p-6 rounded-2xl shadow bg-card border-l-4 border-gray-700">
+                    <div class="text-sm font-medium text-secondary uppercase">Actual ({{ etiquetaMes(resumen.periodoActual!) }})</div>
+                    <div class="text-4xl font-bold mt-1">{{ resumen.actual | number:'1.0-0' }}</div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card border-l-4 border-red-600">
+                    <div class="text-sm font-medium text-secondary uppercase">Proyectado ({{ etiquetaMes(resumen.periodoProyectado!) }})</div>
+                    <div class="text-4xl font-bold mt-1">{{ resumen.proyectado | number:'1.0-0' }}</div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card border-l-4"
+                     [ngClass]="(resumen.variacionPct ?? 0) >= 0 ? 'border-orange-500' : 'border-green-600'">
+                    <div class="text-sm font-medium text-secondary uppercase">Variación</div>
+                    <div class="text-4xl font-bold mt-1">
+                        {{ (resumen.variacionPct ?? 0) > 0 ? '+' : '' }}{{ resumen.variacionPct | number:'1.1-1' }}%
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aviso de umbral -->
+            <div *ngIf="umbral != null && mesesSobreUmbral > 0"
+                 class="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-300 text-orange-900">
+                <mat-icon class="icon-size-5 align-middle mr-1" svgIcon="heroicons_solid:exclamation-triangle"></mat-icon>
+                La proyección supera el umbral de {{ umbral | number }} en
+                <strong>{{ mesesSobreUmbral }}</strong> de los meses proyectados.
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex justify-end gap-3 mb-4">
+                <p-button icon="pi pi-file" label="Exportar CSV" (onClick)="exportarACsv()" class="p-button-sm p-button-secondary" />
+                <p-button icon="pi pi-file-excel" label="Exportar Excel" (onClick)="exportarAExcel()" class="p-button-sm p-button-success" />
+            </div>
+
+            <!-- Gráfico -->
+            <div class="p-6 rounded-2xl shadow bg-card mb-6">
+                <h3 class="text-lg font-semibold mb-1">
+                    Posiciones ocupadas — promedio mensual: histórico + proyección
+                </h3>
+                <p class="text-sm text-secondary mb-4">con banda de confianza al {{ resumen.intervaloConfianza * 100 | number:'1.0-0' }}%</p>
+
+                <div style="height: 380px;">
+                    <p-chart type="line" [data]="chartData" [options]="chartOptions" height="380px"></p-chart>
+                </div>
+
+                <p class="text-xs text-secondary mt-4">
+                    Modelo {{ resumen.modelo }} v{{ resumen.version }} ·
+                    corrida del {{ resumen.fechaEjecucion | date:'dd/MM/yyyy HH:mm' }} ·
+                    {{ resumen.diasHistoria }} días de historia
+                    <ng-container *ngIf="resumen.mae != null">
+                        · error típico ±{{ resumen.mae | number:'1.0-0' }} posiciones
+                        ({{ resumen.mape | number:'1.1-1' }}%)
+                    </ng-container>
+                    <ng-container *ngIf="resumen.coberturaCalibrada != null">
+                        · la banda cubre el {{ resumen.coberturaCalibrada | number:'1.0-0' }}% de los días reales
+                    </ng-container>
+                </p>
+
+                <p *ngIf="resumen.estado !== 'OK'" class="text-xs text-orange-700 mt-2">
+                    <ng-container *ngIf="resumen.estado === 'SIN_CALIBRAR'">
+                        Historia insuficiente para validar el modelo: la banda no está calibrada, tómala como referencial.
+                    </ng-container>
+                    <ng-container *ngIf="resumen.estado === 'FALLBACK'">
+                        Este cliente tiene poca historia: se usó una regresión lineal en lugar de Prophet.
+                    </ng-container>
+                </p>
+            </div>
+
+            <!-- Tabla -->
+            <div class="p-6 rounded-2xl shadow bg-card">
+                <p-table [value]="serie" [paginator]="serie.length > 15" [rows]="15" class="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Mes</th>
+                            <th class="text-right">Predicción</th>
+                            <th class="text-right">Banda baja</th>
+                            <th class="text-right">Banda alta</th>
+                            <th class="text-right">Tendencia</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-fila>
+                        <tr [ngClass]="{'bg-orange-50': superaUmbral(fila)}">
+                            <td>{{ etiquetaMes(fila.periodo) }}</td>
+                            <td class="text-right font-medium">{{ fila.prediccion | number:'1.1-1' }}</td>
+                            <td class="text-right">{{ fila.bandaBaja | number:'1.1-1' }}</td>
+                            <td class="text-right">{{ fila.bandaAlta | number:'1.1-1' }}</td>
+                            <td class="text-right">{{ fila.tendencia | number:'1.1-1' }}</td>
+                            <td>
+                                <p-tag [value]="fila.tipo"
+                                       [severity]="fila.esHistorico ? 'secondary' : 'danger'"></p-tag>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+        </ng-container>
+    </div>
+</div>

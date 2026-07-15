@@ -4,6 +4,7 @@ import { environment } from 'environments/environment';
 import { Observable } from 'rxjs';
 import {
   Actividad,
+  ActividadAgenda,
   Adjunto,
   ApiResponse,
   BandejaCorreo,
@@ -255,6 +256,12 @@ export class CrmService {
   /** Dispara manualmente el envío de recordatorios de actividades vencidas (correo). */
   enviarRecordatorios(): Observable<ApiResponse> {
     return this._httpClient.post<ApiResponse>(`${this.actUrl}/enviar-recordatorios`, {}, httpOptions);
+  }
+
+  /** Agenda del equipo (vista "Actividades por vendedor"). Filtra en el backend. */
+  getAgendaActividades(responsableUsuarioId?: number): Observable<ActividadAgenda[]> {
+    const qs = responsableUsuarioId ? `?responsableUsuarioId=${responsableUsuarioId}` : '';
+    return this._httpClient.get<ActividadAgenda[]>(`${this.actUrl}/agenda${qs}`, httpOptions);
   }
 
   // ─── Conversión al ganar (bisagra) ───────────────────────────────────────

@@ -212,6 +212,22 @@ export interface MetaVendedor {
   monto: number;
 }
 
+/** Actividad con responsable + contexto, para la vista "Actividades por vendedor". */
+export interface ActividadAgenda {
+  actividadId: number;
+  titulo: string;
+  tipo: string;
+  fechaVencimiento: string;
+  estado: 'PENDIENTE' | 'COMPLETADA' | 'VENCIDA';
+  fechaCompletada?: string | null;
+  responsableUsuarioId?: number | null;
+  responsableNombre?: string | null;
+  entidadId?: number | null;
+  entidadRazonSocial?: string | null;
+  oportunidadId?: number | null;
+  oportunidadNombre?: string | null;
+}
+
 export interface RucInfo {
   ruc: string;
   encontrado: boolean;

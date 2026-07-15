@@ -186,6 +186,45 @@ export const appRoutes: Route[] = [
               
            
               {
+                path: 'analitica',
+                loadComponent: () => import('./modules/admin/analitica/analitica.component')
+                                      .then(m => m.AnaliticaComponent),
+                children: [
+                  {
+                    path: '',
+                    pathMatch: 'full',
+                    loadComponent: () => import('./modules/admin/analitica/dashboard/dashboard.component')
+                                          .then(m => m.DashboardAnaliticaComponent)
+                  },
+                  {
+                    path: 'dashboard',
+                    loadComponent: () => import('./modules/admin/analitica/dashboard/dashboard.component')
+                                          .then(m => m.DashboardAnaliticaComponent)
+                  },
+                  {
+                    path: 'proyeccion',
+                    loadComponent: () => import('./modules/admin/analitica/proyeccion/proyeccion.component')
+                                          .then(m => m.ProyeccionComponent)
+                  },
+                  {
+                    path: 'inventario-cliente',
+                    loadComponent: () => import('./modules/admin/analitica/inventario-cliente/inventario-cliente.component')
+                                          .then(m => m.InventarioClienteComponent)
+                  },
+                  {
+                    path: 'pareto-clientes',
+                    loadComponent: () => import('./modules/admin/analitica/pareto-clientes/pareto-clientes.component')
+                                          .then(m => m.ParetoClientesComponent)
+                  },
+                  {
+                    path: 'abc-producto',
+                    loadComponent: () => import('./modules/admin/analitica/abc-producto/abc-producto.component')
+                                          .then(m => m.AbcProductoComponent)
+                  },
+                ]
+              },
+
+              {
                 path: 'reporte',
                 loadComponent: () => import('./modules/admin/reportes/reportes.component')
                                       .then(m => m.ReportesComponent),

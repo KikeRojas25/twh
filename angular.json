@@ -51,7 +51,16 @@
                             "src/@fuse/styles/main.scss",
                             "src/styles/styles.scss",
                             "src/styles/tailwind.scss",
-                            "node_modules/primeng/resources/themes/lara-light-blue/theme.css",
+                            {
+                                "input": "node_modules/primeng/resources/themes/lara-light-blue/theme.css",
+                                "bundleName": "primeng-light",
+                                "inject": false
+                            },
+                            {
+                                "input": "node_modules/primeng/resources/themes/lara-dark-blue/theme.css",
+                                "bundleName": "primeng-dark",
+                                "inject": false
+                            },
                             "node_modules/primeng/resources/primeng.min.css",
                             "node_modules/primeicons/primeicons.css"
                         ],

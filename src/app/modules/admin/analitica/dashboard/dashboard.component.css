@@ -1,0 +1,92 @@
+/* ---------------------------------------------------------------------------
+   Paleta de visualización — validada con el validador de la guía de dataviz
+   (bandas de luminosidad, piso de croma, separación CVD y contraste), en claro
+   y en oscuro por separado. El modo oscuro NO es un volteo automático: son pasos
+   elegidos contra la superficie oscura real de las cards de Fuse (slate-800).
+
+   Chart.js no entiende var(): el TS lee estos tokens con getComputedStyle. Por eso
+   los colores viven aquí y no hardcodeados en el componente.
+   --------------------------------------------------------------------------- */
+:host {
+    /* superficie e ink */
+    --viz-surface:   #ffffff;
+    --viz-text:      #0b0b0b;
+    --viz-secondary: #52514e;
+    --viz-muted:     #898781;
+    --viz-grid:      #e1e0d9;
+    --viz-axis:      #c3c2b7;
+
+    /* series (categórico: identidad) */
+    --viz-hist: #2a78d6;                    /* histórico  — slot 1 */
+    --viz-pred: #e34948;                    /* proyección — slot 6 */
+    --viz-band: rgba(227, 73, 72, 0.12);    /* banda de confianza: mismo tono, translúcido */
+
+    /* clases ABC (ordinal: A > B > C son niveles, no identidades sueltas → una sola
+       familia de azul de oscuro a claro. D = "sin movimiento" → gris neutro, no es un nivel) */
+    --viz-abc-a: #1c5cab;
+    --viz-abc-b: #3987e5;
+    --viz-abc-c: #86b6ef;
+    --viz-abc-d: #898781;
+
+    /* barras de ranking */
+    --viz-bar:       #2a78d6;
+    --viz-bar-track: rgba(42, 120, 214, 0.10);
+}
+
+:host-context(.dark) {
+    --viz-surface:   #1e293b;   /* slate-800: la superficie real de bg-card en oscuro */
+    --viz-text:      #ffffff;
+    --viz-secondary: #cbd5e1;
+    --viz-muted:     #94a3b8;
+    --viz-grid:      #334155;
+    --viz-axis:      #475569;
+
+    --viz-hist: #3987e5;
+    --viz-pred: #e66767;
+    --viz-band: rgba(230, 103, 103, 0.16);
+
+    --viz-abc-a: #2a78d6;
+    --viz-abc-b: #5598e7;
+    --viz-abc-c: #9ec5f4;
+    --viz-abc-d: #94a3b8;
+
+    --viz-bar:       #3987e5;
+    --viz-bar-track: rgba(57, 135, 229, 0.16);
+}
+
+/* Refetch: se mantiene el render anterior atenuado en vez de un skeleton,
+   así no hay salto de layout. */
+.is-loading {
+    opacity: 0.45;
+    transition: opacity 120ms ease-out;
+    pointer-events: none;
+}
+
+/* --- Ranking con barras en HTML ---------------------------------------------
+   Se prefiere a un gráfico de barras porque el valor queda SIEMPRE visible al
+   lado del nombre (no escondido en un tooltip) y se lee con lector de pantalla. */
+.rank-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    padding: 0.5rem 0;
+}
+
+.rank-track {
+    grid-column: 1 / -1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--viz-bar-track);
+    overflow: hidden;
+}
+
+.rank-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--viz-bar);
+}
+
+.rank-value {
+    font-variant-numeric: tabular-nums;   /* alinean en columna */
+}

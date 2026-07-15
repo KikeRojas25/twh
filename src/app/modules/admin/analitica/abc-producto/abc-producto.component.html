@@ -1,0 +1,162 @@
+<p-toast></p-toast>
+
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+        <div class="flex-1">
+            <div class="flex items-center space-x-2 text-primary-500 font-medium">
+                <a>TWH</a>
+                <mat-icon svgIcon="heroicons_solid:chevron-right"></mat-icon>
+                <a>Analítica</a>
+            </div>
+            <h2 class="mt-2 text-3xl sm:text-4xl font-bold leading-tight">ABC por producto</h2>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 p-6 sm:px-10 border-b bg-card">
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Cliente</label>
+            <p-dropdown [options]="clientes" [(ngModel)]="propietarioId" [filter]="true" filterBy="label"
+                        [showClear]="true" placeholder="Seleccione un cliente" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Criterio</label>
+            <p-dropdown [options]="criterios" [(ngModel)]="criterio" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Período</label>
+            <p-dropdown [options]="periodos" [(ngModel)]="dias" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Mostrar en el gráfico</label>
+            <p-dropdown [options]="opcionesTop" [(ngModel)]="top" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+    </div>
+
+    <div class="p-6 sm:px-10">
+
+        <div *ngIf="!propietarioId" class="text-center text-secondary py-16">
+            Seleccione un cliente para ver su clasificación ABC.
+        </div>
+
+        <!-- Todavía no se ha generado el ABC para ese período -->
+        <div *ngIf="propietarioId && resumen && !resumen.calculado && !cargando"
+             class="text-center py-16">
+            <p class="text-secondary mb-4">
+                Aún no hay una clasificación ABC calculada para este cliente y período.
+            </p>
+            <p-button icon="pi pi-refresh" label="Calcular ahora" (onClick)="recalcular()"
+                      [loading]="recalculando" />
+        </div>
+
+        <ng-container *ngIf="resumen && resumen.calculado && productos.length">
+
+            <!-- KPIs -->
+            <div class="flex flex-wrap items-center gap-4 mb-6">
+                <div class="px-5 py-3 rounded-xl shadow bg-card">
+                    <span class="text-2xl font-bold">{{ resumen.totalProductos | number }}</span>
+                    <span class="text-sm text-secondary ml-2">productos</span>
+                </div>
+                <div class="px-4 py-3 rounded-xl shadow bg-card flex items-center gap-2">
+                    <p-tag value="A" severity="success"></p-tag>
+                    <span class="text-xl font-semibold">{{ resumen.claseA }}</span>
+                </div>
+                <div class="px-4 py-3 rounded-xl shadow bg-card flex items-center gap-2">
+                    <p-tag value="B" severity="warning"></p-tag>
+                    <span class="text-xl font-semibold">{{ resumen.claseB }}</span>
+                </div>
+                <div class="px-4 py-3 rounded-xl shadow bg-card flex items-center gap-2">
+                    <p-tag value="C" severity="danger"></p-tag>
+                    <span class="text-xl font-semibold">{{ resumen.claseC }}</span>
+                </div>
+                <div class="px-4 py-3 rounded-xl shadow bg-card flex items-center gap-2">
+                    <p-tag value="D" severity="secondary"></p-tag>
+                    <span class="text-xl font-semibold">{{ resumen.claseD }}</span>
+                </div>
+
+                <div class="flex-1"></div>
+
+                <p-button icon="pi pi-file" label="Exportar CSV" (onClick)="exportarACsv()" class="p-button-sm p-button-secondary" />
+                <p-button icon="pi pi-file-excel" label="Exportar Excel" (onClick)="exportarAExcel()" class="p-button-sm p-button-success" />
+                <p-button icon="pi pi-refresh" label="Actualizar" (onClick)="recalcular()"
+                          [loading]="recalculando" class="p-button-sm" />
+            </div>
+
+            <p class="text-sm text-secondary mb-6">
+                Calculado el {{ resumen.fechaCalculo | date:'dd/MM/yyyy HH:mm' }} ·
+                período {{ resumen.fechaInicio | date:'dd/MM/yyyy' }} → {{ resumen.fechaFin | date:'dd/MM/yyyy' }}
+                ({{ resumen.dias }} días) · cortes 80 / 95
+            </p>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
+                    <h3 class="text-lg font-semibold mb-1">Pareto — Valor vs % Acumulado</h3>
+                    <p class="text-sm text-secondary mb-4">
+                        mostrando {{ top }} de {{ productos.length }} productos
+                    </p>
+                    <div style="height: 380px;">
+                        <p-chart type="bar" [data]="chartPareto" [options]="opcionesPareto" height="380px"></p-chart>
+                    </div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card">
+                    <h3 class="text-lg font-semibold mb-4">Cantidad de productos por clase</h3>
+                    <div style="height: 380px;">
+                        <p-chart type="doughnut" [data]="chartClases" [options]="opcionesClases" height="380px"></p-chart>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="p-6 rounded-2xl shadow bg-card">
+                <p-table #tabla [value]="productos" [paginator]="true" [rows]="20" class="p-datatable-sm"
+                         [globalFilterFields]="['codigo','descripcionLarga']">
+                    <ng-template pTemplate="caption">
+                        <div class="flex items-center gap-4">
+                            <input pInputText type="text" placeholder="Buscar código o descripción…"
+                                   (input)="tabla.filterGlobal($any($event.target).value, 'contains')"
+                                   class="w-full sm:w-96" />
+                            <span class="text-sm text-secondary whitespace-nowrap">{{ productos.length }} productos</span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th pSortableColumn="codigo">Código <p-sortIcon field="codigo" /></th>
+                            <th>Descripción</th>
+                            <th class="text-right" pSortableColumn="valor">{{ columnaValor }} <p-sortIcon field="valor" /></th>
+                            <th class="text-right">Movimientos</th>
+                            <th class="text-right">Unidades retiradas</th>
+                            <th class="text-right">Stock</th>
+                            <th class="text-right">% Acum</th>
+                            <th class="text-center">Clase</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-p>
+                        <tr>
+                            <td>{{ p.codigo }}</td>
+                            <td>{{ p.descripcionLarga }}</td>
+                            <td class="text-right font-bold">{{ p.valor | number:'1.0-2' }}</td>
+                            <td class="text-right text-secondary">{{ p.numMovimientos | number }}</td>
+                            <td class="text-right text-secondary">{{ p.cantRetirada | number }}</td>
+                            <td class="text-right text-secondary">{{ p.stockActual | number }}</td>
+                            <td class="text-right">{{ p.pctAcumulado | number:'1.1-1' }}%</td>
+                            <td class="text-center">
+                                <p-tag [value]="p.clase" [severity]="severidadClase(p.clase)"></p-tag>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr><td colspan="8" class="text-center py-6 text-secondary">Sin productos.</td></tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+        </ng-container>
+    </div>
+</div>

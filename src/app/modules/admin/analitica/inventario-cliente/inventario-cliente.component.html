@@ -1,0 +1,137 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:py-8 sm:px-10 border-b bg-card">
+        <div class="flex-1">
+            <div class="flex items-center space-x-2 text-primary-500 font-medium">
+                <a>TWH</a>
+                <mat-icon svgIcon="heroicons_solid:chevron-right"></mat-icon>
+                <a>Analítica</a>
+            </div>
+            <h2 class="mt-2 text-3xl sm:text-4xl font-bold leading-tight">Inventario por cliente</h2>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 p-6 sm:px-10 border-b bg-card">
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Cliente</label>
+            <p-dropdown [options]="clientes" [(ngModel)]="propietarioId" [filter]="true" filterBy="label"
+                        [showClear]="true" placeholder="Seleccione un cliente" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Clasificación</label>
+            <p-dropdown [options]="clasificaciones" [(ngModel)]="clasificacion" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col">
+            <label class="font-semibold mb-1">Gráfico</label>
+            <p-dropdown [options]="opcionesTop" [(ngModel)]="top" [style]="{'width':'100%'}"
+                        (onChange)="buscar()"></p-dropdown>
+        </div>
+        <div class="flex flex-col justify-end">
+            <p-button icon="pi pi-search" label="Consultar" (onClick)="buscar()" [disabled]="!propietarioId" />
+        </div>
+    </div>
+
+    <div class="p-6 sm:px-10">
+
+        <div *ngIf="!propietarioId" class="text-center text-secondary py-16">
+            Seleccione un cliente para ver su inventario.
+        </div>
+
+        <ng-container *ngIf="resumen && productos.length">
+
+            <!-- KPIs -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                <div class="p-6 rounded-2xl shadow bg-card border-l-4 border-gray-700">
+                    <div class="text-sm font-medium text-secondary uppercase">Total ubicaciones</div>
+                    <div class="text-4xl font-bold mt-1">{{ resumen.totalUbicaciones | number }}</div>
+                    <div class="text-xs text-secondary mt-1">ubicaciones distintas ocupadas</div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card border-l-4 border-gray-700">
+                    <div class="text-sm font-medium text-secondary uppercase">Productos almacenados</div>
+                    <div class="text-4xl font-bold mt-1">{{ resumen.productosAlmacenados | number }}</div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card border-l-4 border-red-600">
+                    <div class="text-sm font-medium text-secondary uppercase">Producto con más ubicaciones</div>
+                    <div class="text-3xl font-bold mt-1">{{ resumen.topCodigo }}</div>
+                    <div class="text-sm text-secondary">
+                        {{ resumen.topUbicaciones }} ubic · {{ resumen.topPct | number:'1.1-1' }}%
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex justify-end gap-3 mb-4">
+                <p-button icon="pi pi-file" label="Exportar CSV" (onClick)="exportarACsv()" class="p-button-sm p-button-secondary" />
+                <p-button icon="pi pi-file-excel" label="Exportar Excel" (onClick)="exportarAExcel()" class="p-button-sm p-button-success" />
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="lg:col-span-2 p-6 rounded-2xl shadow bg-card">
+                    <h3 class="text-lg font-semibold mb-1">Productos que más ubicaciones ocupan</h3>
+                    <p class="text-sm text-secondary mb-4">Top {{ top }} de {{ productos.length }} productos</p>
+                    <div style="height: 320px;">
+                        <p-chart type="bar" [data]="chartBarras" [options]="opcionesBarras" height="320px"></p-chart>
+                    </div>
+                </div>
+                <div class="p-6 rounded-2xl shadow bg-card">
+                    <h3 class="text-lg font-semibold mb-4">Distribución de ubicaciones</h3>
+                    <div style="height: 320px;">
+                        <p-chart type="doughnut" [data]="chartDona" [options]="opcionesDona" height="320px"></p-chart>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="p-6 rounded-2xl shadow bg-card">
+                <p-table #tabla [value]="productos" [paginator]="true" [rows]="20" class="p-datatable-sm"
+                         [globalFilterFields]="['codigo','descripcionLarga']">
+                    <ng-template pTemplate="caption">
+                        <div class="flex items-center gap-4">
+                            <input pInputText type="text" placeholder="Buscar código o descripción…"
+                                   (input)="tabla.filterGlobal($any($event.target).value, 'contains')"
+                                   class="w-full sm:w-96" />
+                            <span class="text-sm text-secondary whitespace-nowrap">{{ productos.length }} productos</span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th pSortableColumn="codigo">Código <p-sortIcon field="codigo" /></th>
+                            <th>Descripción</th>
+                            <th class="text-right" pSortableColumn="cantidad">Cantidad <p-sortIcon field="cantidad" /></th>
+                            <th class="text-right" pSortableColumn="ubicaciones">Ubicaciones <p-sortIcon field="ubicaciones" /></th>
+                            <th class="text-right">% del total</th>
+                            <th class="text-center">Clasificación</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-p>
+                        <tr>
+                            <td>{{ p.codigo }}</td>
+                            <td>{{ p.descripcionLarga }}</td>
+                            <td class="text-right">{{ p.cantidad | number }}</td>
+                            <td class="text-right font-medium">{{ p.ubicaciones | number }}</td>
+                            <td class="text-right">{{ p.pct | number:'1.1-1' }}%</td>
+                            <td class="text-center">
+                                <p-tag [value]="p.clase" [severity]="severidadClase(p.clase)"></p-tag>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr><td colspan="6" class="text-center py-6 text-secondary">Sin productos.</td></tr>
+                    </ng-template>
+                </p-table>
+                <p class="text-xs text-secondary mt-4">
+                    El "% del total" se calcula sobre {{ resumen.ubicacionesProducto | number }} (la suma de
+                    ubicaciones por producto), no sobre las {{ resumen.totalUbicaciones | number }} ubicaciones
+                    distintas: una ubicación con varios productos cuenta para cada uno. Así los porcentajes
+                    suman 100% y la clasificación ABC es consistente.
+                </p>
+            </div>
+
+        </ng-container>
+    </div>
+</div>

@@ -44,6 +44,7 @@ export class SchemeToggleComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((config) => {
                 this.esOscuro = config.scheme === 'dark';
+                this.aplicarTemaPrimeNg(this.esOscuro);
             });
     }
 
@@ -56,5 +57,19 @@ export class SchemeToggleComponent implements OnInit, OnDestroy {
         const scheme: Scheme = this.esOscuro ? 'light' : 'dark';
         this._fuseConfigService.config = { scheme };
         localStorage.setItem(SchemeToggleComponent.STORAGE_KEY, scheme);
+    }
+
+    /**
+     * PrimeNG no reacciona a la clase `dark`: trae su tema en una hoja de estilos fija.
+     * Por eso los dos temas se emiten como bundles (angular.json, `inject: false`) y aquí
+     * se conmuta el href del <link id="primeng-theme"> de index.html.
+     */
+    private aplicarTemaPrimeNg(oscuro: boolean): void {
+        const link = document.getElementById('primeng-theme') as HTMLLinkElement | null;
+        if (!link) return;
+        const href = oscuro ? 'primeng-dark.css' : 'primeng-light.css';
+        if (!link.getAttribute('href')?.includes(href)) {
+            link.setAttribute('href', href);
+        }
     }
 }

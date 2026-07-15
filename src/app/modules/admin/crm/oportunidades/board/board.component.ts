@@ -21,6 +21,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CrmService } from '../../../_services/crm.service';
 import { EtapaOportunidad, MetaVendedor, OportunidadCard, PropietarioWmsRef, Vendedor } from '../../crm.types';
 import { OportunidadDialogComponent } from '../oportunidad-dialog/oportunidad-dialog.component';
+import { ActividadesComponent } from '../vistas/actividades.component';
 import { CorreosComponent } from '../vistas/correos.component';
 import { EmbudoComponent } from '../vistas/embudo.component';
 import { ListaOportunidadesComponent } from '../vistas/lista-oportunidades.component';
@@ -31,6 +32,9 @@ interface Columna {
   titulo: string;
   cards: OportunidadCard[];
 }
+
+type Vista = 'kanban' | 'vendedor' | 'lista' | 'embudo' | 'actividades' | 'correos';
+const VISTAS: readonly Vista[] = ['kanban', 'vendedor', 'lista', 'embudo', 'actividades', 'correos'];
 
 const PROBABILIDAD: Record<EtapaOportunidad, number> = {
   PROSPECCION: 10, VISITA: 25, PROPUESTA: 50, NEGOCIACION: 75, GANADA: 100, PERDIDA: 0,
@@ -45,11 +49,22 @@ const PROBABILIDAD: Record<EtapaOportunidad, number> = {
     DialogModule, DropdownModule, DynamicDialogModule, InputTextareaModule, SidebarModule,
     ToastModule, ConfirmDialogModule, TooltipModule, OportunidadDialogComponent,
     ResumenVendedorComponent, ListaOportunidadesComponent, EmbudoComponent, CorreosComponent,
+    ActividadesComponent,
   ],
   providers: [DialogService, MessageService, ConfirmationService],
   styles: [`
+    /* Altura ACOTADA para que el scroll ocurra dentro del board y no en la ventana.
+       Fuse define 'html, body { min-height: 100% }' (min-height, NO height): la página crece
+       con el contenido y scrollea la ventana entera. Sin acotar aquí, un 'h-full' no acota nada
+       y ni la cabecera ni los encabezados de columna se pueden fijar (un sticky no tiene contra
+       qué pegarse si su contenedor nunca scrollea).
+       120px = header del layout (h-16 = 64px) + footer (h-14 = 56px) del layout 'compact'.
+       Si cambia el alto del header/footer o se oculta el footer, hay que ajustar este número. */
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px);
+      overflow: hidden;
       --pg-bg: #191919; --pg-surface: #252525; --pg-surface-2: #202020;
       --pg-hover: #2c2c2c; --pg-border: rgba(255,255,255,0.07);
       --pg-chip: rgba(255,255,255,0.05); --pg-active: rgba(255,255,255,0.10);
@@ -117,14 +132,20 @@ export class CrmBoardComponent implements OnInit, OnDestroy {
   get listaIds(): string[] { return this.columnas.map(c => 'lista-' + c.etapa); }
 
   // ─── Vistas del pipeline ───────────────────────────────────────────────────
-  vista: 'kanban' | 'vendedor' | 'lista' | 'embudo' | 'correos' = 'kanban';
+  vista: Vista = 'kanban';
   readonly vistaOpciones = [
     { value: 'kanban', label: 'Kanban', icon: 'pi pi-th-large' },
     { value: 'vendedor', label: 'Por vendedor', icon: 'pi pi-users' },
     { value: 'lista', label: 'Lista', icon: 'pi pi-list' },
     { value: 'embudo', label: 'Embudo', icon: 'pi pi-filter' },
+    { value: 'actividades', label: 'Actividades', icon: 'pi pi-check-square' },
     { value: 'correos', label: 'Correos', icon: 'pi pi-envelope' },
   ] as const;
+
+  /** Vistas que NO son de oportunidades: ocultan los filtros de vendedor/entidad. */
+  get vistaSinFiltrosOportunidad(): boolean {
+    return this.vista === 'vendedor' || this.vista === 'actividades';
+  }
 
   // Periodo (vista Por vendedor)
   private readonly hoy = new Date();
@@ -188,8 +209,8 @@ export class CrmBoardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const v = localStorage.getItem('crmVistaPipeline');
-    if (v === 'kanban' || v === 'vendedor' || v === 'lista' || v === 'embudo' || v === 'correos') this.vista = v;
+    const v = localStorage.getItem('crmVistaPipeline') as Vista | null;
+    if (v && VISTAS.includes(v)) this.vista = v;
 
     // El tema del pipeline sigue al esquema GLOBAL (botón general de Fuse).
     this.fuseConfigService.config$
@@ -206,7 +227,7 @@ export class CrmBoardComponent implements OnInit, OnDestroy {
     this._destroy$.complete();
   }
 
-  cambiarVista(v: 'kanban' | 'vendedor' | 'lista' | 'embudo' | 'correos'): void {
+  cambiarVista(v: Vista): void {
     this.vista = v;
     localStorage.setItem('crmVistaPipeline', v);
     if (v === 'vendedor') this.cargarMetas();
