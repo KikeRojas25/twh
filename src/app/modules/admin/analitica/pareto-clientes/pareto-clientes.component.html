@@ -64,7 +64,7 @@
             <div class="flex items-center justify-between mb-4">
                 <span class="text-sm text-secondary">
                     Foto del {{ resumen.fecha | date:'dd/MM/yyyy' }} ·
-                    {{ resumen.totalUbicaciones | number }} ubicaciones ocupadas
+                    {{ resumen.totalUbicacionesDistintas | number }} ubicaciones ocupadas · almacenes 2G y 3i
                 </span>
                 <div class="flex gap-3">
                     <p-button icon="pi pi-file" label="Exportar CSV" (onClick)="exportarACsv()" class="p-button-sm p-button-secondary" />

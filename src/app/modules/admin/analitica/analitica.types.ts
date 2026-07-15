@@ -124,6 +124,9 @@ export interface ParetoClientesResumen {
     clientesActivos: number;
     topCliente: string | null;
     topUbicaciones: number | null;
+    /** Ubicaciones físicas distintas ocupadas (cuadra con el reporte de Ocupabilidad). */
+    totalUbicacionesDistintas: number;
+    /** Suma de huellas por cliente (denominador del Pareto, no el conteo físico). */
     totalUbicaciones: number;
     simple: number;
     doble: number;

@@ -68,9 +68,9 @@
 
                 <div class="p-5 rounded-2xl shadow bg-card" *ngIf="paretoResumen">
                     <div class="text-xs font-medium text-secondary uppercase tracking-wide">Ubicaciones ocupadas hoy</div>
-                    <div class="text-4xl font-bold mt-1 leading-none">{{ paretoResumen.totalUbicaciones | number }}</div>
+                    <div class="text-4xl font-bold mt-1 leading-none">{{ paretoResumen.totalUbicacionesDistintas | number }}</div>
                     <div class="text-sm text-secondary mt-1">
-                        {{ paretoResumen.clientesActivos }} clientes con inventario
+                        {{ paretoResumen.clientesActivos }} clientes · almacenes 2G y 3i
                     </div>
                 </div>
 
