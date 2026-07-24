@@ -60,6 +60,19 @@ export class ZonaService {
     return this._http.delete<any>(`${this.baseUrl}/${zonaId}/propietarios/${propietarioId}`, httpOptions);
   }
 
+  /**
+   * Puente Analítica → Zonas: reserva ubicaciones en una zona según la proyección del cliente.
+   * Con commit=false devuelve una simulación (para previsualizar); commit=true confirma.
+   */
+  reservarPorProyeccion(dto: {
+    propietarioId: number; almacenId: number;
+    zonaId?: number; codigoZona?: string; nombreZona?: string;
+    areas?: string; tipoUbicacionId?: number; cantidad?: number; periodo?: string;
+    commit: boolean;
+  }): Observable<any> {
+    return this._http.post<any>(`${this.baseUrl}/reservar-por-proyeccion`, dto, httpOptions);
+  }
+
   // ─── Reporte 3D por zona ───────────────────────────────────────────────────
 
   getZonas3d(almacenId?: number, areaId?: number): Observable<any[]> {

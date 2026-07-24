@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import {
     HubConnection,
@@ -89,6 +89,18 @@ export class ChatIaService {
 
     enviarMensaje(req: ChatRequest): Observable<ChatResponse> {
         return this._http.post<ChatResponse>(`${this._api}/messages`, req);
+    }
+
+    /**
+     * Descarga directa a Excel del resultado de una tool (por su mensajeId).
+     * No pasa por OpenAI: el backend lee el JSON ya persistido y arma el archivo.
+     * observe:'response' para leer el nombre del archivo del header Content-Disposition.
+     */
+    descargarExcel(mensajeId: number): Observable<HttpResponse<Blob>> {
+        return this._http.get(`${this._api}/descargas/${mensajeId}`, {
+            observe: 'response',
+            responseType: 'blob',
+        });
     }
 
     obtenerLimiteMe(): Observable<LimiteEstado> {

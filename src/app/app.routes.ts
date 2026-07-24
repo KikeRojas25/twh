@@ -220,6 +220,11 @@ export const appRoutes: Route[] = [
                     loadComponent: () => import('./modules/admin/analitica/abc-producto/abc-producto.component')
                                           .then(m => m.AbcProductoComponent)
                   },
+                  {
+                    path: 'ingresos',
+                    loadComponent: () => import('./modules/admin/analitica/ingresos/ingresos.component')
+                                          .then(m => m.IngresosComponent)
+                  },
                 ]
               },
 

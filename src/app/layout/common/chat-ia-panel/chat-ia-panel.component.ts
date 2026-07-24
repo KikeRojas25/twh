@@ -21,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ChatIaService } from 'app/core/chatia/chatia.service';
 import {
+    FuncionInvocada,
     HubFunctionEvent,
     PropietarioAutorizado,
     UiMensaje,
@@ -58,8 +59,17 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
     funcionEjecutando = signal<string | null>(null);
     enviando = signal(false);
     error = signal<string | null>(null);
+    /** mensajeId de la descarga en curso (para mostrar el spinner en ese botón). */
+    descargandoId = signal<number | null>(null);
     inputTexto = '';
     conversacionId: string | null = null;
+
+    /**
+     * Tope de longitud del mensaje. Debe coincidir con la clave 'MaxCaracteresMensaje'
+     * de chatia.ConfiguracionGlobal: el backend rechaza con 400 por encima de este valor.
+     * Aquí solo evitamos el viaje inútil y damos feedback al escribir.
+     */
+    readonly maxCaracteres = 500;
 
     // Sugerencias por categoría (panel izquierdo). Alineadas a las funciones del backend.
     readonly sugerencias: { titulo: string; icon: string; items: string[] }[] = [
@@ -186,6 +196,13 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
             this.error.set('Selecciona un propietario para iniciar el chat.');
             return;
         }
+        if (texto.length > this.maxCaracteres) {
+            this.error.set(
+                `El mensaje es demasiado largo (${texto.length} de ${this.maxCaracteres} caracteres). ` +
+                'Divide tu consulta en preguntas más cortas.'
+            );
+            return;
+        }
 
         this.error.set(null);
         this.inputTexto = '';
@@ -265,6 +282,56 @@ export class ChatIaPanelComponent implements OnInit, OnDestroy, AfterViewChecked
             event.preventDefault();
             this.enviar();
         }
+    }
+
+    /**
+     * Descarga directa a Excel del resultado de una función (no pasa por OpenAI).
+     * El backend lee el JSON ya persistido y devuelve el archivo.
+     */
+    descargarExcel(f: FuncionInvocada): void {
+        if (!f.mensajeId || this.descargandoId() !== null) return;
+        this.descargandoId.set(f.mensajeId);
+
+        this._chatIa.descargarExcel(f.mensajeId).subscribe({
+            next: (resp) => {
+                const blob = resp.body;
+                if (!blob) {
+                    this.error.set('No se pudo generar el archivo.');
+                    this.descargandoId.set(null);
+                    return;
+                }
+
+                // Nombre del archivo desde Content-Disposition; si no viene, uno por defecto.
+                const cd = resp.headers.get('content-disposition') ?? '';
+                const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);
+                const nombre = match
+                    ? decodeURIComponent(match[1])
+                    : `${f.nombre}.xlsx`;
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nombre;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                this.descargandoId.set(null);
+            },
+            error: async (err) => {
+                // El cuerpo del error viene como Blob (responseType blob); intentamos leer el mensaje.
+                let detalle = 'No se pudo descargar el Excel.';
+                try {
+                    if (err?.error instanceof Blob) {
+                        const txt = await err.error.text();
+                        detalle = JSON.parse(txt)?.error ?? detalle;
+                    }
+                } catch {
+                    /* mantiene el mensaje por defecto */
+                }
+                this.error.set(detalle);
+                this.descargandoId.set(null);
+            },
+        });
     }
 
     nuevaConversacion(): void {

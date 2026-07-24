@@ -120,6 +120,19 @@
                                                     </span>
                                                 }
                                             </div>
+                                            @for (f of msg.funciones; track f.nombre + $index) {
+                                                @if (f.descargable && f.mensajeId) {
+                                                    <button
+                                                        class="msg__download"
+                                                        (click)="descargarExcel(f)"
+                                                        [disabled]="descargandoId() === f.mensajeId"
+                                                    >
+                                                        <mat-icon [svgIcon]="descargandoId() === f.mensajeId ? 'heroicons_outline:arrow-path' : 'heroicons_outline:arrow-down-tray'"
+                                                            [class.msg__download-spin]="descargandoId() === f.mensajeId"></mat-icon>
+                                                        {{ descargandoId() === f.mensajeId ? 'Generando…' : 'Descargar Excel' }}
+                                                    </button>
+                                                }
+                                            }
                                         }
                                     }
                                 </div>
@@ -150,8 +163,15 @@
                         placeholder="Escribe tu pregunta... (Enter para enviar)"
                         [(ngModel)]="inputTexto"
                         (keydown)="onKeyDown($event)"
+                        [maxlength]="maxCaracteres"
                         [disabled]="enviando() || !propietarioActivoId()"
                     ></textarea>
+                    @if (inputTexto.length > maxCaracteres * 0.8) {
+                        <span
+                            class="chat-ia-panel__counter"
+                            [class.chat-ia-panel__counter--full]="inputTexto.length >= maxCaracteres"
+                        >{{ inputTexto.length }}/{{ maxCaracteres }}</span>
+                    }
                     <button
                         class="chat-ia-panel__send"
                         aria-label="Enviar"

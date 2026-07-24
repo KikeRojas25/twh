@@ -365,6 +365,29 @@
                 mat-icon { color: #b91c1c; }
             }
         }
+
+        &__download {
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #16a34a, #059669);
+            border: 0;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 120ms ease, opacity 120ms ease;
+
+            &:hover:not(:disabled) { transform: translateY(-1px); }
+            &:disabled { opacity: 0.6; cursor: default; }
+
+            mat-icon { width: 15px; height: 15px; font-size: 15px; color: #fff; }
+        }
+
+        &__download-spin { animation: chat-ia-spin 1s linear infinite; }
     }
 
     // -------- gráfico más amplio en el chat ancho --------
@@ -515,6 +538,18 @@
 
         &:focus { border-color: #7a1e22; background: #fff; }
         &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    // Contador de caracteres: aparece solo al acercarse al tope (>80%).
+    &__counter {
+        flex-shrink: 0;
+        align-self: flex-end;
+        padding-bottom: 12px;
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        color: #94a3b8;
+
+        &--full { color: #7a1e22; font-weight: 600; }
     }
 
     &__send {

@@ -179,3 +179,63 @@ export interface AbcProductoResponse {
     productos: AbcProducto[];
     resumen: AbcProductoResumen | null;
 }
+
+// ---------- 5. Ingresos de mercadería (kardex) ----------
+
+/** Las 4 métricas responden preguntas distintas; la pantalla deja elegir cuál se grafica. */
+export type MetricaIngreso = 'pallets' | 'unidades' | 'ordenes' | 'lineas';
+
+export interface IngresoMes {
+    periodo: string;              // ISO date, primer día del mes
+    ingresoPallets: number;
+    ingresoUnidades: number;
+    ingresoOrdenes: number;
+    ingresoLineas: number;
+    /** Pallets VACIADOS en el mes. Un pallet con picks parciales tiene salidas en
+     *  muchos días distintos, pero solo desocupa su ubicación cuando se vacía. */
+    salidaPallets: number;
+    salidaUnidades: number;
+    salidaLineas: number;
+    netoPallets: number;
+    netoUnidades: number;
+}
+
+export interface IngresoCliente {
+    propietarioId: number;
+    cliente: string | null;
+    ingresoPallets: number;
+    ingresoUnidades: number;
+    ingresoOrdenes: number;
+    ingresoLineas: number;
+    salidaPallets: number;
+    salidaUnidades: number;
+    netoPallets: number;
+    mesesConIngreso: number;
+    pct: number | null;
+    pctAcum: number | null;
+}
+
+export interface IngresoResumen {
+    fechaDesde: string;
+    fechaHasta: string;
+    propietarioId: number | null;
+    cliente: string | null;
+    /** Acotado a almacenes 8 y 12. Solo válido desde sep-2025: antes el kardex no
+     *  se puede mapear a almacén (cobertura 7.7%) y el filtro mutila la serie. */
+    soloOperativos: boolean;
+    clientesConIngreso: number;
+    totalPallets: number;
+    totalUnidades: number;
+    totalOrdenes: number;
+    totalLineas: number;
+    salidaPallets: number;
+    salidaUnidades: number;
+    mesesEnRango: number;
+    palletsPromedioMes: number | null;
+}
+
+export interface IngresosResponse {
+    serie: IngresoMes[];
+    clientes: IngresoCliente[];
+    resumen: IngresoResumen | null;
+}

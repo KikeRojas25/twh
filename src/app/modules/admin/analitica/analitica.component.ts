@@ -36,5 +36,6 @@ export class AnaliticaComponent {
         { link: 'inventario-cliente', label: 'Inventario' },
         { link: 'pareto-clientes', label: 'Pareto' },
         { link: 'abc-producto', label: 'ABC' },
+        { link: 'ingresos', label: 'Ingresos' },
     ];
 }

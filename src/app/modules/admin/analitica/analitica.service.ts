@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import {
     AbcProductoResponse,
     CriterioAbc,
+    IngresosResponse,
     InventarioClienteResponse,
     ParetoClientesResponse,
     ProyeccionAlmacenResponse,
@@ -52,6 +53,29 @@ export class AnaliticaService {
         if (fecha) { params = params.set('fecha', fecha); }
 
         return this._http.get<ParetoClientesResponse>(`${this._api}/pareto-clientes`, { params });
+    }
+
+    /**
+     * Ingresos y salidas de mercadería (kardex). Sin propietarioId trae el ranking
+     * de todos los clientes.
+     *
+     * `soloOperativos` acota a los almacenes 8 y 12, pero el backend lo rechaza si
+     * `desde` es anterior a sep-2025: el kardex no tiene AlmacenId y el mapeo por
+     * LodId solo cubre el 7.7% antes de esa fecha.
+     */
+    getIngresos(
+        propietarioId?: number,
+        desde?: string,
+        hasta?: string,
+        soloOperativos = false,
+    ): Observable<IngresosResponse> {
+        let params = new HttpParams();
+        if (propietarioId) { params = params.set('propietarioId', String(propietarioId)); }
+        if (desde) { params = params.set('desde', desde); }
+        if (hasta) { params = params.set('hasta', hasta); }
+        if (soloOperativos) { params = params.set('soloOperativos', 'true'); }
+
+        return this._http.get<IngresosResponse>(`${this._api}/ingresos`, { params });
     }
 
     /** ABC por producto. dias: 30 | 90 | 180 | 365 */

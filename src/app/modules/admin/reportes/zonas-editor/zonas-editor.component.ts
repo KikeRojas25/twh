@@ -6,11 +6,15 @@ import { MatIcon } from '@angular/material/icon';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { AnaliticaService } from '../../analitica/analitica.service';
+import { PropietarioService } from '../../_services/propietario.service';
 import { UbicacionService } from '../../_services/ubicacion.service';
 import { ZonaService } from '../../_services/zona.service';
 import { Zonas3dViewerComponent } from '../zonas3d/zonas3d-viewer/zonas3d-viewer.component';
@@ -45,6 +49,7 @@ interface ResumenZona {
   imports: [
     CommonModule, FormsModule, MatIcon, DropdownModule, ProgressSpinnerModule,
     ButtonModule, ToastModule, ConfirmDialogModule, DynamicDialogModule, TooltipModule,
+    DialogModule, InputTextModule,
     Zonas3dViewerComponent,
   ],
   providers: [DialogService, MessageService, ConfirmationService],
@@ -78,9 +83,36 @@ export class ZonasEditorComponent implements OnInit {
   guardando = false;
   private dialogRef?: DynamicDialogRef;
 
+  // ── Reservar por proyección (puente Analítica → Zonas) ──
+  mostrarReserva = false;
+  propietarios: { label: string; value: number }[] = [];
+  reservaPropId: number | null = null;
+  reservaMeses = 3;
+  reservaTipo: number | null = null;
+  reservaZonaId: number | null = null;     // null = crear zona nueva
+  reservaCodigo = '';
+  reservaNombre = '';
+  proyeccionCliente: { periodo: string; proyectado: number } | null = null;
+  simulacion: any = null;
+  simulando = false;
+  confirmando = false;
+
+  mesesOpciones = [
+    { label: 'Próximo mes', value: 1 },
+    { label: 'En 3 meses', value: 3 },
+    { label: 'En 6 meses', value: 6 },
+  ];
+  tipoOpciones = [
+    { label: 'Cualquier tipo', value: null },
+    { label: 'Rack (simple)', value: 137 },
+    { label: 'Rack Doble', value: 1473 },
+  ];
+
   constructor(
     private ubicacionService: UbicacionService,
     private zonaService: ZonaService,
+    private propietarioService: PropietarioService,
+    private analiticaService: AnaliticaService,
     private dialogService: DialogService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
@@ -311,6 +343,101 @@ export class ZonasEditorComponent implements OnInit {
 
   limpiarSeleccion(): void {
     this.viewer?.limpiarSeleccion();
+  }
+
+  // ── Reservar por proyección ──
+  abrirReserva(): void {
+    this.mostrarReserva = true;
+    this.simulacion = null;
+    this.proyeccionCliente = null;
+    this.reservaPropId = null;
+    this.reservaZonaId = null;
+    this.reservaCodigo = '';
+    this.reservaNombre = '';
+    this.reservaTipo = null;
+
+    if (this.propietarios.length === 0) {
+      this.propietarioService.getAllPropietarios().subscribe((r) => {
+        this.propietarios = (r || []).map((c: any) => ({ label: c.razonSocial, value: c.id }));
+      });
+    }
+  }
+
+  /** Opciones de zona destino: crear nueva + las zonas existentes del almacén. */
+  get reservaZonaOpciones(): { label: string; value: number | null }[] {
+    return [{ label: '➕ Crear zona nueva', value: null }, ...this.zonaOpciones];
+  }
+
+  /** Al elegir cliente, trae su proyección (predicción central del mes objetivo). */
+  onReservaClienteChange(): void {
+    this.simulacion = null;
+    this.proyeccionCliente = null;
+    if (!this.reservaPropId) { return; }
+
+    this.analiticaService.getProyeccion(this.reservaPropId, this.reservaMeses).subscribe({
+      next: (resp) => {
+        if (resp.resumen?.proyectado != null) {
+          this.proyeccionCliente = {
+            periodo: resp.resumen.periodoProyectado ?? '',
+            proyectado: resp.resumen.proyectado,
+          };
+        }
+      },
+      error: () => { this.proyeccionCliente = null; },
+    });
+  }
+
+  private dtoReserva(commit: boolean) {
+    const crearNueva = this.reservaZonaId == null;
+    return {
+      propietarioId: this.reservaPropId!,
+      almacenId: this.almacenSeleccionado!,
+      zonaId: crearNueva ? undefined : this.reservaZonaId!,
+      codigoZona: crearNueva ? (this.reservaCodigo?.trim() || undefined) : undefined,
+      nombreZona: crearNueva ? (this.reservaNombre?.trim() || undefined) : undefined,
+      tipoUbicacionId: this.reservaTipo ?? undefined,
+      cantidad: this.proyeccionCliente ? Math.ceil(this.proyeccionCliente.proyectado) : undefined,
+      periodo: this.proyeccionCliente?.periodo || undefined,
+      commit,
+    };
+  }
+
+  simularReserva(): void {
+    if (!this.reservaPropId || !this.almacenSeleccionado) { return; }
+    if (this.reservaZonaId == null && !this.reservaCodigo?.trim()) {
+      this.messageService.add({ severity: 'warn', summary: 'Falta la zona', detail: 'Elegí una zona o escribí un código para crearla' });
+      return;
+    }
+    this.simulando = true;
+    this.zonaService.reservarPorProyeccion(this.dtoReserva(false)).subscribe({
+      next: (r) => { this.simulacion = r?.resumen ?? null; this.simulando = false; },
+      error: (err) => {
+        this.simulando = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'No se pudo simular' });
+      },
+    });
+  }
+
+  get puedeConfirmar(): boolean {
+    return this.simulacion?.estado === 'SIMULADO' && (this.simulacion?.porAgregar ?? 0) > 0;
+  }
+
+  confirmarReserva(): void {
+    this.confirmando = true;
+    this.zonaService.reservarPorProyeccion(this.dtoReserva(true)).subscribe({
+      next: (r) => {
+        this.confirmando = false;
+        this.messageService.add({ severity: 'success', summary: 'Reservado', detail: r?.resumen?.mensaje || 'Reserva aplicada' });
+        this.mostrarReserva = false;
+        this.viewer?.recargarDatos();
+        this.viewer?.limpiarSeleccion();
+        this.cargarZonas();
+      },
+      error: (err) => {
+        this.confirmando = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'No se pudo confirmar' });
+      },
+    });
   }
 
   volverAlReporte(): void {

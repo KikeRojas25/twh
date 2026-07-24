@@ -11,6 +11,8 @@ import {
 import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
 import { NavigationService } from 'app/core/navigation/navigation.service';
 import { Navigation } from 'app/core/navigation/navigation.types';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
 import { ChatIaButtonComponent } from 'app/layout/common/chat-ia-button/chat-ia-button.component';
 import { ChatIaPanelComponent } from 'app/layout/common/chat-ia-panel/chat-ia-panel.component';
 import { LanguagesComponent } from 'app/layout/common/languages/languages.component';
@@ -51,6 +53,8 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
     isScreenSmall: boolean;
     navigation: Navigation;
     chatIaOpen = false;
+    /** Solo los usuarios con rol Copilot ven el botón del chat. */
+    esCopilot = false;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**
@@ -61,7 +65,8 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
         private _router: Router,
         private _navigationService: NavigationService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fuseNavigationService: FuseNavigationService
+        private _fuseNavigationService: FuseNavigationService,
+        private _userService: UserService
     ) {}
 
     // -----------------------------------------------------------------------------------------------------
@@ -96,6 +101,14 @@ export class CompactLayoutComponent implements OnInit, OnDestroy {
             .subscribe(({ matchingAliases }) => {
                 // Check if the screen is small
                 this.isScreenSmall = !matchingAliases.includes('md');
+            });
+
+        // Copilot: solo estos usuarios ven el botón del chat en la cabecera.
+        // El backend igual protege los endpoints con la policy Copilot.
+        this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user: User) => {
+                this.esCopilot = user?.esCopilot === true;
             });
     }
 

@@ -30,6 +30,9 @@
     <div class="shrink-0 flex items-center gap-2">
       <button pButton type="button" icon="pi pi-arrow-left" label="Volver al reporte"
         class="p-button-text p-button-secondary p-button-sm" (click)="volverAlReporte()"></button>
+      <button pButton type="button" icon="pi pi-bolt" label="Reservar por proyección"
+        class="p-button-sm" (click)="abrirReserva()"
+        pTooltip="Reservar ubicaciones según la proyección del cliente" tooltipPosition="bottom"></button>
       <div class="inline-flex items-center gap-2 rounded-lg bg-gray-50 ring-1 ring-gray-200 pl-3 pr-1.5 py-1">
         <i class="pi pi-building text-gray-400 text-xs"></i>
         <span class="text-xs font-medium text-gray-500">Almacén</span>
@@ -182,4 +185,83 @@
   <div *ngIf="!cargandoAlmacenes && almacenes.length === 0" class="flex-1 grid place-items-center text-gray-400">
     No hay almacenes disponibles.
   </div>
+
+  <!-- Reservar por proyección (puente Analítica → Zonas) -->
+  <p-dialog header="Reservar por proyección" [(visible)]="mostrarReserva" [modal]="true"
+            [style]="{ width: '520px' }" [dismissableMask]="true" appendTo="body">
+    <div class="flex flex-col gap-4 pt-2">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Cliente</label>
+        <p-dropdown [options]="propietarios" [(ngModel)]="reservaPropId" [filter]="true" filterBy="label"
+                    placeholder="Elegí un cliente" appendTo="body" styleClass="w-full"
+                    (onChange)="onReservaClienteChange()"></p-dropdown>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Horizonte</label>
+        <p-dropdown [options]="mesesOpciones" [(ngModel)]="reservaMeses" appendTo="body" styleClass="w-full"
+                    (onChange)="onReservaClienteChange()"></p-dropdown>
+      </div>
+
+      <div *ngIf="proyeccionCliente" class="rounded-lg bg-indigo-50 border border-indigo-200 px-4 py-3">
+        <div class="text-sm text-indigo-900">
+          El modelo proyecta
+          <strong>{{ proyeccionCliente.proyectado | number:'1.0-0' }} ubicaciones</strong>
+          para <strong>{{ proyeccionCliente.periodo | date:'MMM y' }}</strong>.
+        </div>
+      </div>
+      <div *ngIf="reservaPropId && !proyeccionCliente" class="text-sm text-gray-500">
+        Este cliente no tiene proyección del modelo todavía.
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Zona destino</label>
+        <p-dropdown [options]="reservaZonaOpciones" [(ngModel)]="reservaZonaId" appendTo="body" styleClass="w-full"
+                    (onChange)="simulacion = null"></p-dropdown>
+      </div>
+      <div *ngIf="reservaZonaId == null" class="grid grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700">Código</label>
+          <input pInputText [(ngModel)]="reservaCodigo" placeholder="ej. LIBUS" maxlength="20" class="w-full" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700">Nombre</label>
+          <input pInputText [(ngModel)]="reservaNombre" placeholder="Zona Libus" maxlength="100" class="w-full" />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Tipo de ubicación</label>
+        <p-dropdown [options]="tipoOpciones" [(ngModel)]="reservaTipo" appendTo="body" styleClass="w-full"
+                    (onChange)="simulacion = null"></p-dropdown>
+      </div>
+
+      <!-- Resultado de la simulación -->
+      <div *ngIf="simulacion" class="rounded-lg border px-4 py-3"
+           [ngClass]="simulacion.estado === 'FALTA_ESPACIO' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'">
+        <div class="grid grid-cols-3 gap-y-1 text-sm">
+          <span class="text-gray-500">Necesita</span>
+          <span class="col-span-2 font-medium">{{ simulacion.necesita | number }}</span>
+          <span class="text-gray-500">Ya en la zona</span>
+          <span class="col-span-2">{{ simulacion.yaEnZona | number }}</span>
+          <span class="text-gray-500">A reservar</span>
+          <span class="col-span-2 font-semibold text-indigo-700">{{ simulacion.porAgregar | number }}</span>
+          <span class="text-gray-500">Libres disponibles</span>
+          <span class="col-span-2">{{ simulacion.libres | number }}</span>
+        </div>
+        <div class="mt-2 text-sm" [ngClass]="simulacion.estado === 'FALTA_ESPACIO' ? 'text-red-700' : 'text-gray-700'">
+          {{ simulacion.mensaje }}
+        </div>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <button pButton type="button" label="Simular" icon="pi pi-search"
+              class="p-button-outlined p-button-sm" (click)="simularReserva()"
+              [disabled]="!reservaPropId || simulando" [loading]="simulando"></button>
+      <button pButton type="button" label="Confirmar reserva" icon="pi pi-check"
+              class="p-button-sm" (click)="confirmarReserva()"
+              [disabled]="!puedeConfirmar || confirmando" [loading]="confirmando"></button>
+    </ng-template>
+  </p-dialog>
 </div>

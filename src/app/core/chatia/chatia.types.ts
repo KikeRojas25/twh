@@ -27,6 +27,10 @@ export interface FuncionInvocada {
     duracionMs: number;
     ok: boolean;
     error?: string;
+    /** Id del mensaje 'tool' persistido; se usa para descargar el Excel. */
+    mensajeId?: number;
+    /** True si el resultado tiene tabla y se puede bajar a Excel. */
+    descargable?: boolean;
 }
 
 export interface LimiteEstado {
